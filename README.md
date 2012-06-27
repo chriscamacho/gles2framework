@@ -16,31 +16,31 @@ Brief API notes at the end of the readme
 Project structure
 =================
 
--include		source code include files
+-include________source code include files
 
--kazmath		source code and included for the kazmath library
+-kazmath________source code and included for the kazmath library
 
--o				somewhere to put intermediate binary objects
+-o______________somewhere to put intermediate binary objects
 
--src			source code for the framework
+-src____________source code for the framework
 
--src-models		sorce code for model data
+-src-models_____sorce code for model data
 
--shaders		fragment and vertex shaders used by the framework
+-shaders________fragment and vertex shaders used by the framework
 
--textures		images used to texture models
+-textures_______images used to texture models
 
--obj2opengl		script used to turn wavefront OBJ models into source code
+-obj2opengl_____script used to turn wavefront OBJ models into source code
 
--models			source models used by obj2opengl
+-models_________source models used by obj2opengl
 
-simple.c		the simplist example of using the framework
+simple.c________the simplist example of using the framework
 
-main.c			a more complex "gamelet" example of using the framework
+main.c__________a more complex "gamelet" example of using the framework
 
-Makefile		tells the compiler how to build the examples
+Makefile________tells the compiler how to build the examples
 
-README.md		this file!
+README.md_______this file!
 
 
 
