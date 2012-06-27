@@ -14,7 +14,7 @@ Brief API notes at the end of the readme
 
 
 Project structure
-======= =========
+=================
 
 -include		source code include files
 -kazmath		source code and included for the kazmath library
@@ -63,7 +63,7 @@ in addition you will have to add a rule in the Makefile
 
 
 support routines
-======= ========
+================
 
 int loadPNG(const char *filename);
 
