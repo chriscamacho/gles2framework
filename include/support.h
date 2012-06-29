@@ -4,6 +4,12 @@
 
 #include <stdbool.h>
 
+#ifdef __FOR_RPI__
+
+#include  "bcm_host.h"
+
+#endif
+
 enum shaderLocationType { shaderAttrib, shaderUniform };
 GLuint getShaderLocation(int type, GLuint prog, const char *name);
 

@@ -18,7 +18,7 @@
 #include <sys/time.h>		// fps stuff
 
 // must define window_width and height for support routines
-const float window_width = 800, window_height = 480;
+const float window_width = 640, window_height = 360;
 
 void render();			// func prototype
 

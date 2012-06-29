@@ -15,13 +15,36 @@ Display *x_display;
 
 #endif // __FOR_XORG_
 
+
+
 #include <png.h>
 #include <kazmath.h>
 #include "support.h"
 
 extern float window_width, window_height;
 
+#ifndef __FOR_RPi__
+
 Window win;
+
+#else
+
+
+// sudo kbd_mode -a - on RPi if you have to kill it...
+EGLNativeWindowType  win;
+
+
+#include "linux/kd.h"	// keyboard stuff...
+#include "termios.h"
+#include "fcntl.h"
+#include "sys/ioctl.h"
+
+static struct termios tty_attr_old;
+static int old_keyboard_mode;
+
+
+#endif
+
 EGLDisplay egl_display;
 EGLContext egl_context;
 EGLSurface egl_surface;
@@ -36,7 +59,7 @@ void closeNativeWindow()
 #endif				//__FOR_XORG__
 
 #ifdef __FOR_RPi__
-TODO_this_will_deliberatly_cause_an_error_as_a_reminder_it_needs_implementing... 
+
 #endif //__FOR_RPi__
 }
 
@@ -104,8 +127,67 @@ void makeNativeWindow() {
 #endif				//__FOR_XORG__
 
 #ifdef __FOR_RPi__
-TODO !
-// note to self also set egl_display !
+
+	bcm_host_init();
+	
+   int32_t success = 0;
+
+   static EGL_DISPMANX_WINDOW_T nativewindow;
+
+   DISPMANX_ELEMENT_HANDLE_T dispman_element;
+   DISPMANX_DISPLAY_HANDLE_T dispman_display;
+   DISPMANX_UPDATE_HANDLE_T dispman_update;
+   VC_RECT_T dst_rect;
+   VC_RECT_T src_rect;
+   
+
+   int display_width;
+   int display_height;
+
+   // create an EGL window surface, passing context width/height
+   success = graphics_get_display_size(0 /* LCD */, &display_width, &display_height);
+   if ( success < 0 )
+   {
+	printf("unable to get display size\n");
+      //return EGL_FALSE;
+   }
+
+
+  
+
+   dst_rect.x = 0;
+   dst_rect.y = 0;
+   dst_rect.width = display_width;
+   dst_rect.height = display_height;
+
+   // You can hardcode the resolution here:
+	// and its upscaled the displays resolution
+   display_width = window_width;
+   display_height = window_height; // src res to match destination its probably 16:9...
+   
+   src_rect.x = 0;
+   src_rect.y = 0;
+   src_rect.width = display_width << 16;
+   src_rect.height = display_height << 16;   
+
+   dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
+   dispman_update = vc_dispmanx_update_start( 0 );
+         
+   dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
+      0/*layer*/, &dst_rect, 0/*src*/,
+      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
+      
+   nativewindow.element = dispman_element;
+   nativewindow.width = display_width;
+   nativewindow.height = display_height;
+   vc_dispmanx_update_submit_sync( dispman_update );
+   
+   win = &nativewindow;
+
+
+
+	egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
 #endif //__FOR_RPi__
 
 	
@@ -494,8 +576,11 @@ int makeContext()
 {
 	makeNativeWindow(); // sets global pointers for win and disp
 
+   EGLint majorVersion;
+   EGLint minorVersion;
 
-	if (!eglInitialize(egl_display, NULL, NULL)) {
+	// most egl you can sends NULLS for maj/min but not RPi 
+	if (!eglInitialize(egl_display,  &majorVersion, &minorVersion)) {
 		printf("Unable to initialize EGL\n");
 		return 1;
 	}
@@ -521,7 +606,10 @@ int makeContext()
 		return 1;
 	}
 
+
 	egl_surface = eglCreateWindowSurface(egl_display, ecfg, win, NULL);
+
+	
 	if (egl_surface == EGL_NO_SURFACE) {
 		//cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << endl;
 		printf("failed create egl surface eglerror:%i\n",
@@ -554,6 +642,13 @@ void closeContext()
 	eglTerminate(egl_display);
 
 	closeNativeWindow();
+	
+	
+	#ifdef __FOR_RPi__
+		tcsetattr(0, TCSAFLUSH, &tty_attr_old);
+//		ioctl(0, KDSKBMODE, old_keyboard_mode);
+		ioctl(0, KDSKBMODE, K_XLATE);
+	#endif
 }
 
 bool __keys[256];
@@ -601,7 +696,25 @@ void doEvents()
 
 #ifdef __FOR_RPi__
 
-TODO!
+
+// TODO mouse!
+
+
+    char buf[1];
+    int res;
+
+    res = read(0, &buf[0], 1);
+    while (res >= 0) {
+		if (buf[0] & 0x80) {
+			//printf("key %i released\n",(buf[0]&~0x80));
+			__keys[buf[0]&~0x80]=false;
+		} else {
+			//printf("key %i pressed\n",(buf[0]&~0x80));
+			__keys[buf[0]&~0x80]=true;
+		
+		}
+		res = read(0, &buf[0], 1);
+    }
 
 #endif //  __FOR_RPi__
 
@@ -615,5 +728,32 @@ int *getMouse()
 
 bool *getKeys()
 {
+
+#ifdef __FOR_RPi__
+    struct termios tty_attr;
+    int flags;
+
+    /* make stdin non-blocking */
+    flags = fcntl(0, F_GETFL);
+    flags |= O_NONBLOCK;
+    fcntl(0, F_SETFL, flags);
+
+    /* save old keyboard mode */
+    if (ioctl(0, KDGKBMODE, &old_keyboard_mode) < 0) {
+	//return 0;
+	printf("couldn't get the keyboard, are you running via ssh?\n");
+    }
+
+    tcgetattr(0, &tty_attr_old);
+
+    /* turn off buffering, echo and key processing */
+    tty_attr = tty_attr_old;
+    tty_attr.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tty_attr.c_iflag &= ~(ISTRIP | INLCR | ICRNL | IGNCR | IXON | IXOFF);
+    tcsetattr(0, TCSANOW, &tty_attr);
+
+    ioctl(0, KDSKBMODE, K_RAW);
+#endif
+
 	return &__keys[0];
 }
