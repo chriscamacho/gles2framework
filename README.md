@@ -160,3 +160,13 @@ void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv);
 
 this draws an obj, you need to supply a combined model, view and projection
 matrices as well as a combined model, view matrix for the lighting
+
+-------------------------------------------------------------------------
+
+int getDisplayWidth();
+int getDisplayHeight();
+
+returns full screen width and height, for now when not on Raspberry PI 
+the "screen" is fixed to a 640x480 window 
+
+
