@@ -5,43 +5,28 @@
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
-#ifdef __FOR_XORG__
-
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 
 Display *x_display;
 
-#endif // __FOR_XORG_
-
-
-
 #include <png.h>
 #include <kazmath.h>
 #include "support.h"
 
+// TODO replace with params in initialisation call....
 extern float window_width, window_height;
 
 #ifndef __FOR_RPi__
 
-Window win;
+// TODO rename with __ begining so unlikely to clash with user vars
+Window win, eventWin;
 
 #else
 
-
-// sudo kbd_mode -a - on RPi if you have to kill it...
-EGLNativeWindowType  win;
-
-
-#include "linux/kd.h"	// keyboard stuff...
-#include "termios.h"
-#include "fcntl.h"
-#include "sys/ioctl.h"
-
-static struct termios tty_attr_old;
-static int old_keyboard_mode;
-
+EGLNativeWindowType win;
+Window eventWin;
 
 #endif
 
@@ -54,17 +39,19 @@ void closeNativeWindow()
 {
 
 #ifdef __FOR_XORG__
-	XDestroyWindow(x_display, win);
+	XDestroyWindow(x_display, win);	// on normal X (ie not pi) win and eventWin point to same window
 	XCloseDisplay(x_display);
 #endif				//__FOR_XORG__
 
 #ifdef __FOR_RPi__
-
-#endif //__FOR_RPi__
+	XDestroyWindow(x_display, eventWin);	// on the pi win is dummy "context" window
+	XCloseDisplay(x_display);
+#endif				//__FOR_RPi__
 }
 
-
-void makeNativeWindow() {
+// only used internally
+void makeNativeWindow()
+{
 
 #ifdef __FOR_XORG__
 
@@ -79,16 +66,8 @@ void makeNativeWindow() {
 	swa.event_mask =
 	    ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
 
-/*
-	win = XCreateWindow(	// create a window with the provided parameters
-				   x_display, root,
-				   0, 0, window_width, window_height, 0,
-				   CopyFromParent, InputOutput,
-				   CopyFromParent, CWEventMask, &swa);
-*/
-
 	int s = DefaultScreen(x_display);
-	win = XCreateSimpleWindow(x_display, RootWindow(x_display, s),
+	win = XCreateSimpleWindow(x_display, root,
 				  10, 10, window_width, window_height, 1,
 				  BlackPixel(x_display, s),
 				  WhitePixel(x_display, s));
@@ -117,82 +96,139 @@ void makeNativeWindow() {
 	XSetWMHints(x_display, win, &hints);
 
 	XMapWindow(x_display, win);	// make the window visible on the screen
-	XStoreName(x_display, win, "GLES2.0 test");	// give the window a name
+	XStoreName(x_display, win, "GLES2.0 framework");	// give the window a name
 
-	// RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
+	// NB - RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
 	egl_display = eglGetDisplay((EGLNativeDisplayType) x_display);
 	if (egl_display == EGL_NO_DISPLAY) {
 		printf("Got no EGL display.\n");
 	}
+
+	eventWin = win;
+
 #endif				//__FOR_XORG__
 
 #ifdef __FOR_RPi__
 
+	x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
+	if (x_display == NULL) {
+		printf("cannot connect to X server\n");
+	}
+
+	Window root = DefaultRootWindow(x_display);	// get the root window (usually the whole screen)
+
+	XSetWindowAttributes swa;
+	swa.event_mask =
+	    ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
+
+	int s = DefaultScreen(x_display);
+	eventWin = XCreateSimpleWindow(x_display, root,
+				       0, 0, window_width, window_height, 1,
+				       BlackPixel(x_display, s),
+				       WhitePixel(x_display, s));
+	XSelectInput(x_display, eventWin, ExposureMask |
+		     KeyPressMask | KeyReleaseMask |
+		     ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
+
+	XSetWindowAttributes xattr;
+	Atom atom;
+	int one = 1;
+
+	xattr.override_redirect = False;
+	XChangeWindowAttributes(x_display, eventWin, CWOverrideRedirect,
+				&xattr);
+
+	XWMHints hints;
+	hints.input = True;
+	hints.flags = InputHint;
+	XSetWMHints(x_display, eventWin, &hints);
+
+	XMapWindow(x_display, eventWin);	// make the window visible on the screen
+	XStoreName(x_display, eventWin, "Event trap");	// give the window a name
+
+	// we have to be full screen to capture all mouse events
+	// TODO consider using warp mouse to report relative motions
+	// instead of absolute...
+
+	XFlush(x_display);	// you have to flush or bcm seems to prevent window coming up? 
+
+	Atom wmState = XInternAtom(x_display, "_NET_WM_STATE", False);
+	Atom fullScreen = XInternAtom(x_display,
+				      "_NET_WM_STATE_FULLSCREEN", False);
+	XEvent xev;
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.window = eventWin;
+	xev.xclient.message_type = wmState;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = 1;	//_NET_WM_STATE_ADD
+	xev.xclient.data.l[1] = fullScreen;
+	xev.xclient.data.l[2] = 0;
+	XSendEvent(x_display, root, False,
+		   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+
+	XFlush(x_display);	// you have to flush or bcm seems to prevent window coming up? 
+
 	bcm_host_init();
-	
-   int32_t success = 0;
 
-   static EGL_DISPMANX_WINDOW_T nativewindow;
+	int32_t success = 0;
 
-   DISPMANX_ELEMENT_HANDLE_T dispman_element;
-   DISPMANX_DISPLAY_HANDLE_T dispman_display;
-   DISPMANX_UPDATE_HANDLE_T dispman_update;
-   VC_RECT_T dst_rect;
-   VC_RECT_T src_rect;
-   
+	static EGL_DISPMANX_WINDOW_T nativewindow;
 
-   int display_width;
-   int display_height;
+	DISPMANX_ELEMENT_HANDLE_T dispman_element;
+	DISPMANX_DISPLAY_HANDLE_T dispman_display;
+	DISPMANX_UPDATE_HANDLE_T dispman_update;
+	VC_RECT_T dst_rect;
+	VC_RECT_T src_rect;
 
-   // create an EGL window surface, passing context width/height
-   success = graphics_get_display_size(0 /* LCD */, &display_width, &display_height);
-   if ( success < 0 )
-   {
-	printf("unable to get display size\n");
-      //return EGL_FALSE;
-   }
+	int display_width;
+	int display_height;
 
+	// create an EGL window surface, passing context width/height
+	success = graphics_get_display_size(0 /* LCD */ , &display_width,
+					    &display_height);
+	if (success < 0) {
+		printf("unable to get display size\n");
+		//return EGL_FALSE;
+	}
 
-  
+	dst_rect.x = 0;
+	dst_rect.y = 0;
+	dst_rect.width = display_width;
+	dst_rect.height = display_height;
+#
+	// upscales to the displays resolution
+	display_width = window_width;
+	display_height = window_height;	// src res to match destination its probably 16:9...  
 
-   dst_rect.x = 0;
-   dst_rect.y = 0;
-   dst_rect.width = display_width;
-   dst_rect.height = display_height;
+	src_rect.x = 0;
+	src_rect.y = 0;
+	src_rect.width = display_width << 16;
+	src_rect.height = display_height << 16;
 
-   // You can hardcode the resolution here:
-	// and its upscaled the displays resolution
-   display_width = window_width;
-   display_height = window_height; // src res to match destination its probably 16:9...
-   
-   src_rect.x = 0;
-   src_rect.y = 0;
-   src_rect.width = display_width << 16;
-   src_rect.height = display_height << 16;   
+	dispman_display = vc_dispmanx_display_open(0 /* LCD */ );
+	dispman_update = vc_dispmanx_update_start(0);
 
-   dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
-   dispman_update = vc_dispmanx_update_start( 0 );
-         
-   dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
-      0/*layer*/, &dst_rect, 0/*src*/,
-      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
-      
-   nativewindow.element = dispman_element;
-   nativewindow.width = display_width;
-   nativewindow.height = display_height;
-   vc_dispmanx_update_submit_sync( dispman_update );
-   
-   win = &nativewindow;
+	dispman_element =
+	    vc_dispmanx_element_add(dispman_update, dispman_display,
+				    0 /*layer */ , &dst_rect, 0 /*src */ ,
+				    &src_rect, DISPMANX_PROTECTION_NONE,
+				    0 /*alpha */ , 0 /*clamp */ ,
+				    0 /*transform */ );
 
+	nativewindow.element = dispman_element;
+	nativewindow.width = display_width;
+	nativewindow.height = display_height;
+	vc_dispmanx_update_submit_sync(dispman_update);
 
+	win = &nativewindow;
 
 	egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-#endif //__FOR_RPi__
+#endif				//__FOR_RPi__
 
-	
 }
-
 
 int loadPNG(const char *filename)
 {
@@ -574,13 +610,13 @@ void glPrintf(float x, float y, const char *fmt, ...)
 
 int makeContext()
 {
-	makeNativeWindow(); // sets global pointers for win and disp
+	makeNativeWindow();	// sets global pointers for win and disp
 
-   EGLint majorVersion;
-   EGLint minorVersion;
+	EGLint majorVersion;
+	EGLint minorVersion;
 
 	// most egl you can sends NULLS for maj/min but not RPi 
-	if (!eglInitialize(egl_display,  &majorVersion, &minorVersion)) {
+	if (!eglInitialize(egl_display, &majorVersion, &minorVersion)) {
 		printf("Unable to initialize EGL\n");
 		return 1;
 	}
@@ -606,10 +642,8 @@ int makeContext()
 		return 1;
 	}
 
-
 	egl_surface = eglCreateWindowSurface(egl_display, ecfg, win, NULL);
 
-	
 	if (egl_surface == EGL_NO_SURFACE) {
 		//cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << endl;
 		printf("failed create egl surface eglerror:%i\n",
@@ -642,13 +676,7 @@ void closeContext()
 	eglTerminate(egl_display);
 
 	closeNativeWindow();
-	
-	
-	#ifdef __FOR_RPi__
-		tcsetattr(0, TCSAFLUSH, &tty_attr_old);
-//		ioctl(0, KDSKBMODE, old_keyboard_mode);
-		ioctl(0, KDSKBMODE, K_XLATE);
-	#endif
+
 }
 
 bool __keys[256];
@@ -656,8 +684,6 @@ int __mouse[3];
 
 void doEvents()
 {
-
-#ifdef __FOR_XORG__
 
 	XEvent event;
 
@@ -692,33 +718,6 @@ void doEvents()
 
 		}
 	}
-#endif //  __FOR_XORG__
-
-#ifdef __FOR_RPi__
-
-
-// TODO mouse!
-
-
-    char buf[1];
-    int res;
-
-    res = read(0, &buf[0], 1);
-    while (res >= 0) {
-		if (buf[0] & 0x80) {
-			//printf("key %i released\n",(buf[0]&~0x80));
-			__keys[buf[0]&~0x80]=false;
-		} else {
-			//printf("key %i pressed\n",(buf[0]&~0x80));
-			__keys[buf[0]&~0x80]=true;
-		
-		}
-		res = read(0, &buf[0], 1);
-    }
-
-#endif //  __FOR_RPi__
-
-
 }
 
 int *getMouse()
@@ -728,32 +727,5 @@ int *getMouse()
 
 bool *getKeys()
 {
-
-#ifdef __FOR_RPi__
-    struct termios tty_attr;
-    int flags;
-
-    /* make stdin non-blocking */
-    flags = fcntl(0, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(0, F_SETFL, flags);
-
-    /* save old keyboard mode */
-    if (ioctl(0, KDGKBMODE, &old_keyboard_mode) < 0) {
-	//return 0;
-	printf("couldn't get the keyboard, are you running via ssh?\n");
-    }
-
-    tcgetattr(0, &tty_attr_old);
-
-    /* turn off buffering, echo and key processing */
-    tty_attr = tty_attr_old;
-    tty_attr.c_lflag &= ~(ICANON | ECHO | ISIG);
-    tty_attr.c_iflag &= ~(ISTRIP | INLCR | ICRNL | IGNCR | IXON | IXOFF);
-    tcsetattr(0, TCSANOW, &tty_attr);
-
-    ioctl(0, KDSKBMODE, K_RAW);
-#endif
-
 	return &__keys[0];
 }

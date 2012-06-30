@@ -18,7 +18,7 @@
 #include <sys/time.h>		// fps stuff
 
 // must define window_width and height for support routines
-const float window_width = 640, window_height = 360;
+const float window_width = 640, window_height = 360;	// 16:9 !
 
 void render();			// func prototype
 
@@ -49,7 +49,7 @@ struct playerShot_t {
 #define MAX_PLAYER_SHOTS 6
 struct playerShot_t playerShots[MAX_PLAYER_SHOTS];
 
-struct alien_t{
+struct alien_t {
 	kmVec3 pos;
 	kmVec3 shot;
 	bool alive;
@@ -60,70 +60,69 @@ struct alien_t{
 #define  MAX_ALIENS 12
 struct alien_t aliens[MAX_ALIENS];
 
-struct playerShot_t* getFreeShot() {
-	for (int n=0;n<MAX_PLAYER_SHOTS;n++) {
-		if (playerShots[n].alive==false) return &playerShots[n];
+struct playerShot_t *getFreeShot()
+{
+	for (int n = 0; n < MAX_PLAYER_SHOTS; n++) {
+		if (playerShots[n].alive == false)
+			return &playerShots[n];
 	}
 	return 0;
 }
 
-void resetAliens() {
-	for (int n=0;n<MAX_ALIENS;n++) {
-		aliens[n].pos.x=-5+n*2;
-		aliens[n].pos.z=-6;
-		if (n>5) {
-			aliens[n].pos.x-=12;
-			aliens[n].pos.z=-8;
+void resetAliens()
+{
+	for (int n = 0; n < MAX_ALIENS; n++) {
+		aliens[n].pos.x = -5 + n * 2;
+		aliens[n].pos.z = -6;
+		if (n > 5) {
+			aliens[n].pos.x -= 12;
+			aliens[n].pos.z = -8;
 		}
-		aliens[n].alive=true;
-		
+		aliens[n].alive = true;
+
 	}
 }
+
 //http://www.embeddedheaven.com/pid-control-algorithm-c-language.htm
 //Define parameter
 #define epsilon 0.01
-#define dt 0.06  //0.01=100ms loop time
-#define MAX 4                   //For Current Saturation
+#define dt 0.06			//0.01=100ms loop time
+#define MAX 4			//For Current Saturation
 #define MIN -4
 #define Kp 0.1
 #define Kd 0.01
 #define Ki 0.005
 
-float PIDcal(float setpoint,float actual_position,float pre_error, float integral)
+float PIDcal(float setpoint, float actual_position, float *pre_error,
+	     float *integral)
 {
-//	static float pre_error = 0;
-//	static float integral = 0;
+//      static float pre_error = 0;
+//      static float integral = 0;
 	float error;
 	float derivative;
 	float output;
-
 
 	//Caculate P,I,D
 	error = setpoint - actual_position;
 
 	//In case of error too small then stop intergration
-	if(abs(error) > epsilon)
-	{
-		integral = integral + error*dt;
+	if (abs(error) > epsilon) {
+		integral[0] = integral[0] + error * dt;
 	}
-	derivative = (error - pre_error)/dt;
-	output = Kp*error + Ki*integral + Kd*derivative;
+	derivative = (error - pre_error[0]) / dt;
+	output = Kp * error + Ki * integral[0] + Kd * derivative;
 
 	//Saturation Filter
-	if(output > MAX)
-	{
+	if (output > MAX) {
 		output = MAX;
-	}
-	else if(output < MIN)
-	{
+	} else if (output < MIN) {
 		output = MIN;
 	}
-        //Update error
-        pre_error = error;
+	//Update error
+	pre_error[0] = error;
 
- return output;
+	return output;
 }
-
 
 int main()
 {
@@ -141,10 +140,10 @@ int main()
 	createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
 		  "shaders/textured.vert", "shaders/textured.frag");
 
-
 	// just to prove that the vertices data in the arrays is no longer
 	// used as its now in gpu land...
-	for (int n=0;n<cubeNumVerts;n++) cubeVerts[n]=0;
+	for (int n = 0; n < cubeNumVerts; n++)
+		cubeVerts[n] = 0;
 
 	shipTex = loadPNG("textures/shipv2.png");
 	createObjCopyShader(&shipObj, shipNumVerts, shipVerts, shipTexCoords,
@@ -156,17 +155,23 @@ int main()
 
 	shotTex = loadPNG("textures/shot.png");
 	createObjCopyShader(&shotObj, shotNumVerts, shotVerts,
-				shotTexCoords, shotNormals, &cubeObj);
+			    shotTexCoords, shotNormals, &cubeObj);
 
-
-	playerPos.x=0;playerPos.y=0;playerPos.z=0;
-
+	playerPos.x = 0;
+	playerPos.y = 0;
+	playerPos.z = 0;
 
 	kmMat4Identity(&view);
 
-	pEye.x = 0; pEye.y = 2; pEye.z = 4;
-	pCenter.x = 0; pCenter.y = 0; pCenter.z = -5;
-	pUp.x = 0; pUp.y = 1; pUp.z = 0;
+	pEye.x = 0;
+	pEye.y = 2;
+	pEye.z = 4;
+	pCenter.x = 0;
+	pCenter.y = 0;
+	pCenter.z = -5;
+	pUp.x = 0;
+	pUp.y = 1;
+	pUp.z = 0;
 
 	kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
 
@@ -201,9 +206,9 @@ int main()
 	keys = getKeys();
 
 	resetAliens();
-	
-	for (int n=0;n<MAX_PLAYER_SHOTS;n++) {
-		playerShots[n].alive=false;
+
+	for (int n = 0; n < MAX_PLAYER_SHOTS; n++) {
+		playerShots[n].alive = false;
 	}
 
 	while (!quit) {		// the main loop
@@ -219,9 +224,9 @@ int main()
 		// render between two gettimeofday calls so
 		// we can sleep long enough to roughly sync
 		// to ~60fps
-		
+
 		// TODO find something a tad more elegent
-		
+
 		long i;
 		gettimeofday(&t, NULL);
 		i = t.tv_sec * 1e6 + t.tv_usec;
@@ -241,7 +246,9 @@ int main()
 		// fps value for later printing with glprintf
 		if (++num_frames % 10 == 0) {
 			gettimeofday(&t2, NULL);
-			float dtf = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6;
+			float dtf =
+			    t2.tv_sec - t1.tv_sec + (t2.tv_usec -
+						     t1.tv_usec) * 1e-6;
 			lfps = num_frames / dtf;
 			num_frames = 0;
 			t1 = t2;
@@ -253,10 +260,10 @@ int main()
 	return 0;
 }
 
-	float playerRoll,playerCroll;
+float playerRoll, playerCroll;
 
 int playerFireCount;
-	
+
 void render()
 {
 
@@ -266,31 +273,13 @@ void render()
 	frame++;
 	rad = frame * (0.0175f * 2);
 
-
-/*
-	kmMat4Identity(&model);
-	kmMat4Translation(&model, cosf(rad) * .5, -.5, -5 + sinf(rad) * .5);
-	kmMat4RotationPitchYawRoll(&model, rad, rad * 1.5, rad * 2);
-
-	kmMat4Assign(&mvp, &vp);
-	kmMat4Multiply(&mvp, &mvp, &model);	// model, view, projection combined matrix
-
-	kmMat4Assign(&mv, &view);
-	kmMat4Multiply(&mv, &mv, &model);	// view, model matrix for lighting
-
-	glBindTexture(GL_TEXTURE_2D, cubeTex);
-	drawObj(&cubeObj, &mvp, &mv);
-*/
-
-
-
-
-
 	kmMat4Identity(&model);
 	kmMat4Translation(&model, playerPos.x, playerPos.y, playerPos.z);
 
-	playerCroll+=(PIDcal(playerRoll,playerCroll,playerPre_error,playerIntegral)/2);
-	kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll*3);//
+	playerCroll +=
+	    (PIDcal(playerRoll, playerCroll, &playerPre_error, &playerIntegral)
+	     / 2);
+	kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll * 3);	//
 
 	kmMat4Assign(&mvp, &vp);
 	kmMat4Multiply(&mvp, &mvp, &model);
@@ -300,40 +289,37 @@ void render()
 
 	glBindTexture(GL_TEXTURE_2D, shipTex);
 	drawObj(&shipObj, &mvp, &mv);
-	
-	
 
 	glPrintf(100 + sinf(rad) * 16, 240 + cosf(rad) * 16,
 		 "frame=%i fps=%3.2f", frame, lfps);
 
-
-
-
-
 	kmVec3 tmp;
-	
 
 	playerFireCount--;
-	
-	if (keys[KEY_LCTRL] && playerFireCount<0) {
-		
-		struct playerShot_t* freeShot;
-		freeShot=getFreeShot();
-		if (freeShot!=0) {
-			playerFireCount=15;
-			freeShot->alive=true;
-			kmVec3Assign(&freeShot->pos,&playerPos);
+
+	if (keys[KEY_LCTRL] && playerFireCount < 0) {
+
+		struct playerShot_t *freeShot;
+		freeShot = getFreeShot();
+		if (freeShot != 0) {
+			playerFireCount = 15;
+			freeShot->alive = true;
+			kmVec3Assign(&freeShot->pos, &playerPos);
 		}
 	}
 
-	for (int n=0;n<MAX_PLAYER_SHOTS;n++) {
+	for (int n = 0; n < MAX_PLAYER_SHOTS; n++) {
 		if (playerShots[n].alive) {
-			playerShots[n].pos.z-=.1;
-			if (playerShots[n].pos.z<-10) playerShots[n].alive=false;
+			playerShots[n].pos.z -= .1;
+			if (playerShots[n].pos.z < -10)
+				playerShots[n].alive = false;
 
 			kmMat4Identity(&model);
-			kmMat4Translation(&model, playerShots[n].pos.x,playerShots[n].pos.y,playerShots[n].pos.z);
-			kmMat4RotationPitchYawRoll(&model, rad*4,0,-rad*4);
+			kmMat4Translation(&model, playerShots[n].pos.x,
+					  playerShots[n].pos.y,
+					  playerShots[n].pos.z);
+			kmMat4RotationPitchYawRoll(&model, rad * 4, 0,
+						   -rad * 4);
 
 			kmMat4Assign(&mvp, &vp);
 			kmMat4Multiply(&mvp, &mvp, &model);
@@ -346,33 +332,31 @@ void render()
 		}
 	}
 
-playerRoll=0;
-	if (keys[KEY_CURSL] && playerPos.x>-10) {
-		playerPos.x-=0.1;
-		playerRoll=.2;
+	playerRoll = 0;
+	if (keys[KEY_CURSL] && playerPos.x > -10) {
+		playerPos.x -= 0.1;
+		playerRoll = .2;
 	}
-	if (keys[KEY_CURSR] && playerPos.x<10) {
-		playerPos.x+=0.1;
-		playerRoll=-.2;
-	}		
-	pEye.x=playerPos.x*1.25;
-	
-	
-	pCenter.x=playerPos.x;
-	pCenter.y=playerPos.y+1;
-	pCenter.z=playerPos.z;
+	if (keys[KEY_CURSR] && playerPos.x < 10) {
+		playerPos.x += 0.1;
+		playerRoll = -.2;
+	}
+	pEye.x = playerPos.x * 1.25;
 
+	pCenter.x = playerPos.x;
+	pCenter.y = playerPos.y + 1;
+	pCenter.z = playerPos.z;
 
 	int deadAliens;
-	
-	deadAliens=0;
 
-	for (int n=0;n<MAX_ALIENS;n++) {
-		if (aliens[n].alive==true) {
+	deadAliens = 0;
 
-			
+	for (int n = 0; n < MAX_ALIENS; n++) {
+		if (aliens[n].alive == true) {
+
 			kmMat4Identity(&model);
-			kmMat4Translation(&model, aliens[n].pos.x, aliens[n].pos.y, aliens[n].pos.z);
+			kmMat4Translation(&model, aliens[n].pos.x,
+					  aliens[n].pos.y, aliens[n].pos.z);
 			kmMat4RotationPitchYawRoll(&model, -.4, 0, 0);
 
 			kmMat4Assign(&mvp, &vp);
@@ -383,13 +367,15 @@ playerRoll=0;
 
 			glBindTexture(GL_TEXTURE_2D, alienTex);
 			drawObj(&alienObj, &mvp, &mv);
-			
+
 			kmVec3 d;
-			for (int i=0;i<MAX_PLAYER_SHOTS;i++) {
-				kmVec3Subtract(&d,&aliens[n].pos,&playerShots[i].pos);
-				if ( kmVec3Length(&d)<.7 && playerShots[i].alive) {
-					aliens[n].alive=false;
-					playerShots[i].alive=false;
+			for (int i = 0; i < MAX_PLAYER_SHOTS; i++) {
+				kmVec3Subtract(&d, &aliens[n].pos,
+					       &playerShots[i].pos);
+				if (kmVec3Length(&d) < .7
+				    && playerShots[i].alive) {
+					aliens[n].alive = false;
+					playerShots[i].alive = false;
 				}
 			}
 		} else {
@@ -397,23 +383,19 @@ playerRoll=0;
 		}
 	}
 
-	if (deadAliens==MAX_ALIENS) {
+	if (deadAliens == MAX_ALIENS) {
 		resetAliens();
 	}
-	
+
 	kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
 
 	kmMat4Assign(&vp, &projection);
 	kmMat4Multiply(&vp, &vp, &view);
 
-
-	glPrintf(100 , 300 , "eye    %3.2f %3.2f %3.2f ", pEye.x,pEye.y,pEye.z);
-	glPrintf(100 , 316 , "centre %3.2f %3.2f %3.2f ", pCenter.x,pCenter.y,pCenter.z);
-
-
-
-
-
+	glPrintf(100, 280, "eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
+	glPrintf(100, 296, "centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
+		 pCenter.z);
+	glPrintf(100, 320, "mouse %i,%i %i ", mouse[0], mouse[1], mouse[2]);
 
 	swapBuffers();
 

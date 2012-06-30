@@ -13,7 +13,7 @@ ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Isrc-models -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
 	FLAGS+= 
-	LIBS=-lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
 
 
@@ -43,22 +43,20 @@ o/simple.o: simple.c
 
 
 # used to create object files from all in src directory
-o/%.o: src/%.c mko
+o/%.o: src/%.c
 	gcc $(FLAGS) $< -o $@
 
-o/%.o: src-models/%.c mko
+o/%.o: src-models/%.c
 	gcc $(FLAGS) $< -o $@
 
-o/%.o: kazmath/kazmath/%.c mko
+o/%.o: kazmath/kazmath/%.c
 	gcc $(FLAGS) $< -o $@
 
 
 # makes the code look nice!
 indent:
-	indent -linux src/*.c src/*.h *.c
+	indent -linux src/*.c include/*.h *.c
 
-mko:
-	mkdir -p o
 
 # deletes all intermediate object files and all compiled
 # executables and automatic source backup files

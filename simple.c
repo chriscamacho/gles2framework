@@ -108,11 +108,11 @@ int main()
 
 		render();	// the render loop
 
-		usleep(16000);  // no need to run cpu/gpu full tilt
+		usleep(16000);	// no need to run cpu/gpu full tilt
 
 	}
 
-	closeContext();	// tidy up
+	closeContext();		// tidy up
 
 	return 0;
 }
@@ -124,7 +124,7 @@ void render()
 
 	// clear the colour (drawing) and depth sort back (offscreen) buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	// count the frame and base a rotation on it.
 	frame++;
 	rad = frame * (0.0175f * 4);
@@ -153,10 +153,9 @@ void render()
 	glBindTexture(GL_TEXTURE_2D, cubeTex);
 	drawObj(&cubeObj, &mvp, &mv);
 
-	
 	// see printf documentation for the formatting of variables...
-	glPrintf(100, 240, "frame=%i", frame);  
-	
+	glPrintf(100, 240, "frame=%i", frame);
+
 	// swap the front (visible) buffer for the back (offscreen) buffer
 	swapBuffers();
 
