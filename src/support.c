@@ -16,11 +16,23 @@ Display *x_display;
 #include "support.h"
 
 // TODO replace with params in initialisation call....
-extern float window_width, window_height;
+
+
+int display_width,display_height;
+
+int getDisplayWidth() {
+	return display_width;
+}
+
+
+int getDisplayHeight() {
+	return display_height;
+}
+
 
 #ifndef __FOR_RPi__
 
-// TODO rename with __ begining so unlikely to clash with user vars
+
 Window win, eventWin;
 
 #else
@@ -66,9 +78,10 @@ void makeNativeWindow()
 	swa.event_mask =
 	    ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
 
+	display_width=640;display_height=480;  // xorg hard coded for now	
 	int s = DefaultScreen(x_display);
 	win = XCreateSimpleWindow(x_display, root,
-				  10, 10, window_width, window_height, 1,
+				  10, 10, display_width, display_height, 1,
 				  BlackPixel(x_display, s),
 				  WhitePixel(x_display, s));
 	XSelectInput(x_display, win, ExposureMask |
@@ -110,6 +123,20 @@ void makeNativeWindow()
 
 #ifdef __FOR_RPi__
 
+	bcm_host_init();
+
+	int32_t success = 0;
+
+
+	// create an EGL window surface, passing context width/height
+	success = graphics_get_display_size(0 /* LCD */ , &display_width,
+					    &display_height);
+	if (success < 0) {
+		printf("unable to get display size\n");
+		//return EGL_FALSE;
+	}
+	
+
 	x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
 	if (x_display == NULL) {
 		printf("cannot connect to X server\n");
@@ -123,7 +150,7 @@ void makeNativeWindow()
 
 	int s = DefaultScreen(x_display);
 	eventWin = XCreateSimpleWindow(x_display, root,
-				       0, 0, window_width, window_height, 1,
+				       0, 0, display_width, display_height, 1,
 				       BlackPixel(x_display, s),
 				       WhitePixel(x_display, s));
 	XSelectInput(x_display, eventWin, ExposureMask |
@@ -169,11 +196,7 @@ void makeNativeWindow()
 		   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
 	XFlush(x_display);	// you have to flush or bcm seems to prevent window coming up? 
-
-	bcm_host_init();
-
-	int32_t success = 0;
-
+	
 	static EGL_DISPMANX_WINDOW_T nativewindow;
 
 	DISPMANX_ELEMENT_HANDLE_T dispman_element;
@@ -182,25 +205,15 @@ void makeNativeWindow()
 	VC_RECT_T dst_rect;
 	VC_RECT_T src_rect;
 
-	int display_width;
-	int display_height;
 
-	// create an EGL window surface, passing context width/height
-	success = graphics_get_display_size(0 /* LCD */ , &display_width,
-					    &display_height);
-	if (success < 0) {
-		printf("unable to get display size\n");
-		//return EGL_FALSE;
-	}
+
+//	printf("display size %i,%i\n",display_width,display_height);
 
 	dst_rect.x = 0;
 	dst_rect.y = 0;
 	dst_rect.width = display_width;
 	dst_rect.height = display_height;
-#
-	// upscales to the displays resolution
-	display_width = window_width;
-	display_height = window_height;	// src res to match destination its probably 16:9...  
+
 
 	src_rect.x = 0;
 	src_rect.y = 0;
@@ -488,7 +501,7 @@ GLuint create_shader(const char *filename, GLenum type)
 
 kmMat4 opm, otm, t;
 GLuint printProg, opm_uniform;
-GLuint __fonttex, texture_uniform, cx_uniform, cy_uniform;
+GLuint fonttex, texture_uniform, cx_uniform, cy_uniform;
 GLuint vert_attrib, uv_attrib;
 GLuint quadvbo, texvbo;
 
@@ -542,7 +555,7 @@ void initGlPrint(int w, int h)
 	vert_attrib = getShaderLocation(shaderAttrib, printProg, "vert_attrib");
 	uv_attrib = getShaderLocation(shaderAttrib, printProg, "uv_attrib");
 
-	__fonttex = loadPNG("textures/font.png");
+	fonttex = loadPNG("textures/font.png");
 
 	glGenBuffers(1, &quadvbo);
 	glBindBuffer(GL_ARRAY_BUFFER, quadvbo);
@@ -571,7 +584,7 @@ void glPrintf(float x, float y, const char *fmt, ...)
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindTexture(GL_TEXTURE_2D, __fonttex);
+	glBindTexture(GL_TEXTURE_2D, fonttex);
 
 	glEnableVertexAttribArray(vert_attrib);
 	glBindBuffer(GL_ARRAY_BUFFER, quadvbo);
@@ -703,6 +716,7 @@ void doEvents()
 		case MotionNotify:
 			__mouse[0] = event.xbutton.x;
 			__mouse[1] = event.xbutton.y;
+			//printf("mouse %i,%i\n",__mouse[0],__mouse[1]);
 			break;
 
 		case ButtonPress:

@@ -17,8 +17,7 @@
 #include <unistd.h>		// usleep
 #include <sys/time.h>		// fps stuff
 
-// must define window_width and height for support routines
-const float window_width = 640, window_height = 360;	// 16:9 !
+
 
 void render();			// func prototype
 
@@ -179,16 +178,16 @@ int main()
 	// the way the model is drawn is effected
 	kmMat4Identity(&projection);
 	kmMat4PerspectiveProjection(&projection, 45,
-				    window_width / window_height, 0.1, 100);
+				    (float)getDisplayWidth() / getDisplayHeight(), 0.1, 100);
 
-	glViewport(0, 0, window_width, window_height);
+	glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
 
 	// these two matrices are pre combined for use with each model render
 	kmMat4Assign(&vp, &projection);
 	kmMat4Multiply(&vp, &vp, &view);
 
 	// initialises glprint's matrix shader and texture
-	initGlPrint(window_width, window_height);
+	initGlPrint(getDisplayWidth(), getDisplayHeight());
 
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);

@@ -25,3 +25,5 @@ void swapBuffers();
 void doEvents();
 int *getMouse();
 bool *getKeys();
+int getDisplayWidth();
+int getDisplayHeight();

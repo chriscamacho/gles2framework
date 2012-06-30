@@ -13,8 +13,6 @@
 
 #include <unistd.h>		// usleep
 
-// must define window_width and height for support routines
-const float window_width = 800, window_height = 480;
 
 void render();			// func prototype
 
@@ -68,9 +66,9 @@ int main()
 	// the way the model is drawn is effected
 	kmMat4Identity(&projection);
 	kmMat4PerspectiveProjection(&projection, 45,
-				    window_width / window_height, 0.1, 10);
+				    (float)getDisplayWidth() / getDisplayHeight(), 0.1, 10);
 
-	glViewport(0, 0, window_width, window_height);
+	glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
 
 	// these two matrices are pre combined for use with each model render
 	// the view and projection
@@ -78,7 +76,7 @@ int main()
 	kmMat4Multiply(&vp, &vp, &view);
 
 	// initialises glprint's matrix, shader and texture
-	initGlPrint(window_width, window_height);
+	initGlPrint(getDisplayWidth(), getDisplayHeight());
 
 	// we don't want to draw the back of triangles
 	// the blending is set up for glprint but disabled

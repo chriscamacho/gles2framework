@@ -12,7 +12,6 @@ endif
 ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Isrc-models -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	FLAGS+= 
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
 
