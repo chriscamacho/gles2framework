@@ -16,7 +16,7 @@ int main (int argc, char *argv[])
 //	printf("%s\n",argv[1]);
 
 	unsigned int magic;
-	magic=0x614F4247;  // GBOa in little endian
+	magic=0x614F4247;  // GBOa in little endian - initial version "a"
 
 	FILE *pFile;
 	pFile = fopen ( argv[1] , "wb" );
