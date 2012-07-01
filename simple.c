@@ -125,7 +125,7 @@ void render()
 
 	// count the frame and base a rotation on it.
 	frame++;
-	rad = frame * (0.0175f * 4);
+	rad = frame * (0.0175f);
 
 	//
 
@@ -135,7 +135,7 @@ void render()
 	// we can do both to the same matrix without having to multiply
 	// (combine) two seperate matrices 
 	kmMat4Identity(&model);
-	kmMat4Translation(&model, 0, 0, -5);
+	kmMat4Translation(&model, 0, 0, -3);
 	kmMat4RotationPitchYawRoll(&model, rad, rad * 1.5, rad * 2);
 
 	// copy the combined view/projection matrix to the mvp matrix

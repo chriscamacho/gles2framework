@@ -32,7 +32,7 @@ int getDisplayHeight() {
 
 #ifndef __FOR_RPi__
 
-
+#include  "bcm_host.h"
 Window win, eventWin;
 
 #else
@@ -223,11 +223,13 @@ void makeNativeWindow()
 	dispman_display = vc_dispmanx_display_open(0 /* LCD */ );
 	dispman_update = vc_dispmanx_update_start(0);
 
+   VC_DISPMANX_ALPHA_T alpha = { DISPMANX_FLAGS_ALPHA_FROM_SOURCE | DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS,255,0 };
+
 	dispman_element =
 	    vc_dispmanx_element_add(dispman_update, dispman_display,
 				    0 /*layer */ , &dst_rect, 0 /*src */ ,
 				    &src_rect, DISPMANX_PROTECTION_NONE,
-				    0 /*alpha */ , 0 /*clamp */ ,
+				    &alpha /*alpha */ , 0 /*clamp */ ,
 				    0 /*transform */ );
 
 	nativewindow.element = dispman_element;
@@ -356,6 +358,7 @@ int loadPNG(const char *filename)
 	(components == 2) ? (glcolours = GL_LUMINANCE_ALPHA) : (0);
 	(components == 1) ? (glcolours = GL_LUMINANCE) : (0);
 
+	printf("%s has %i colour components\n",filename,components);	
 	//glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, glcolours, GL_UNSIGNED_BYTE, pixels);
 	glTexImage2D(GL_TEXTURE_2D, 0, glcolours, width, height, 0, glcolours,
 		     GL_UNSIGNED_BYTE, pixels);
