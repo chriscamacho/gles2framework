@@ -186,7 +186,9 @@ the "screen" is fixed to a 640x480 window
 ________________________________________________________________________
 
 int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag);
+
 int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrobj);
+
 
 these are basically the same as their createObj counterparts except the
 OBJ is loaded from a compiled binary wavefront object instead of from
