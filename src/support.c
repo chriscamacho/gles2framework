@@ -531,8 +531,8 @@ void initGlPrint(int w, int h)
 	kmMat4OrthographicProjection(&opm, 0, w, h, 0, -10, 10);
 
 	GLuint vs, fs;
-	vs = create_shader("shaders/glprint.vert", GL_VERTEX_SHADER);
-	fs = create_shader("shaders/glprint.frag", GL_FRAGMENT_SHADER);
+	vs = create_shader("resources/shaders/glprint.vert", GL_VERTEX_SHADER);
+	fs = create_shader("resources/shaders/glprint.frag", GL_FRAGMENT_SHADER);
 
 	printProg = glCreateProgram();
 	glAttachShader(printProg, vs);
@@ -556,7 +556,7 @@ void initGlPrint(int w, int h)
 	vert_attrib = getShaderLocation(shaderAttrib, printProg, "vert_attrib");
 	uv_attrib = getShaderLocation(shaderAttrib, printProg, "uv_attrib");
 
-	fonttex = loadPNG("textures/font.png");
+	fonttex = loadPNG("resources/textures/font.png");
 
 	glGenBuffers(1, &quadvbo);
 	glBindBuffer(GL_ARRAY_BUFFER, quadvbo);

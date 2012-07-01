@@ -135,24 +135,25 @@ int main()
 	glActiveTexture(GL_TEXTURE0);
 
 	// The obj shapes and their textures are loaded
-	cubeTex = loadPNG("textures/dice.png");
+	cubeTex = loadPNG("resources/textures/dice.png");
 	createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
-		  "shaders/textured.vert", "shaders/textured.frag");
+		  "resources/shaders/textured.vert", "resources/shaders/textured.frag");
 
 	// just to prove that the vertices data in the arrays is no longer
 	// used as its now in gpu land...
 	for (int n = 0; n < cubeNumVerts; n++)
 		cubeVerts[n] = 0;
 
-	shipTex = loadPNG("textures/shipv2.png");
-	createObjCopyShader(&shipObj, shipNumVerts, shipVerts, shipTexCoords,
-			    shipNormals, &cubeObj);
+	shipTex = loadPNG("resources/textures/shipv2.png");
+	//createObjCopyShader(&shipObj, shipNumVerts, shipVerts, shipTexCoords,
+	//		    shipNormals, &cubeObj);
+	loadObjCopyShader(&shipObj,"resources/models/ship.gbo",&cubeObj);
 
-	alienTex = loadPNG("textures/alien.png");
+	alienTex = loadPNG("resources/textures/alien.png");
 	createObjCopyShader(&alienObj, alienNumVerts, alienVerts,
 			    alienTexCoords, alienNormals, &cubeObj);
 
-	shotTex = loadPNG("textures/shot.png");
+	shotTex = loadPNG("resources/textures/shot.png");
 	createObjCopyShader(&shotObj, shotNumVerts, shotVerts,
 			    shotTexCoords, shotNormals, &cubeObj);
 

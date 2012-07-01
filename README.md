@@ -151,6 +151,8 @@ this is an array of 256 bools, while a key is held down the coresponding
 bool is true, key values are defined in keys.h
 ________________________________________________________________________
 
+*** deprecated may be removed in later version ***
+
 int createObj(struct obj_t *obj, int numVerts, float verts[], float txVert[],
         float norms[], char *vertShader, char *fragShader);
 
@@ -158,6 +160,8 @@ pass an empty obj_t struct, the number of vertices and arrays of verts,
 texture coordinates and normals, finally you need to specify the file names
 for the vert and frag shaders 
 ________________________________________________________________________
+
+*** deprecated may be removed in later version ***
 
 int createObjCopyShader(struct obj_t *obj, int numVerts, float verts[],
 			float txVert[], float norms[], struct obj_t *sdrobj);
@@ -171,12 +175,21 @@ void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv);
 this draws an obj, you need to supply a combined model, view and projection
 matrices as well as a combined model, view matrix for the lighting
 
--------------------------------------------------------------------------
+________________________________________________________________________
 
 int getDisplayWidth();
 int getDisplayHeight();
 
 returns full screen width and height, for now when not on Raspberry PI 
 the "screen" is fixed to a 640x480 window 
+
+________________________________________________________________________
+
+int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag);
+int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrobj);
+
+these are basically the same as their createObj counterparts except the
+OBJ is loaded from a compiled binary wavefront object instead of from
+embedded data.
 
 

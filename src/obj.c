@@ -1,6 +1,7 @@
 #include  <GLES2/gl2.h>
 #include <kazmath.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "obj.h"
 #include "support.h"
 
@@ -17,8 +18,82 @@ main code
 
 */
 
-int createObj(struct obj_t *obj, int numVerts, float verts[], float txVert[],
-	      float norms[], char *vertShader, char *fragShader)
+int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag) 
+{
+	FILE *pFile;
+	pFile = fopen( objFile , "rb" );
+	if (pFile==NULL) {
+		printf("Cant find open model - %s\n",objFile);
+		return false;
+	}
+	unsigned int magic;
+	int NumVerts;
+
+	fread (&magic,1, sizeof(unsigned int), pFile );
+	if (magic!=0x614f4247) {
+		printf("Does not appear to be a version 'a' GBO file\n");
+		return false;
+	}
+	fread(&NumVerts,1,sizeof(unsigned int), pFile );
+	
+	float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+	fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
+	
+	float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+	fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
+	
+	float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+	fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
+	
+	createObj(obj,NumVerts,Verts,TexCoords,Norms,vert,frag);
+	
+	free(TexCoords);
+	free(Norms);
+	free(Verts);
+	
+	return true;
+}
+
+int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrobj) 
+{
+	FILE *pFile;
+	pFile = fopen( objFile , "rb" );
+	if (pFile==NULL) {
+		printf("Cant find open model - %s\n",objFile);
+		return false;
+	}
+	unsigned int magic;
+	int NumVerts;
+
+	fread (&magic,1, sizeof(unsigned int), pFile );
+	if (magic!=0x614f4247) {
+		printf("Does not appear to be a version 'a' GBO file\n");
+		return false;
+	}
+	fread(&NumVerts,1,sizeof(unsigned int), pFile );
+	
+	float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+	fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
+	
+	float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+	fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
+	
+	float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+	fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
+	
+	createObjCopyShader(obj,NumVerts, Verts,TexCoords,
+		Norms, sdrobj);
+	
+	free(TexCoords);
+	free(Norms);
+	free(Verts);
+	
+	return true;
+}
+
+
+int createObj(struct obj_t *obj, int numVerts, float *verts, float *txVert,
+	      float *norms, char *vertShader, char *fragShader)
 {
 	obj->num_verts = numVerts;
 
@@ -74,8 +149,8 @@ int createObj(struct obj_t *obj, int numVerts, float verts[], float txVert[],
 /*
  *  create an obj from supplied verts using an existing models shader 
  */
-int createObjCopyShader(struct obj_t *obj, int numVerts, float verts[],
-			float txVert[], float norms[], struct obj_t *sdrobj)
+int createObjCopyShader(struct obj_t *obj, int numVerts, float *verts,
+			float *txVert, float *norms, struct obj_t *sdrobj)
 {
 	obj->num_verts = numVerts;
 	glGenBuffers(1, &obj->vbo_vert);

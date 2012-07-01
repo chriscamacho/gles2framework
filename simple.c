@@ -43,9 +43,9 @@ int main()
 	glActiveTexture(GL_TEXTURE0);
 
 	// The obj shapes and their textures are loaded
-	cubeTex = loadPNG("textures/dice.png");
+	cubeTex = loadPNG("resources/textures/dice.png");
 	createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
-		  "shaders/textured.vert", "shaders/textured.frag");
+		  "resources/shaders/textured.vert", "resources/shaders/textured.frag");
 
 	// "camera" is static so just set up once here
 	kmMat4Identity(&view);
