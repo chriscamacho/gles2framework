@@ -6,9 +6,19 @@ a simple framework for OpenGLES 2.0 written in C
 intended to help learning and tutorial writing
 
 Currently supports XORG (linux) and soon to support the raspberry pi
-(none Xwindows proprietory EGL)
+(none Xwindows proprietory EGL) on the pi it uses X for input
 
 dependencies libpng, libEGL, libGLES (2.0) 
+
+if you have not compiled GLES source code on your pi before you will need to make
+a file called
+
+/etc/ld.so.conf.d/vc.conf
+
+it should contain just the line
+
+/opt/vc/lib
+
 
 Brief API notes at the end of the readme
 
