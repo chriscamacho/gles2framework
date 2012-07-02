@@ -9,7 +9,7 @@
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 
-Display *x_display;
+Display *__x_display;
 
 #include <png.h>
 #include <kazmath.h>
@@ -18,46 +18,49 @@ Display *x_display;
 // TODO replace with params in initialisation call....
 
 
-int display_width,display_height;
+int __display_width,__display_height;
 
 int getDisplayWidth() {
-	return display_width;
+	return __display_width;
 }
 
 
 int getDisplayHeight() {
-	return display_height;
+	return __display_height;
 }
 
 
-#ifndef __FOR_RPi__
+#ifdef __FOR_XORG__
 
-#include  "bcm_host.h"
-Window win, eventWin;
-
-#else
-
-EGLNativeWindowType win;
-Window eventWin;
+Window __win, __eventWin;
 
 #endif
 
-EGLDisplay egl_display;
-EGLContext egl_context;
-EGLSurface egl_surface;
+
+#ifdef __FOR_RPi__
+
+//#include  "bcm_host.h"
+EGLNativeWindowType __win;
+Window __eventWin;
+
+#endif
+
+EGLDisplay __egl_display;
+EGLContext __egl_context;
+EGLSurface __egl_surface;
 
 // only used internally
 void closeNativeWindow()
 {
 
 #ifdef __FOR_XORG__
-	XDestroyWindow(x_display, win);	// on normal X (ie not pi) win and eventWin point to same window
-	XCloseDisplay(x_display);
+	XDestroyWindow(__x_display, __win);	// on normal X (ie not pi) win and __eventWin point to same window
+	XCloseDisplay(__x_display);
 #endif				//__FOR_XORG__
 
 #ifdef __FOR_RPi__
-	XDestroyWindow(x_display, eventWin);	// on the pi win is dummy "context" window
-	XCloseDisplay(x_display);
+	XDestroyWindow(__x_display, __eventWin);	// on the pi win is dummy "context" window
+	XCloseDisplay(__x_display);
 #endif				//__FOR_RPi__
 }
 
@@ -67,24 +70,24 @@ void makeNativeWindow()
 
 #ifdef __FOR_XORG__
 
-	x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
-	if (x_display == NULL) {
+	__x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
+	if (__x_display == NULL) {
 		printf("cannot connect to X server\n");
 	}
 
-	Window root = DefaultRootWindow(x_display);	// get the root window (usually the whole screen)
+	Window root = DefaultRootWindow(__x_display);	// get the root window (usually the whole screen)
 
 	XSetWindowAttributes swa;
 	swa.event_mask =
 	    ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
 
-	display_width=640;display_height=480;  // xorg hard coded for now	
-	int s = DefaultScreen(x_display);
-	win = XCreateSimpleWindow(x_display, root,
-				  10, 10, display_width, display_height, 1,
-				  BlackPixel(x_display, s),
-				  WhitePixel(x_display, s));
-	XSelectInput(x_display, win, ExposureMask |
+	__display_width=640;__display_height=480;  // xorg hard coded for now	
+	int s = DefaultScreen(__x_display);
+	__win = XCreateSimpleWindow(__x_display, root,
+				  10, 10, __display_width, __display_height, 1,
+				  BlackPixel(__x_display, s),
+				  WhitePixel(__x_display, s));
+	XSelectInput(__x_display, __win, ExposureMask |
 		     KeyPressMask | KeyReleaseMask |
 		     ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
 
@@ -93,12 +96,12 @@ void makeNativeWindow()
 	int one = 1;
 
 	xattr.override_redirect = False;
-	XChangeWindowAttributes(x_display, win, CWOverrideRedirect, &xattr);
+	XChangeWindowAttributes(__x_display, __win, CWOverrideRedirect, &xattr);
 
 /*
-	atom = XInternAtom(x_display, "_NET_WM_STATE_FULLSCREEN", True);
-	XChangeProperty(x_display, win,
-			XInternAtom(x_display, "_NET_WM_STATE", True),
+	atom = XInternAtom(__x_display, "_NET_WM_STATE_FULLSCREEN", True);
+	XChangeProperty(__x_display, win,
+			XInternAtom(__x_display, "_NET_WM_STATE", True),
 			XA_ATOM, 32, PropModeReplace, (unsigned char *)&atom,
 			1);
 */
@@ -106,18 +109,18 @@ void makeNativeWindow()
 	XWMHints hints;
 	hints.input = True;
 	hints.flags = InputHint;
-	XSetWMHints(x_display, win, &hints);
+	XSetWMHints(__x_display, __win, &hints);
 
-	XMapWindow(x_display, win);	// make the window visible on the screen
-	XStoreName(x_display, win, "GLES2.0 framework");	// give the window a name
+	XMapWindow(__x_display, __win);	// make the window visible on the screen
+	XStoreName(__x_display, __win, "GLES2.0 framework");	// give the window a name
 
 	// NB - RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
-	egl_display = eglGetDisplay((EGLNativeDisplayType) x_display);
-	if (egl_display == EGL_NO_DISPLAY) {
+	__egl_display = eglGetDisplay((EGLNativeDisplayType) __x_display);
+	if (__egl_display == EGL_NO_DISPLAY) {
 		printf("Got no EGL display.\n");
 	}
 
-	eventWin = win;
+	__eventWin = __win;
 
 #endif				//__FOR_XORG__
 
@@ -129,31 +132,31 @@ void makeNativeWindow()
 
 
 	// create an EGL window surface, passing context width/height
-	success = graphics_get_display_size(0 /* LCD */ , &display_width,
-					    &display_height);
+	success = graphics_get_display_size(0 /* LCD */ , &__display_width,
+					    &__display_height);
 	if (success < 0) {
 		printf("unable to get display size\n");
 		//return EGL_FALSE;
 	}
 	
 
-	x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
-	if (x_display == NULL) {
+	__x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
+	if (__x_display == NULL) {
 		printf("cannot connect to X server\n");
 	}
 
-	Window root = DefaultRootWindow(x_display);	// get the root window (usually the whole screen)
+	Window root = DefaultRootWindow(__x_display);	// get the root window (usually the whole screen)
 
 	XSetWindowAttributes swa;
 	swa.event_mask =
 	    ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
 
-	int s = DefaultScreen(x_display);
-	eventWin = XCreateSimpleWindow(x_display, root,
-				       0, 0, display_width, display_height, 1,
-				       BlackPixel(x_display, s),
-				       WhitePixel(x_display, s));
-	XSelectInput(x_display, eventWin, ExposureMask |
+	int s = DefaultScreen(__x_display);
+	__eventWin = XCreateSimpleWindow(__x_display, root,
+				       0, 0, __display_width, __display_height, 1,
+				       BlackPixel(__x_display, s),
+				       WhitePixel(__x_display, s));
+	XSelectInput(__x_display, __eventWin, ExposureMask |
 		     KeyPressMask | KeyReleaseMask |
 		     ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
 
@@ -162,40 +165,40 @@ void makeNativeWindow()
 	int one = 1;
 
 	xattr.override_redirect = False;
-	XChangeWindowAttributes(x_display, eventWin, CWOverrideRedirect,
+	XChangeWindowAttributes(__x_display, __eventWin, CWOverrideRedirect,
 				&xattr);
 
 	XWMHints hints;
 	hints.input = True;
 	hints.flags = InputHint;
-	XSetWMHints(x_display, eventWin, &hints);
+	XSetWMHints(__x_display, __eventWin, &hints);
 
-	XMapWindow(x_display, eventWin);	// make the window visible on the screen
-	XStoreName(x_display, eventWin, "Event trap");	// give the window a name
+	XMapWindow(__x_display, __eventWin);	// make the window visible on the screen
+	XStoreName(__x_display, __eventWin, "Event trap");	// give the window a name
 
 	// we have to be full screen to capture all mouse events
 	// TODO consider using warp mouse to report relative motions
 	// instead of absolute...
 
-	XFlush(x_display);	// you have to flush or bcm seems to prevent window coming up? 
+	XFlush(__x_display);	// you have to flush or bcm seems to prevent window coming up? 
 
-	Atom wmState = XInternAtom(x_display, "_NET_WM_STATE", False);
-	Atom fullScreen = XInternAtom(x_display,
+	Atom wmState = XInternAtom(__x_display, "_NET_WM_STATE", False);
+	Atom fullScreen = XInternAtom(__x_display,
 				      "_NET_WM_STATE_FULLSCREEN", False);
 	XEvent xev;
 	xev.xclient.type = ClientMessage;
 	xev.xclient.serial = 0;
 	xev.xclient.send_event = True;
-	xev.xclient.window = eventWin;
+	xev.xclient.window = __eventWin;
 	xev.xclient.message_type = wmState;
 	xev.xclient.format = 32;
 	xev.xclient.data.l[0] = 1;	//_NET_WM_STATE_ADD
 	xev.xclient.data.l[1] = fullScreen;
 	xev.xclient.data.l[2] = 0;
-	XSendEvent(x_display, root, False,
+	XSendEvent(__x_display, root, False,
 		   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
-	XFlush(x_display);	// you have to flush or bcm seems to prevent window coming up? 
+	XFlush(__x_display);	// you have to flush or bcm seems to prevent window coming up? 
 	
 	static EGL_DISPMANX_WINDOW_T nativewindow;
 
@@ -207,24 +210,24 @@ void makeNativeWindow()
 
 
 
-//	printf("display size %i,%i\n",display_width,display_height);
+//	printf("display size %i,%i\n",__display_width,__display_height);
 
 	dst_rect.x = 0;
 	dst_rect.y = 0;
-	dst_rect.width = display_width;
-	dst_rect.height = display_height;
+	dst_rect.width = __display_width;
+	dst_rect.height = __display_height;
 
 
 	src_rect.x = 0;
 	src_rect.y = 0;
-	src_rect.width = display_width << 16;
-	src_rect.height = display_height << 16;
+	src_rect.width = __display_width << 16;
+	src_rect.height = __display_height << 16;
 
 	dispman_display = vc_dispmanx_display_open(0 /* LCD */ );
 	dispman_update = vc_dispmanx_update_start(0);
 
-   VC_DISPMANX_ALPHA_T alpha = { DISPMANX_FLAGS_ALPHA_FROM_SOURCE | DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS,255,0 };
-
+   //VC_DISPMANX_ALPHA_T alpha = { DISPMANX_FLAGS_ALPHA_FROM_SOURCE | DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS,255,0 };
+   VC_DISPMANX_ALPHA_T alpha = { DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS,255,0 };
 	dispman_element =
 	    vc_dispmanx_element_add(dispman_update, dispman_display,
 				    0 /*layer */ , &dst_rect, 0 /*src */ ,
@@ -233,13 +236,13 @@ void makeNativeWindow()
 				    0 /*transform */ );
 
 	nativewindow.element = dispman_element;
-	nativewindow.width = display_width;
-	nativewindow.height = display_height;
+	nativewindow.width = __display_width;
+	nativewindow.height = __display_height;
 	vc_dispmanx_update_submit_sync(dispman_update);
 
-	win = &nativewindow;
+	__win = &nativewindow;
 
-	egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	__egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
 #endif				//__FOR_RPi__
 
@@ -358,7 +361,7 @@ int loadPNG(const char *filename)
 	(components == 2) ? (glcolours = GL_LUMINANCE_ALPHA) : (0);
 	(components == 1) ? (glcolours = GL_LUMINANCE) : (0);
 
-	printf("%s has %i colour components\n",filename,components);	
+	//printf("%s has %i colour components\n",filename,components);	
 	//glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, glcolours, GL_UNSIGNED_BYTE, pixels);
 	glTexImage2D(GL_TEXTURE_2D, 0, glcolours, width, height, 0, glcolours,
 		     GL_UNSIGNED_BYTE, pixels);
@@ -376,7 +379,7 @@ int loadPNG(const char *filename)
 // only here to keep egl pointers out of frontend code
 void swapBuffers()
 {
-	eglSwapBuffers(egl_display, egl_surface);	// get the rendered buffer to the screen
+	eglSwapBuffers(__egl_display, __egl_surface);	// get the rendered buffer to the screen
 }
 
 GLuint getShaderLocation(int type, GLuint prog, const char *name)
@@ -503,73 +506,77 @@ GLuint create_shader(const char *filename, GLenum type)
 	return res;
 }
 
+
+struct {  // blob of globals for the glPrint routine
 kmMat4 opm, otm, t;
 GLuint printProg, opm_uniform;
 GLuint fonttex, texture_uniform, cx_uniform, cy_uniform;
 GLuint vert_attrib, uv_attrib;
 GLuint quadvbo, texvbo;
-
-const GLfloat quadVertices[] = {
-	0, 0, 0,
-	16, 16, 0,
-	16, 0, 0,
-
-	16, 16, 0,
-	0, 0, 0,
-	0, 16, 0
-};
-
-GLfloat texCoord[] = {
-	0, 0,
-	1. / 16, 1. / 16,
-	1. / 16, 0,
-	1. / 16, 1. / 16,
-	0, 0,
-	0, 1. / 16
-};
+} __glp;
 
 void initGlPrint(int w, int h)
 {
+	const GLfloat quadVertices[] = {
+		0,	0,	0,
+		16, 16, 0,
+		16,	0,	0,
 
-	kmMat4OrthographicProjection(&opm, 0, w, h, 0, -10, 10);
+		16, 16, 0,
+		0,	0,	0,
+		0,	16,	0
+	};
+
+	const GLfloat texCoord[] = {
+		0,			0,
+		1. / 16,	1. / 16,
+		1. / 16,	0,
+		1. / 16,	1. / 16,
+		0,			0,
+		0,			1. / 16
+	};
+
+
+	kmMat4OrthographicProjection(&__glp.opm, 0, w, h, 0, -10, 10);
 
 	GLuint vs, fs;
 	vs = create_shader("resources/shaders/glprint.vert", GL_VERTEX_SHADER);
 	fs = create_shader("resources/shaders/glprint.frag", GL_FRAGMENT_SHADER);
 
-	printProg = glCreateProgram();
-	glAttachShader(printProg, vs);
-	glAttachShader(printProg, fs);
-	glLinkProgram(printProg);
+	__glp.printProg = glCreateProgram();
+	glAttachShader(__glp.printProg, vs);
+	glAttachShader(__glp.printProg, fs);
+	glLinkProgram(__glp.printProg);
 	int link_ok;
-	glGetProgramiv(printProg, GL_LINK_STATUS, &link_ok);
+	glGetProgramiv(__glp.printProg, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
 		printf("glLinkProgram:");
-		print_log(printProg);
+		print_log(__glp.printProg);
 		printf("\n");
 	}
 
-	cx_uniform = getShaderLocation(shaderUniform, printProg, "cx");
-	cy_uniform = getShaderLocation(shaderUniform, printProg, "cy");
-	opm_uniform =
-	    getShaderLocation(shaderUniform, printProg, "opm_uniform");
-	texture_uniform =
-	    getShaderLocation(shaderUniform, printProg, "texture_uniform");
+	__glp.cx_uniform = getShaderLocation(shaderUniform, __glp.printProg, "cx");
+	__glp.cy_uniform = getShaderLocation(shaderUniform, __glp.printProg, "cy");
+	__glp.opm_uniform =
+	    getShaderLocation(shaderUniform, __glp.printProg, "opm_uniform");
+	__glp.texture_uniform =
+	    getShaderLocation(shaderUniform, __glp.printProg, "texture_uniform");
 
-	vert_attrib = getShaderLocation(shaderAttrib, printProg, "vert_attrib");
-	uv_attrib = getShaderLocation(shaderAttrib, printProg, "uv_attrib");
+	__glp.vert_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "vert_attrib");
+	__glp.uv_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "uv_attrib");
 
-	fonttex = loadPNG("resources/textures/font.png");
+	__glp.fonttex = loadPNG("resources/textures/font.png");
 
-	glGenBuffers(1, &quadvbo);
-	glBindBuffer(GL_ARRAY_BUFFER, quadvbo);
+	glGenBuffers(1, &__glp.quadvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, quadVertices,
 		     GL_STATIC_DRAW);
 
-	glGenBuffers(1, &texvbo);
-	glBindBuffer(GL_ARRAY_BUFFER, texvbo);
+	glGenBuffers(1, &__glp.texvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
 		     GL_STATIC_DRAW);
+
 }
 
 void glPrintf(float x, float y, const char *fmt, ...)
@@ -580,25 +587,25 @@ void glPrintf(float x, float y, const char *fmt, ...)
 	vsprintf(text, fmt, ap);
 	va_end(ap);
 
-	glUseProgram(printProg);
-	kmMat4Assign(&otm, &opm);
-	kmMat4Translation(&t, x, y, -1);
-	kmMat4Multiply(&otm, &otm, &t);
+	glUseProgram(__glp.printProg);
+	kmMat4Assign(&__glp.otm, &__glp.opm);
+	kmMat4Translation(&__glp.t, x, y, -1);
+	kmMat4Multiply(&__glp.otm, &__glp.otm, &__glp.t);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindTexture(GL_TEXTURE_2D, fonttex);
+	glBindTexture(GL_TEXTURE_2D, __glp.fonttex);
 
-	glEnableVertexAttribArray(vert_attrib);
-	glBindBuffer(GL_ARRAY_BUFFER, quadvbo);
-	glVertexAttribPointer(vert_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(__glp.vert_attrib);
+	glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
+	glVertexAttribPointer(__glp.vert_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glEnableVertexAttribArray(uv_attrib);
-	glBindBuffer(GL_ARRAY_BUFFER, texvbo);
-	glVertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(__glp.uv_attrib);
+	glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
+	glVertexAttribPointer(__glp.uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glUniform1i(texture_uniform, 0);
+	glUniform1i(__glp.texture_uniform, 0);
 
 	for (int n = 0; n < strlen(text); n++) {
 
@@ -608,22 +615,23 @@ void glPrintf(float x, float y, const char *fmt, ...)
 		cy = cy * (1. / 16);
 		cx = cx * (1. / 16);
 
-		glUniformMatrix4fv(opm_uniform, 1, GL_FALSE, (GLfloat *) & otm);
-		glUniform1f(cx_uniform, cx);
-		glUniform1f(cy_uniform, cy);
+		glUniformMatrix4fv(__glp.opm_uniform, 1, GL_FALSE, (GLfloat *) & __glp.otm);
+		glUniform1f(__glp.cx_uniform, cx);
+		glUniform1f(__glp.cy_uniform, cy);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		kmMat4Translation(&t, 16, 0, 0);
-		kmMat4Multiply(&otm, &otm, &t);
+		kmMat4Translation(&__glp.t, 16, 0, 0);
+		kmMat4Multiply(&__glp.otm, &__glp.otm, &__glp.t);
 	}
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glDisableVertexAttribArray(uv_attrib);
-	glDisableVertexAttribArray(vert_attrib);
+	glDisableVertexAttribArray(__glp.uv_attrib);
+	glDisableVertexAttribArray(__glp.vert_attrib);
 
 }
+
 
 int makeContext()
 {
@@ -633,7 +641,7 @@ int makeContext()
 	EGLint minorVersion;
 
 	// most egl you can sends NULLS for maj/min but not RPi 
-	if (!eglInitialize(egl_display, &majorVersion, &minorVersion)) {
+	if (!eglInitialize(__egl_display, &majorVersion, &minorVersion)) {
 		printf("Unable to initialize EGL\n");
 		return 1;
 	}
@@ -648,7 +656,7 @@ int makeContext()
 
 	EGLConfig ecfg;
 	EGLint num_config;
-	if (!eglChooseConfig(egl_display, attr, &ecfg, 1, &num_config)) {
+	if (!eglChooseConfig(__egl_display, attr, &ecfg, 1, &num_config)) {
 		//cerr << "Failed to choose config (eglError: " << eglGetError() << ")" << endl;
 		printf("failed to choose config eglerror:%i\n", eglGetError());	// todo change error number to text error
 		return 1;
@@ -659,9 +667,9 @@ int makeContext()
 		return 1;
 	}
 
-	egl_surface = eglCreateWindowSurface(egl_display, ecfg, win, NULL);
+	__egl_surface = eglCreateWindowSurface(__egl_display, ecfg, __win, NULL);
 
-	if (egl_surface == EGL_NO_SURFACE) {
+	if (__egl_surface == EGL_NO_SURFACE) {
 		//cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << endl;
 		printf("failed create egl surface eglerror:%i\n",
 		       eglGetError());
@@ -672,25 +680,25 @@ int makeContext()
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
-	egl_context =
-	    eglCreateContext(egl_display, ecfg, EGL_NO_CONTEXT, ctxattr);
-	if (egl_context == EGL_NO_CONTEXT) {
+	__egl_context =
+	    eglCreateContext(__egl_display, ecfg, EGL_NO_CONTEXT, ctxattr);
+	if (__egl_context == EGL_NO_CONTEXT) {
 		//cerr << "Unable to create EGL context (eglError: " << eglGetError() << ")" << endl;
 		printf("unable to create EGL context eglerror:%i\n",
 		       eglGetError());
 		return 1;
 	}
 	//// associate the egl-context with the egl-surface
-	eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+	eglMakeCurrent(__egl_display, __egl_surface, __egl_surface, __egl_context);
 
 	return 0;
 }
 
 void closeContext()
 {
-	eglDestroyContext(egl_display, egl_context);
-	eglDestroySurface(egl_display, egl_surface);
-	eglTerminate(egl_display);
+	eglDestroyContext(__egl_display, __egl_context);
+	eglDestroySurface(__egl_display, __egl_surface);
+	eglTerminate(__egl_display);
 
 	closeNativeWindow();
 
@@ -704,8 +712,8 @@ void doEvents()
 
 	XEvent event;
 
-	while (XEventsQueued(x_display, QueuedAfterReading)) {
-		XNextEvent(x_display, &event);
+	while (XEventsQueued(__x_display, QueuedAfterReading)) {
+		XNextEvent(__x_display, &event);
 		switch (event.type) {
 
 		case KeyPress:
