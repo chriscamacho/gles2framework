@@ -8,12 +8,6 @@
 #include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
 
-// OBJ vert data
-#include "cube.h"
-#include "ship.h"
-#include "alien.h"
-#include "shot.h"
-
 #include <unistd.h>		// usleep
 #include <sys/time.h>		// fps stuff
 
@@ -37,6 +31,7 @@ int *mouse;
 bool *keys;
 kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 
+// direction of light and view for lighting
 kmVec3 viewDir,lightDir;
 
 kmVec3 playerPos;
@@ -47,7 +42,7 @@ struct playerShot_t {
 	bool alive;
 };
 
-#define MAX_PLAYER_SHOTS 6
+#define MAX_PLAYER_SHOTS 3
 struct playerShot_t playerShots[MAX_PLAYER_SHOTS];
 
 struct alien_t {
@@ -143,26 +138,18 @@ int main()
 
 	// The obj shapes and their textures are loaded
 	cubeTex = loadPNG("resources/textures/dice.png");
-	createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
+	loadObj(&cubeObj, "resources/models/cube.gbo",
 		  "resources/shaders/textured.vert", "resources/shaders/textured.frag");
 
-	// just to prove that the vertices data in the arrays is no longer
-	// used as its now in gpu land...
-	for (int n = 0; n < cubeNumVerts; n++)
-		cubeVerts[n] = 0;
 
 	shipTex = loadPNG("resources/textures/shipv2.png");
-	//createObjCopyShader(&shipObj, shipNumVerts, shipVerts, shipTexCoords,
-	//		    shipNormals, &cubeObj);
 	loadObjCopyShader(&shipObj,"resources/models/ship.gbo",&cubeObj);
 
 	alienTex = loadPNG("resources/textures/alien.png");
-	createObjCopyShader(&alienObj, alienNumVerts, alienVerts,
-			    alienTexCoords, alienNormals, &cubeObj);
+	loadObjCopyShader(&alienObj, "resources/models/alien.gbo", &cubeObj);
 
 	shotTex = loadPNG("resources/textures/shot.png");
-	createObjCopyShader(&shotObj, shotNumVerts, shotVerts,
-			    shotTexCoords, shotNormals, &cubeObj);
+	loadObjCopyShader(&shotObj, "resources/models/shot.gbo", &cubeObj);
 
 	playerPos.x = 0;
 	playerPos.y = 0;
@@ -230,7 +217,7 @@ int main()
 
 		// render between two gettimeofday calls so
 		// we can sleep long enough to roughly sync
-		// to ~60fps
+		// to ~60fps but not on the pi!
 
 		// TODO find something a tad more elegent
 
@@ -317,7 +304,7 @@ void render()
 
 	for (int n = 0; n < MAX_PLAYER_SHOTS; n++) {
 		if (playerShots[n].alive) {
-			playerShots[n].pos.z -= .1;
+			playerShots[n].pos.z -= .08;
 			if (playerShots[n].pos.z < -10)
 				playerShots[n].alive = false;
 

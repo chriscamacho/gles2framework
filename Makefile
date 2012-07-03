@@ -5,12 +5,12 @@ PLATFORM=rpi
 
 
 ifeq ($(PLATFORM),xorg)
-	FLAGS=-D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Isrc-models -Ikazmath/kazmath
+	FLAGS=-D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	LIBS=-lX11 -lEGL -lGLESv2 `pkg-config libpng --libs` -lm
 endif
 
 ifeq ($(PLATFORM),rpi)
-	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Isrc-models -Ikazmath/kazmath
+	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
@@ -20,9 +20,6 @@ endif
 # this is the framework itself without samples
 OBJ=$(shell find src/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/src\//o\//g')
 
-# models
-OBJ+=$(shell find src-models/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/src-models\//o\//g')
-
 #kazmath
 OBJ+=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\/kazmath\//o\//g')
 
@@ -31,22 +28,27 @@ OBJ+=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath
 main: $(OBJ) o/main.o
 	gcc $^ -o main $(LIBS)
 
+o/main.o: main.c
+	gcc $(FLAGS) $< -o $@
+
+
 simple: $(OBJ) o/simple.o
 	gcc $^ -o simple $(LIBS)
 
-o/main.o: main.c
-	gcc $(FLAGS) -Isrc $< -o $@
-
 o/simple.o: simple.c
-	gcc $(FLAGS) -Isrc $< -o $@
+	gcc $(FLAGS) $< -o $@
+
+phystest: $(OBJ) o/phystest.o
+	gcc -lstdc++ $^ -o phystest $(LIBS) ./libode.a
+
+o/phystest.o: phystest.c
+	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
 
 # used to create object files from all in src directory
 o/%.o: src/%.c
 	gcc $(FLAGS) $< -o $@
 
-o/%.o: src-models/%.c
-	gcc $(FLAGS) $< -o $@
 
 o/%.o: kazmath/kazmath/%.c
 	gcc $(FLAGS) $< -o $@
@@ -54,7 +56,7 @@ o/%.o: kazmath/kazmath/%.c
 
 # makes the code look nice!
 indent:
-	indent -linux src/*.c include/*.h *.c
+	astyle src/*.c include/*.h *.c
 
 
 # deletes all intermediate object files and all compiled
@@ -62,8 +64,9 @@ indent:
 clean:
 	rm -f o/*.o
 	rm -f src/*~
-	rm -f src-models/*~
 	rm -f include/*~
 	rm -f *~
 	rm -f main
 	rm -f simple
+	rm -f phystest
+
