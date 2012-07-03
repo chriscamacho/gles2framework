@@ -39,19 +39,15 @@ Project structure
 
 -src____________source code for the framework
 
--src-models_____sorce code for model data
-
--shaders________fragment and vertex shaders used by the framework
-
--textures_______images used to texture models
-
 -obj2opengl_____script used to turn wavefront OBJ models into source code
 
--models_________source models used by obj2opengl
+-resources______holds textures, shaders and binary 3d models for the samples
 
-simple.c________the simplist example of using the framework
+simple.c________the simplist example of using the framework now used to test lighting shader
 
 main.c__________a more complex "gamelet" example of using the framework
+
+phystest.c______a rough and ready example of using OpenDE with the framework
 
 Makefile________tells the compiler how to build the examples
 
