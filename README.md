@@ -190,7 +190,7 @@ ________________________________________________________________________
 void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir);
 
 this draws an obj, you need to supply a combined model, view and projection
-matrices as well as a combined model, view matrix for the lighting
+matrices as well as a combined model, view matrix for the lighting, 
 light and view direction vectors are also needed for lighting
 
 ________________________________________________________________________
