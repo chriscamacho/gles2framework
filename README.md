@@ -5,10 +5,15 @@ a simple framework for OpenGLES 2.0 written in C
 
 intended to help learning and tutorial writing
 
-Currently supports XORG (linux) and soon to support the raspberry pi
-(none Xwindows proprietory EGL) on the pi it uses X for input
+Currently supports XORG (linux) and the raspberry pi
+(none Xwindows proprietory EGL)
+on the pi it uses X for input so you need to be running xwindows
+when the executables run
 
-dependencies libpng, libEGL, libGLES (2.0) 
+dependencies libpng, libEGL, libGLES (2.0)
+
+pkg-config, build-esentials and development libraries must be installed
+to compile the framework
 
 if you have not compiled GLES source code on your pi before you will need to make
 a file called
@@ -82,6 +87,18 @@ extern unsigned int shapeNumVerts;
 in addition you will have to add a rule in the Makefile
 
 
+
+makeGBO script
+==============
+
+There is a binary file format, a kind of compiled OBJ file which can be used instead of
+embedding your objects in the executable (which can be wasteful in terms of ram)
+Once the object data is passed to the GPU the loaded data its based on is freed from
+the memory...
+To make a gbo (Gles Binary Object) file place your wavefront object into the same directory
+if for example the shape is called alien.obj then execute ./makeGBO alien - not the lack
+of the file extension it will output alien.gbo which you can then copy to your resources
+directory - see loadObj command detailed below.
 
 
 support routines
