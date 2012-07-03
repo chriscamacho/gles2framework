@@ -17,22 +17,26 @@
 void render();			// func prototype
 
 // obj shape textures
-GLuint cubeTex;
+GLuint cubeTex,ballTex;
 
 // structures holding various pointers and handles for obj shapes
-struct obj_t cubeObj;
+struct obj_t cubeObj,ballObj;
 
 // matrices and combo matrices
 kmMat4 model, view, projection, mvp, vp, mv;
 
 int frame = 0;
+kmVec3 lightDir, viewDir; // vectors for shader lighting 
+kmVec3 pEye, pCenter, pUp;	// "camera" vectors
+	// from position , target position and up direction
+
+float camAng,lightAng;
 
 bool *keys;
 
 int main()
 {
-	kmVec3 pEye, pCenter, pUp;	// "camera" vectors
-	// from position , target position and up direction
+
 
 	// creates a window and GLES context
 	if (makeContext() != 0)
@@ -47,20 +51,31 @@ int main()
 	createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
 		  "resources/shaders/textured.vert", "resources/shaders/textured.frag");
 
+	loadObjCopyShader(&ballObj,"resources/models/sphere.gbo",&cubeObj);
+	ballTex = loadPNG("resources/textures/jupiter.png");
+
 	// "camera" is static so just set up once here
 	kmMat4Identity(&view);
 
 	pEye.x = 0;
 	pEye.y = 0;
-	pEye.z = 0;
+	pEye.z = 5;
 	pCenter.x = 0;
 	pCenter.y = 0;
-	pCenter.z = -5;
+	pCenter.z = 0;
 	pUp.x = 0;
 	pUp.y = 1;
 	pUp.z = 0;
+	
+	kmVec3Subtract(&viewDir,&pEye,&pCenter);
+	kmVec3Normalize(&viewDir,&viewDir);
 
 	kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
+
+	// these two matrices are pre combined for use with each model render
+	// the view and projection
+	kmMat4Assign(&vp, &projection);
+	kmMat4Multiply(&vp, &vp, &view);
 
 	// projection matrix, as distance increases
 	// the way the model is drawn is effected
@@ -69,11 +84,6 @@ int main()
 				    (float)getDisplayWidth() / getDisplayHeight(), 0.1, 10);
 
 	glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
-
-	// these two matrices are pre combined for use with each model render
-	// the view and projection
-	kmMat4Assign(&vp, &projection);
-	kmMat4Multiply(&vp, &vp, &view);
 
 	// initialises glprint's matrix, shader and texture
 	initGlPrint(getDisplayWidth(), getDisplayHeight());
@@ -104,6 +114,11 @@ int main()
 		if (keys[KEY_ESC])
 			quit = true;	// exit if escape key pressed
 
+		if (keys[KEY_A]) camAng=camAng+1;
+		if (keys[KEY_S]) camAng=camAng-1;
+		if (keys[KEY_W]) lightAng=lightAng+1;
+		if (keys[KEY_Q]) lightAng=lightAng-1;
+
 		render();	// the render loop
 
 		usleep(16000);	// no need to run cpu/gpu full tilt
@@ -127,7 +142,30 @@ void render()
 	frame++;
 	rad = frame * (0.0175f);
 
-	//
+	lightDir.x=cos(lightAng/10.);
+	lightDir.y=0;
+	lightDir.z=sin(lightAng/10.);
+
+
+	pEye.x=cos(camAng/10.)*7.;
+	pEye.z=sin(camAng/10.)*7.;
+	pEye.y=1;
+
+	kmVec3Subtract(&viewDir,&pEye,&pCenter);
+	kmVec3Normalize(&viewDir,&viewDir);
+
+	kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
+
+	// these two matrices are pre combined for use with each model render
+	// the view and projection
+	kmMat4Assign(&vp, &projection);
+	kmMat4Multiply(&vp, &vp, &view);
+
+
+
+
+
+
 
 	// first set the model matrix with the models position (translation)
 	// and rotation
@@ -135,7 +173,7 @@ void render()
 	// we can do both to the same matrix without having to multiply
 	// (combine) two seperate matrices 
 	kmMat4Identity(&model);
-	kmMat4Translation(&model, 0, 0, -3);
+	kmMat4Translation(&model, 1, 0, 0);
 	kmMat4RotationPitchYawRoll(&model, rad, rad * 1.5, rad * 2);
 
 	// copy the combined view/projection matrix to the mvp matrix
@@ -148,8 +186,27 @@ void render()
 	kmMat4Assign(&mv, &view);
 	kmMat4Multiply(&mv, &mv, &model);	// view, model matrix for lighting
 
+
+
 	glBindTexture(GL_TEXTURE_2D, cubeTex);
-	drawObj(&cubeObj, &mvp, &mv);
+	drawObj(&cubeObj, &mvp, &mv,lightDir,viewDir);
+
+
+	kmMat4Identity(&model);
+	kmMat4Translation(&model, -1, 0, 0);
+	kmMat4RotationPitchYawRoll(&model, 0 , -rad, 0);
+
+	kmMat4Assign(&mvp, &vp);
+	kmMat4Multiply(&mvp, &mvp, &model);	// model, view, projection combined matrix
+	kmMat4Assign(&mv, &view);
+	kmMat4Multiply(&mv, &mv, &model);	// view, model matrix for lighting
+
+	glBindTexture(GL_TEXTURE_2D, ballTex);
+	drawObj(&ballObj, &mvp, &mv,lightDir,viewDir);
+
+
+
+
 
 	// see printf documentation for the formatting of variables...
 	glPrintf(100, 240, "frame=%i", frame);

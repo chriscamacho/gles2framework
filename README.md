@@ -15,7 +15,7 @@ dependencies libpng, libEGL, libGLES (2.0)
 pkg-config, build-esentials and development libraries must be installed
 to compile the framework
 
-if you have not compiled GLES source code on your pi before you will need to make
+if you have not compiled GLES source code on your pi before you may need to make
 a file called
 
 /etc/ld.so.conf.d/vc.conf
@@ -187,10 +187,11 @@ this allows you to initialise a obj shape but using an existing obj's
 shader.
 ________________________________________________________________________
 
-void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv);
+void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir);
 
 this draws an obj, you need to supply a combined model, view and projection
 matrices as well as a combined model, view matrix for the lighting
+light and view direction vectors are also needed for lighting
 
 ________________________________________________________________________
 

@@ -1,18 +1,26 @@
-uniform sampler2D		texture_uniform;
+uniform sampler2D u_texture;
 
-vec3 u_LightPos=vec3(0,1,2);       // The position of the light in eye space.
-									// TODO should probably be a uniform
+uniform vec3 u_lightDir;
+uniform vec3 u_viewDir;
+
 varying vec3 v_Position;
 varying vec3 v_Normal;
 varying vec2 v_frag_uv; 
 
-void main() 
-{
-    vec3 lightVector = normalize(u_LightPos - v_Position);
-    float diffuse = max(dot(v_Normal, lightVector), 0.1);
- 
-//    float distance = length(u_LightPos - v_Position);
-//    diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));
- 
-    gl_FragColor = texture2D(texture_uniform, v_frag_uv) * diffuse;
+
+void main() {
+	vec4 baseColour = texture2D(u_texture,v_frag_uv);
+	float nDOTl = dot(v_Normal,u_lightDir);
+	vec3 reflect = (2.0 * v_Normal * nDOTl) - u_lightDir;
+	float rDOTv = max(0.0, dot(reflect,u_viewDir));
+	
+// these three vec4's could be material uniforms.	
+	vec4 ambi = vec4(.7,.7,.7,0) * baseColour;	
+	vec4 diffu = vec4(.8,.8,.8,0) * nDOTl * baseColour;
+	
+		
+// spec strength (could be a material uniform) - TODO seems wrong?	
+	vec4 specu = vec4(.9,.9,.9,0) * (rDOTv/99.);//pow(rDOTv,20);
+
+	gl_FragColor = ambi + diffu + specu;
 }

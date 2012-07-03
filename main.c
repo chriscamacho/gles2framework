@@ -37,6 +37,8 @@ int *mouse;
 bool *keys;
 kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 
+kmVec3 viewDir,lightDir;
+
 kmVec3 playerPos;
 float playerPre_error, playerIntegral;
 
@@ -125,6 +127,11 @@ float PIDcal(float setpoint, float actual_position, float *pre_error,
 
 int main()
 {
+
+	lightDir.x=0.5;
+	lightDir.y=.7;
+	lightDir.z=-0.5;
+	kmVec3Normalize(&lightDir,&lightDir);
 
 	// creates a window and GLES context
 	if (makeContext() != 0)
@@ -288,7 +295,7 @@ void render()
 	kmMat4Multiply(&mv, &mv, &model);
 
 	glBindTexture(GL_TEXTURE_2D, shipTex);
-	drawObj(&shipObj, &mvp, &mv);
+	drawObj(&shipObj, &mvp, &mv, lightDir, viewDir);
 
 	glPrintf(100 + sinf(rad) * 16, 240 + cosf(rad) * 16,
 		 "frame=%i fps=%3.2f", frame, lfps);
@@ -328,7 +335,7 @@ void render()
 			kmMat4Multiply(&mv, &mv, &model);
 
 			glBindTexture(GL_TEXTURE_2D, shotTex);
-			drawObj(&shotObj, &mvp, &mv);
+			drawObj(&shotObj, &mvp, &mv, lightDir, viewDir);
 		}
 	}
 
@@ -366,7 +373,7 @@ void render()
 			kmMat4Multiply(&mv, &mv, &model);
 
 			glBindTexture(GL_TEXTURE_2D, alienTex);
-			drawObj(&alienObj, &mvp, &mv);
+			drawObj(&alienObj, &mvp, &mv, lightDir, viewDir);
 
 			kmVec3 d;
 			for (int i = 0; i < MAX_PLAYER_SHOTS; i++) {
@@ -391,6 +398,10 @@ void render()
 
 	kmMat4Assign(&vp, &projection);
 	kmMat4Multiply(&vp, &vp, &view);
+
+	kmVec3Subtract(&viewDir,&pEye,&pCenter);
+	kmVec3Normalize(&viewDir,&viewDir);
+
 
 	glPrintf(100, 280, "eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
 	glPrintf(100, 296, "centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
