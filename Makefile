@@ -39,7 +39,7 @@ o/simple.o: simple.c
 	gcc $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o
-	gcc -lstdc++ $^ -o phystest $(LIBS) ./libode.a
+	gcc $^ -o phystest $(LIBS) ./libode.a -lstdc++
 
 o/phystest.o: phystest.c
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
