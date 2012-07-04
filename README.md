@@ -3,6 +3,8 @@ gles2framework
 
 a simple framework for OpenGLES 2.0 written in C
 
+*** Brief API notes at the end of the readme ***
+
 intended to help learning and tutorial writing
 
 Currently supports XORG (linux) and the raspberry pi
@@ -25,7 +27,19 @@ it should contain just the line
 /opt/vc/lib
 
 
-Brief API notes at the end of the readme
+the rather hacky ODE example is only really for advanced users...
+compile ode from source (version v0.12) release you can then
+cp ../ode-0.12/ode/src/.libs/libode.a .
+from the gles2framework directory
+
+You need it to use dSingle with trimesh support and you might want 
+other things like custom cylinder vs cylinder colliders etc you won't 
+get from the repo version set drawstuff=none for quicker build (no demos etc)
+
+run ./configure --help in the ode directory.
+
+
+
 
 
 Project structure
