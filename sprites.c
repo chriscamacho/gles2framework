@@ -153,15 +153,16 @@ void render()
 	for (int i=0;i<max_clouds;i++){
 		drawSprite( clouds[i].x,clouds[i].y,clouds[i].w,clouds[i].h,0,cloudTex);
 	}
+
+	float r2=rad+.6f+(sin(frame*0.03)/6.);
+	drawSprite((centreX-(planeW/2.))+cos(r2)*centreX*.75,
+		centreY+sin(r2)*centreY*.75,
+		planeW,planeH,r2+1.5708f,triTex);
 	
 	drawSprite((centreX-(planeW/2.))+cos(rad)*centreX*.75,
-		centreY+sin(rad)*centreX*.75,
+		centreY+sin(rad)*centreY*.75,
 		planeW,planeH,rad+1.5708f,biTex);
 
-	float r2=rad+.6f+(sin(frame*0.03)/4.);
-	drawSprite((centreX-(planeW/2.))+cos(r2)*centreX*.75,
-		centreY+sin(r2)*centreX*.75,
-		planeW,planeH,r2+1.5708f,triTex);
 	
     // see printf documentation for the formatting of variables...
     glPrintf(100, 240, "frame=%i", frame);
