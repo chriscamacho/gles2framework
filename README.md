@@ -96,17 +96,17 @@ extern unsigned int shapeNumVerts;
 
 in addition you will have to add a rule in the Makefile
 
-
+this method is depricated you should use a GBO instead...
 
 makeGBO script
 ==============
 
-There is a binary file format, a kind of compiled OBJ file which can be used instead of
+This is a binary file format, a kind of compiled OBJ file which can be used instead of
 embedding your objects in the executable (which can be wasteful in terms of ram)
 Once the object data is passed to the GPU the loaded data its based on is freed from
-the memory...
+memory...
 To make a gbo (Gles Binary Object) file place your wavefront object into the same directory
-if for example the shape is called alien.obj then execute ./makeGBO alien - not the lack
+if for example the shape is called alien.obj then execute ./makeGBO alien - note the lack
 of the file extension it will output alien.gbo which you can then copy to your resources
 directory - see loadObj command detailed below.
 
