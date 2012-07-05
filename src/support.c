@@ -633,6 +633,122 @@ void glPrintf(float x, float y, const char *fmt, ...)
 }
 
 
+struct {  // blob of globals for the sprite routine
+kmMat4 opm, otm, t, r;
+GLuint spriteProg, opm_uniform;
+GLuint texture_uniform, cx_uniform, cy_uniform, u_size;
+GLuint vert_attrib, uv_attrib;
+GLuint quadvbo, texvbo;
+} __spr;
+
+
+
+void initSprite(int w, int h)
+{
+	const GLfloat quadVertices[] = {
+		0,	0,	0,
+		1,  1,  0,
+		1,	0,	0,
+
+		1,  1,  0,
+		0,	0,	0,
+		0,	1,	0
+	};
+
+	const GLfloat texCoord[] = {
+		0,		0,
+		1.,		1,
+		1.,		0,
+		1.,		1.,
+		0,		0,
+		0,		1.
+	};
+
+
+	kmMat4OrthographicProjection(&__spr.opm, 0, w, h, 0, -10, 10); // support layers ?
+
+	GLuint vs, fs;
+	vs = create_shader("resources/shaders/sprite.vert", GL_VERTEX_SHADER);
+	fs = create_shader("resources/shaders/sprite.frag", GL_FRAGMENT_SHADER);
+
+	__spr.spriteProg = glCreateProgram();
+	glAttachShader(__spr.spriteProg, vs);
+	glAttachShader(__spr.spriteProg, fs);
+	glLinkProgram(__spr.spriteProg);
+	int link_ok;
+	glGetProgramiv(__spr.spriteProg, GL_LINK_STATUS, &link_ok);
+	if (!link_ok) {
+		printf("glLinkProgram:");
+		print_log(__spr.spriteProg);
+		printf("\n");
+	}
+
+	__spr.u_size = getShaderLocation(shaderUniform, __spr.spriteProg, "u_size");
+	__spr.opm_uniform =
+	    getShaderLocation(shaderUniform, __spr.spriteProg, "opm_uniform");
+	__spr.texture_uniform =
+	    getShaderLocation(shaderUniform, __spr.spriteProg, "texture_uniform");
+
+	__spr.vert_attrib = getShaderLocation(shaderAttrib, __spr.spriteProg, "vert_attrib");
+	__spr.uv_attrib = getShaderLocation(shaderAttrib, __spr.spriteProg, "uv_attrib");
+
+
+	glGenBuffers(1, &__spr.quadvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, __spr.quadvbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, quadVertices,
+		     GL_STATIC_DRAW);
+
+	glGenBuffers(1, &__spr.texvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, __spr.texvbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
+		     GL_STATIC_DRAW);
+
+}
+
+void drawSprite(float x, float y, float w, float h, float a, int tex)
+{
+	
+
+	glUseProgram(__spr.spriteProg);
+	kmMat4Assign(&__spr.otm, &__spr.opm);
+	kmMat4Translation(&__spr.t, x, y, -1); // support z layers?
+	kmMat4RotationZ(&__spr.r,a);
+	kmMat4Multiply(&__spr.t,&__spr.t,&__spr.r);
+	kmMat4Multiply(&__spr.otm, &__spr.otm, &__spr.t);
+
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glEnableVertexAttribArray(__spr.vert_attrib);
+	glBindBuffer(GL_ARRAY_BUFFER, __spr.quadvbo);
+	glVertexAttribPointer(__spr.vert_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glEnableVertexAttribArray(__spr.uv_attrib);
+	glBindBuffer(GL_ARRAY_BUFFER, __spr.texvbo);
+	glVertexAttribPointer(__spr.uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glUniform1i(__spr.texture_uniform, 0);
+	glUniform2f(__spr.u_size, w,h);
+
+
+	glUniformMatrix4fv(__spr.opm_uniform, 1, GL_FALSE, (GLfloat *) & __spr.otm);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glDisableVertexAttribArray(__glp.uv_attrib);
+	glDisableVertexAttribArray(__glp.vert_attrib);
+
+}
+
+
+
+
+
 int makeContext()
 {
 	makeNativeWindow();	// sets global pointers for win and disp

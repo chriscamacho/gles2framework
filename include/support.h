@@ -23,3 +23,5 @@ int *getMouse();
 bool *getKeys();
 int getDisplayWidth();
 int getDisplayHeight();
+void initSprite(int w, int h);
+void drawSprite(float x, float y, float w, float h, float a, int tex);

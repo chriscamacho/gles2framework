@@ -31,7 +31,6 @@ main: $(OBJ) o/main.o
 o/main.o: main.c
 	gcc $(FLAGS) $< -o $@
 
-
 simple: $(OBJ) o/simple.o
 	gcc $^ -o simple $(LIBS)
 
@@ -43,6 +42,12 @@ phystest: $(OBJ) o/phystest.o
 
 o/phystest.o: phystest.c
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
+
+sprites: $(OBJ) o/sprites.o
+	gcc $^ -o sprites $(LIBS)
+
+o/sprites.o: sprites.c
+	gcc $(FLAGS) $< -o $@
 
 
 # used to create object files from all in src directory
@@ -69,4 +74,5 @@ clean:
 	rm -f main
 	rm -f simple
 	rm -f phystest
+	rm -f sprites
 
