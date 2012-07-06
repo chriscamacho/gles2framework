@@ -2,7 +2,7 @@
 // turned into a lighting test as 6 planes (a cube) is not idea for
 // checking frag lighting, there is also a sphere
 
-// press Q & W 
+// press Q & W
 // and A & S to rotate the camera and light
 
 #include <stdlib.h>
@@ -121,6 +121,7 @@ kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 float camAng,lightAng;
 
 bool *keys;
+int *mouse;
 
 int main()
 {
@@ -133,21 +134,27 @@ int main()
     glActiveTexture(GL_TEXTURE0);
 
     // The obj shapes and their textures are loaded
-	// directly from embedded data in the executable
+    // directly from embedded data in the executable
     cubeTex = loadPNG("resources/textures/dice.png");
     createObj(&cubeObj, cubeNumVerts, cubeVerts, cubeTexCoords, cubeNormals,
               "resources/shaders/textured.vert", "resources/shaders/textured.frag");
 
-	// embedding data can waste precious ram, loading from disk is more efficient
+    // embedding data can waste precious ram, loading from disk is more efficient
     // no redundant data left when verts transfered to GPU
-	loadObjCopyShader(&ballObj,"resources/models/sphere.gbo",&cubeObj);
+    loadObjCopyShader(&ballObj,"resources/models/sphere.gbo",&cubeObj);
     ballTex = loadPNG("resources/textures/jupiter.png");
 
     kmMat4Identity(&view);
 
-    pEye.x = 0;    pEye.y = 0;    pEye.z = 5;
-    pCenter.x = 0;    pCenter.y = 0;    pCenter.z = 0;
-    pUp.x = 0;    pUp.y = 1;    pUp.z = 0;
+    pEye.x = 0;
+    pEye.y = 0;
+    pEye.z = 5;
+    pCenter.x = 0;
+    pCenter.y = 0;
+    pCenter.z = 0;
+    pUp.x = 0;
+    pUp.y = 1;
+    pUp.z = 0;
 
     kmVec3Subtract(&viewDir,&pEye,&pCenter);
     kmVec3Normalize(&viewDir,&viewDir);
@@ -188,6 +195,8 @@ int main()
 
     // get a pointer to the key down array
     keys = getKeys();
+    mouse = getMouse();
+    setMouseRelative(true);
 
     while (!quit) {		// the main loop
 
@@ -212,6 +221,8 @@ int main()
     return 0;
 }
 
+int rmx,rmy;
+
 void render()
 {
 
@@ -224,7 +235,7 @@ void render()
     frame++;
     rad = frame * (0.0175f);
 
-	// rotate the light direction depending on lightAng
+    // rotate the light direction depending on lightAng
     lightDir.x=cos(lightAng/10.);
     lightDir.z=sin(lightAng/10.);
     lightDir.y=0;
@@ -234,11 +245,11 @@ void render()
     pEye.z=sin(camAng/10.)*7.;
     pEye.y=1;
 
-	// recalculate the view direction vector used by lighting
+    // recalculate the view direction vector used by lighting
     kmVec3Subtract(&viewDir,&pEye,&pCenter);
     kmVec3Normalize(&viewDir,&viewDir);
 
-	// update view matrix for new cam position
+    // update view matrix for new cam position
     kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
 
     // these two matrices are pre combined for use with each model render
@@ -288,6 +299,13 @@ void render()
 
     // see printf documentation for the formatting of variables...
     glPrintf(100, 240, "frame=%i", frame);
+
+    glPrintf(100, 260, "%i  %i", mouse[0],mouse[1]);
+
+
+    rmx+=mouse[0];
+    rmy+=mouse[1];
+    glPrintf(100, 280, "%i  %i", rmx,rmy);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
     swapBuffers();

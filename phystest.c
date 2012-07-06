@@ -163,16 +163,16 @@ int main()
     cubeTex = loadPNG("resources/textures/dice.png");
 
     loadObj(&cubeObj,"resources/models/cube.gbo",
-			 "resources/shaders/textured.vert",
-              "resources/shaders/textured.frag");
+            "resources/shaders/textured.vert",
+            "resources/shaders/textured.frag");
 
     groundTex = loadPNG("resources/textures/raspbian.png");
     loadObjCopyShader(&groundObj, "resources/models/ground.gbo",
-            &cubeObj);
+                      &cubeObj);
 
     ballTex = loadPNG("resources/textures/jupiter.png");
     loadObjCopyShader(&ballObj, "resources/models/sphere.gbo",
-            &cubeObj);
+                      &cubeObj);
 
 
     kmMat4Identity(&view);

@@ -237,4 +237,11 @@ dimensions of the screen.
 when drawing a sprite you specify where you want it (x & y) the size
 of the sprite (w & h) the rotation (a) and which texture to use (tex)
 
+________________________________________________________________________
+
+void setMouseRelative(bool mode);
+
+if mode is true the mouse will report relative position changes only, this
+is handy for mouse look where you dont want the mouse constrained by the
+window.  By default absolute mouse position is reported
 
