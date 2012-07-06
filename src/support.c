@@ -897,6 +897,7 @@ void doEvents()
             XSelectInput(__x_display, __eventWin, ExposureMask |
                          KeyPressMask | KeyReleaseMask |
                          ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
+            XFlush(__x_display);
 
         }
     }
