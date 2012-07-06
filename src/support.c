@@ -891,10 +891,10 @@ void doEvents()
 
         if(__rel_mouse) {  // rel mode test here
 
-            XSelectInput(__x_display, __win, 0);
+            XSelectInput(__x_display, __eventWin, NoEventMask);
             XWarpPointer(__x_display, None, __eventWin, 0, 0, 0, 0, __display_width/2.0, __display_height/2.0);
             XFlush(__x_display);
-            XSelectInput(__x_display, __win, ExposureMask |
+            XSelectInput(__x_display, __eventWin, ExposureMask |
                          KeyPressMask | KeyReleaseMask |
                          ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
 
