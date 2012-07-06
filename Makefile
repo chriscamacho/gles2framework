@@ -23,30 +23,30 @@ OBJ=$(shell find src/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/src\//o\//g')
 #kazmath
 OBJ+=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\/kazmath\//o\//g')
 
-# because the examples main and simple are seperate from the framework
-# there are explicit rules for them
-main: $(OBJ) o/main.o
-	gcc $^ -o main $(LIBS)
+all: invaders simple phystest sprites
 
-o/main.o: main.c
+invaders: $(OBJ) o/invaders.o
+	gcc $^ -o invaders $(LIBS)
+
+o/invaders.o: examples/invaders.c
 	gcc $(FLAGS) $< -o $@
 
 simple: $(OBJ) o/simple.o
 	gcc $^ -o simple $(LIBS)
 
-o/simple.o: simple.c
+o/simple.o: examples/simple.c
 	gcc $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o
 	gcc $^ -o phystest $(LIBS) ./libode.a -lstdc++
 
-o/phystest.o: phystest.c
+o/phystest.o: examples/phystest.c
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
 sprites: $(OBJ) o/sprites.o
 	gcc $^ -o sprites $(LIBS)
 
-o/sprites.o: sprites.c
+o/sprites.o: examples/sprites.c
 	gcc $(FLAGS) $< -o $@
 
 
@@ -70,8 +70,8 @@ clean:
 	rm -f o/*.o
 	rm -f src/*~
 	rm -f include/*~
-	rm -f *~
-	rm -f main
+	rm -f examples/*~
+	rm -f invaders
 	rm -f simple
 	rm -f phystest
 	rm -f sprites

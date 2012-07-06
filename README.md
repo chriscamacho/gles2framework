@@ -57,13 +57,7 @@ Project structure
 
 -resources______holds textures, shaders and binary 3d models for the samples
 
-simple.c________the simplist example of using the framework now used to test lighting shader
-
-main.c__________a more complex "gamelet" example of using the framework
-
-phystest.c______a rough and ready example of using OpenDE with the framework
-
-sprites.c_______an example of using 2d sprites
+-examples_______example code showing use of the framework
 
 Makefile________tells the compiler how to build the examples
 
