@@ -47,13 +47,13 @@ Project structure
 
 -include________source code include files
 
--kazmath________source code and included for the kazmath library
+-kazmath________source code and docs for the kazmath library
 
 -o______________somewhere to put intermediate binary objects
 
 -src____________source code for the framework
 
--obj2opengl_____script used to turn wavefront OBJ models into source code
+-obj2opengl_____script used to turn wavefront OBJ models into source code also contains script to build GBO objects
 
 -resources______holds textures, shaders and binary 3d models for the samples
 
@@ -62,6 +62,8 @@ simple.c________the simplist example of using the framework now used to test lig
 main.c__________a more complex "gamelet" example of using the framework
 
 phystest.c______a rough and ready example of using OpenDE with the framework
+
+sprites.c_______an example of using 2d sprites
 
 Makefile________tells the compiler how to build the examples
 
@@ -221,5 +223,18 @@ int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrob
 these are basically the same as their createObj counterparts except the
 OBJ is loaded from a compiled binary wavefront object instead of from
 embedded data.
+
+________________________________________________________________________
+
+void initSprite(int w, int h);
+
+void drawSprite(float x, float y, float w, float h, float a, int tex);
+
+
+like glPrinf the sprite subsystem must be initialised before use, pass the
+dimensions of the screen.
+
+when drawing a sprite you specify where you want it (x & y) the size
+of the sprite (w & h) the rotation (a) and which texture to use (tex)
 
 
