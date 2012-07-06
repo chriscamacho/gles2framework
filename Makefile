@@ -23,7 +23,7 @@ OBJ=$(shell find src/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/src\//o\//g')
 #kazmath
 OBJ+=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\/kazmath\//o\//g')
 
-all: invaders simple phystest sprites
+all: invaders simple sprites
 
 invaders: $(OBJ) o/invaders.o
 	gcc $^ -o invaders $(LIBS)
