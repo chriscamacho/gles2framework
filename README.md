@@ -29,7 +29,7 @@ it should contain just the line
 
 the rather hacky ODE example is only really for advanced users...
 compile ode from source (version v0.12) release you can then
-cp ../ode-0.12/ode/src/.libs/libode.a .
+cp ../ode-0.12/ode/src/.libs/libode.a ./libs/
 from the gles2framework directory
 
 You need it to use dSingle with trimesh support and you might want 
@@ -48,6 +48,8 @@ Project structure
 -include________source code include files
 
 -kazmath________source code and docs for the kazmath library
+
+-lib____________kazmath compiled as static lib, after manually compiling ode place in here
 
 -o______________somewhere to put intermediate binary objects
 
