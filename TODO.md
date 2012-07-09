@@ -1,3 +1,5 @@
+I would very much welcome people contacting me with ideas for this document.
+
 # Features to be added
 
 * reimplement raw keyboard if xlib not available, so development can be done purely via ssh
