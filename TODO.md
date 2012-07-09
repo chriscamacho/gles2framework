@@ -1,7 +1,11 @@
 # Features to be added
 
 * reimplement raw keyboard if xlib not available, so development can be done purely via ssh
-* simple height map terrain
+  * will have to be done via makefile switch because of key defines 
 * billboard 2.5D quads
 * joystick raw and xlib
 
+## Features probably not going to be implemented
+
+* simple height map terrain
+  * probably better using precreated meshes
