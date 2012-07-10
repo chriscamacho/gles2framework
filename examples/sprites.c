@@ -121,7 +121,7 @@ int main()
                 clouds[i].w=cloudW*size;
                 clouds[i].h=cloudH*size;
                 clouds[i].v=(5.-size);
-                clouds[i].x=centreX*2.;
+                clouds[i].x=centreX*2.+cloudW;
                 clouds[i].y=rand_range(0,centreY*3.);
 
             }
