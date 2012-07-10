@@ -50,7 +50,7 @@ o/simple.o: examples/simple.c
 	gcc $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
-	gcc $^ -o phystest $(LIBS) ./lib/libode.a -lstdc++
+	gcc $^ -o phystest $(LIBS) ../ode-0.12/ode/src/.libs/libode.a -lstdc++
 
 o/phystest.o: examples/phystest.c
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
@@ -60,6 +60,12 @@ sprites: $(OBJ) o/sprites.o lib/libkazmath.a
 
 o/sprites.o: examples/sprites.c
 	gcc $(FLAGS) $< -o $@
+
+chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
+	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+
+o/chiptest.o: examples/chiptest.c
+	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory

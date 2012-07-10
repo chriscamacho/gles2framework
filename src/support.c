@@ -756,13 +756,13 @@ struct {  // blob of globals for the sprite routine
 void initSprite(int w, int h)
 {
     const GLfloat quadVertices[] = {
-        0,	0,	0,
-        1,  1,  0,
-        1,	0,	0,
+        -.5,	-.5,	0,
+         .5,  	 .5,	0,
+         .5,	-.5,	0,
 
-        1,  1,  0,
-        0,	0,	0,
-        0,	1,	0
+         .5,  	 .5,	0,
+        -.5,	-.5,	0,
+        -.5,	 .5,	0
     };
 
     const GLfloat texCoord[] = {
