@@ -21,12 +21,19 @@ it should contain just the line
 
 /opt/vc/lib
 
+
+#### file structure for external libraries
+
+some examples rely on external libraries they should be extracted and compiled in the same 
+directory that you are working on the frame work like this:
+
+	Chipmunk-6.1.1        ode-0.12            gles2framework 
+
+
+### phystest (ode example)
+
 the rather hacky ODE example is only really for advanced users... compile ode from source 
 (version v0.12) release you can then 
-
-cp ../ode-0.12/ode/src/.libs/libode.a ./libs/ 
-
-from the gles2framework directory
 
 You need it to use dSingle with trimesh support and you might want other things like custom cylinder
 vs cylinder colliders etc you won't get from the repo version 
@@ -35,7 +42,16 @@ set drawstuff=none for quicker build (no demos etc)
 
 run ./configure --help in the ode directory.
 
-### Project structure
+
+### chiptest (Chipmonk physics example)
+
+a quick example showing some balls falling on some invisible slopes, niether the sprites or the 
+position of the slopes are scaled depending on the display size, so the sample will look 
+different on for example xorg or the pi (or even on the pi if using hdmi v's composite)
+and is a good example of why you should use scaled sizes!
+
+
+## Project structure
 
 
 -include________source code include files
@@ -57,6 +73,8 @@ run ./configure --help in the ode directory.
 Makefile________tells the compiler how to build the examples
 
 README.md_______this file!
+
+TODO.md_________aide memoire, ideas and inspiration for future development
 
 kazmath
 there is no need to seperatly compile the kazmath library for your platform kazmath sources are now 
