@@ -5,17 +5,37 @@
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
+
+#ifdef __FOR_RPi_noX__ 
+
+// sudo kbd_mode -a - on RPi if you have to kill it...
+
+#include "linux/kd.h"	// keyboard stuff...
+#include "termios.h"
+#include "fcntl.h"
+#include "sys/ioctl.h"
+
+static struct termios tty_attr_old;
+static int old_keyboard_mode;
+
+#endif
+
+
+#ifndef __FOR_RPi_noX__
+
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 
 Display *__x_display;
 
+#endif //NOT  __FOR_RPi_noX__
+
 #include <png.h>
 #include <kazmath.h>
 #include "support.h"
 
-// TODO replace with params in initialisation call....
+
 
 bool __rel_mouse;
 
@@ -38,11 +58,14 @@ Window __win, __eventWin;
 #endif
 
 
-#ifdef __FOR_RPi__
+#ifndef __FOR_XORG__ // ie one of pi options
 
 //#include  "bcm_host.h"
 EGLNativeWindowType __win;
+
+#ifndef __FOR_RPi_noX__
 Window __eventWin;
+#endif
 
 #endif
 
@@ -63,6 +86,14 @@ void closeNativeWindow()
     XDestroyWindow(__x_display, __eventWin);	// on the pi win is dummy "context" window
     XCloseDisplay(__x_display);
 #endif				//__FOR_RPi__
+
+#ifdef __FOR_RPi_noX__
+// restore keyboard
+	tcsetattr(0, TCSAFLUSH, &tty_attr_old);
+//		ioctl(0, KDSKBMODE, old_keyboard_mode);
+	ioctl(0, KDSKBMODE, K_XLATE);
+#endif
+
 }
 
 // only used internally
@@ -264,6 +295,66 @@ void makeNativeWindow()
     __egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
 #endif				//__FOR_RPi__
+
+#ifdef __FOR_RPi_noX__
+
+    bcm_host_init();
+
+    int32_t success = 0;
+
+    success = graphics_get_display_size(0 /* LCD */ , &__display_width,
+                                        &__display_height);
+    if (success < 0) {
+        printf("unable to get display size\n");
+        //return EGL_FALSE;
+    }
+
+    
+    static EGL_DISPMANX_WINDOW_T nativewindow;
+
+    DISPMANX_ELEMENT_HANDLE_T dispman_element;
+    DISPMANX_DISPLAY_HANDLE_T dispman_display;
+    DISPMANX_UPDATE_HANDLE_T dispman_update;
+    VC_RECT_T dst_rect;
+    VC_RECT_T src_rect;
+
+
+    dst_rect.x = 0;
+    dst_rect.y = 0;
+    dst_rect.width = __display_width;
+    dst_rect.height = __display_height;
+
+
+    src_rect.x = 0;
+    src_rect.y = 0;
+    src_rect.width = __display_width << 16;
+    src_rect.height = __display_height << 16;
+
+    dispman_display = vc_dispmanx_display_open(0 /* LCD */ );
+    dispman_update = vc_dispmanx_update_start(0);
+
+    VC_DISPMANX_ALPHA_T alpha = { DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS,255,0 };
+    dispman_element =
+        vc_dispmanx_element_add(dispman_update, dispman_display,
+                                0 /*layer */ , &dst_rect, 0 /*src */ ,
+                                &src_rect, DISPMANX_PROTECTION_NONE,
+                                &alpha /*alpha */ , 0 /*clamp */ ,
+                                0 /*transform */ );
+
+    nativewindow.element = dispman_element;
+    nativewindow.width = __display_width;
+    nativewindow.height = __display_height;
+    vc_dispmanx_update_submit_sync(dispman_update);
+
+    __win = &nativewindow;
+
+    __egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (__egl_display == EGL_NO_DISPLAY) {
+        printf("Got no EGL display.\n");
+    }    
+
+#endif //__FOR_RPi_noX__
+
 
 }
 
@@ -845,6 +936,8 @@ int __mouse[3];
 void doEvents()
 {
 
+#ifndef __FOR_RPi_noX__
+	
     XEvent event;
 
     if(__rel_mouse) {
@@ -901,6 +994,33 @@ void doEvents()
 
         }
     }
+    
+#endif // NOT  __FOR_RPi_noX__
+
+
+#ifdef __FOR_RPi_noX__
+
+
+    char buf[1];
+    int res;
+
+    res = read(0, &buf[0], 1);
+    while (res >= 0) {
+		if (buf[0] & 0x80) {
+			//printf("key %i released\n",(buf[0]&~0x80));
+			__keys[buf[0]&~0x80]=false;
+		} else {
+			//printf("key %i pressed\n",(buf[0]&~0x80));
+			__keys[buf[0]&~0x80]=true;
+
+		}
+		res = read(0, &buf[0], 1);
+    }
+     
+
+#endif  // __FOR_RPi_noX__
+
+
 }
 
 void setMouseRelative(bool mode) {
@@ -915,5 +1035,36 @@ int *getMouse()
 
 bool *getKeys()
 {
+
+#ifdef  __FOR_RPi_noX__
+
+    struct termios tty_attr;
+    int flags;
+
+    /* make stdin non-blocking */
+    flags = fcntl(0, F_GETFL);
+    flags |= O_NONBLOCK;
+    fcntl(0, F_SETFL, flags);
+
+    /* save old keyboard mode */
+    if (ioctl(0, KDGKBMODE, &old_keyboard_mode) < 0) {
+	//return 0;
+		printf("couldn't get the keyboard, are you running via ssh?\n");
+		printf("keyboard routines do not work as expected over ssh...\n");
+    }
+
+    tcgetattr(0, &tty_attr_old);
+
+    /* turn off buffering, echo and key processing */
+    tty_attr = tty_attr_old;
+    tty_attr.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tty_attr.c_iflag &= ~(ISTRIP | INLCR | ICRNL | IGNCR | IXON | IXOFF);
+    tcsetattr(0, TCSANOW, &tty_attr);
+
+    ioctl(0, KDSKBMODE, K_RAW);
+    
+#endif  //__FOR_RPi_noX__
+
+
     return &__keys[0];
 }

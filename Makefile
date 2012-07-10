@@ -1,8 +1,14 @@
-# can be xorg or rpi
+# only ONE of these three
+
+# xorg		- for running in normal xwindows when you can't get to your PI :-o
+# rpi		- uses xwindows to provide event handling
+# rpi_noX	- get keyboard events from raw input, xwindows not needed
+
 #PLATFORM=xorg
-PLATFORM=rpi
+#PLATFORM=rpi
+PLATFORM=rpi_noX
 
-
+####
 
 ifeq ($(PLATFORM),xorg)
 	FLAGS=-D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
@@ -11,6 +17,12 @@ endif
 
 ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+endif
+
+ifeq ($(PLATFORM),rpi_noX)
+	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
