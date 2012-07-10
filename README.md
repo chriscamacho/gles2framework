@@ -6,8 +6,8 @@
 
 intended to help learning and tutorial writing
 
-Currently supports XORG (linux) and the raspberry pi (none Xwindows proprietory EGL) on the pi it uses 
-X for input so you need to be running xwindows when the executables run
+Currently supports XORG (linux) and the raspberry pi (none Xwindows proprietory EGL) on the pi it 
+can be run with or without X
 
 dependencies libpng, libEGL, libGLES (2.0), libode (0.12) for phystest
 
