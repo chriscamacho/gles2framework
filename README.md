@@ -50,6 +50,9 @@ position of the slopes are scaled depending on the display size, so the sample w
 different on for example xorg or the pi (or even on the pi if using hdmi v's composite)
 and is a good example of why you should use scaled sizes!
 
+You will need to edit CMakeLists.txt so as to NOT compile the demos, you only need compile
+a static library
+
 
 ## Project structure
 
