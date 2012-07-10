@@ -33,29 +33,29 @@ endif
 OBJ=$(shell find src/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/src\//o\//g')
 
 #kazmath
-OBJ+=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\/kazmath\//o\//g')
+KAZ=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\/kazmath\//o\//g')
 
 all: invaders simple sprites
 
-invaders: $(OBJ) o/invaders.o
+invaders: $(OBJ) o/invaders.o lib/libkazmath.a
 	gcc $^ -o invaders $(LIBS)
 
 o/invaders.o: examples/invaders.c
 	gcc $(FLAGS) $< -o $@
 
-simple: $(OBJ) o/simple.o
+simple: $(OBJ) o/simple.o lib/libkazmath.a
 	gcc $^ -o simple $(LIBS)
 
 o/simple.o: examples/simple.c
 	gcc $(FLAGS) $< -o $@
 
-phystest: $(OBJ) o/phystest.o
-	gcc $^ -o phystest $(LIBS) ./libode.a -lstdc++
+phystest: $(OBJ) o/phystest.o lib/libkazmath.a
+	gcc $^ -o phystest $(LIBS) ./lib/libode.a -lstdc++
 
 o/phystest.o: examples/phystest.c
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
-sprites: $(OBJ) o/sprites.o
+sprites: $(OBJ) o/sprites.o lib/libkazmath.a
 	gcc $^ -o sprites $(LIBS)
 
 o/sprites.o: examples/sprites.c
@@ -66,6 +66,9 @@ o/sprites.o: examples/sprites.c
 o/%.o: src/%.c
 	gcc $(FLAGS) $< -o $@
 
+
+lib/libkazmath.a: $(KAZ)
+	ar -cvq lib/libkazmath.a $(KAZ) 
 
 o/%.o: kazmath/kazmath/%.c
 	gcc $(FLAGS) $< -o $@
@@ -80,6 +83,7 @@ indent:
 # executables and automatic source backup files
 clean:
 	rm -f o/*.o
+	rm -f lib/libkazmath.a
 	rm -f src/*~
 	rm -f include/*~
 	rm -f examples/*~
