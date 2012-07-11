@@ -196,7 +196,7 @@ int main()
     // get a pointer to the key down array
     keys = getKeys();
     mouse = getMouse();
-    setMouseRelative(true);
+    //setMouseRelative(true);
 
     while (!quit) {		// the main loop
 
@@ -300,12 +300,12 @@ void render()
     // see printf documentation for the formatting of variables...
     glPrintf(100, 240, "frame=%i", frame);
 
-    glPrintf(100, 260, "%i  %i", mouse[0],mouse[1]);
+    glPrintf(100, 260, "%i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
 
-    rmx+=mouse[0];
-    rmy+=mouse[1];
-    glPrintf(100, 280, "%i  %i", rmx,rmy);
+    //rmx+=mouse[0];
+    //rmy+=mouse[1];
+    //glPrintf(100, 280, "%i  %i", rmx,rmy);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
     swapBuffers();

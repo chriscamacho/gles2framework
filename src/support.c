@@ -262,12 +262,14 @@ void makeNativeWindow()
 
 //	printf("display size %i,%i\n",__display_width,__display_height);
 
+
     dst_rect.x = 0;
     dst_rect.y = 0;
     dst_rect.width = __display_width;
     dst_rect.height = __display_height;
 
 
+  
     src_rect.x = 0;
     src_rect.y = 0;
     src_rect.width = __display_width << 16;
@@ -318,7 +320,7 @@ void makeNativeWindow()
     VC_RECT_T dst_rect;
     VC_RECT_T src_rect;
 
-
+    
     dst_rect.x = 0;
     dst_rect.y = 0;
     dst_rect.width = __display_width;
@@ -933,6 +935,11 @@ void closeContext()
 bool __keys[256];
 int __mouse[3];
 
+#ifdef  __FOR_RPi_noX__
+int __mouse_fd=1;    
+#endif
+
+
 void doEvents()
 {
 
@@ -1017,6 +1024,33 @@ void doEvents()
 		res = read(0, &buf[0], 1);
     }
      
+    if (__rel_mouse) {
+    	__mouse[0]=0;__mouse[1]=0;	
+    }
+    
+    if(__mouse_fd>0) {
+    	signed char mbuf[3];
+    	int mres;
+    	mres=read(__mouse_fd,&mbuf[0],3);
+    	while(mres>=0){
+    		//printf("%i %i %i\n",mbuf[0]&7,mbuf[1],mbuf[2]);
+    		__mouse[2]=mbuf[0]&7;
+    		if (__rel_mouse) {
+    			__mouse[0]=mbuf[1];
+    			__mouse[1]=-mbuf[2];
+    		} else {
+    			__mouse[0]=__mouse[0]+mbuf[1];	
+    			__mouse[1]=__mouse[1]-mbuf[2];
+    			if (__mouse[0]<0) __mouse[0]=0;
+    			if (__mouse[1]<0) __mouse[1]=0;
+    			if (__mouse[0]>__display_width) __mouse[0]=__display_width;
+    			if (__mouse[1]>__display_height) __mouse[1]=__display_height;
+    		}
+    		
+    		mres=read(__mouse_fd,&mbuf[0],3);
+    	}
+    	
+    }
 
 #endif  // __FOR_RPi_noX__
 
@@ -1030,6 +1064,20 @@ void setMouseRelative(bool mode) {
 int *getMouse()
 {
     __rel_mouse=false;
+
+#ifdef  __FOR_RPi_noX__
+	__mouse_fd = open("/dev/input/mouse0", O_RDONLY);
+	if (__mouse_fd < 0) {
+		printf("open failed\n");
+	} else {
+		// make none blocking
+		int flags = fcntl(__mouse_fd, F_GETFL);
+		flags |= O_NONBLOCK;
+		fcntl(__mouse_fd, F_SETFL, flags);
+    }	
+
+#endif //  __FOR_RPi_noX__
+
     return &__mouse[0];
 }
 

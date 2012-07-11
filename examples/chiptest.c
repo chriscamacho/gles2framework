@@ -14,7 +14,7 @@
 /*
  *
  * demostration of using chipmunk physics with 2d sprites
- * 
+ *
  */
 
 void render();			// func prototype
@@ -33,7 +33,7 @@ struct ball_t {
     cpBody *ballBody;
 };
 
-#define max_balls 60
+#define max_balls 120
 
 struct ball_t balls[max_balls];
 

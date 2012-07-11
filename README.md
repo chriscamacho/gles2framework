@@ -13,6 +13,8 @@ dependencies libpng, libEGL, libGLES (2.0), libode (0.12) for phystest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
+### Raspberry pi specifics
+
 if you have not compiled GLES source code on your pi before you may need to make a file called
 
 /etc/ld.so.conf.d/vc.conf
@@ -21,8 +23,33 @@ it should contain just the line
 
 /opt/vc/lib
 
+##### raw mouse on Raspberry pi
 
-#### file structure for external libraries
+by default users don't have permissions to access the raw mouse device in order
+to change these permissions a simple boot script can be made (TODO find out how
+to do this properly!!!)
+
+(as root) make a script in /etc/init.d/rawmousefix
+	echo "*** raw mouse fixup ***"
+	chgrp users /dev/input/mouse0
+	chmod 640 /dev/input/mouse0
+
+check which runlevel you default to with runlevel and make the script run
+at boot
+
+	update-rc.d rawmousefix start 2
+
+reboot and check you see the raw mouse fixup message in your boot sequence
+also verify the group and permission with
+	ls -l /dev/input/mouse0
+	
+it goes without saying (yet I will...) that your user account needs to be in
+the users group - (it might not be depending on distro!)
+
+
+	
+	
+### file structure for external libraries
 
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:

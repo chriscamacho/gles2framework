@@ -97,4 +97,5 @@ clean:
 	rm -f simple
 	rm -f phystest
 	rm -f sprites
+	rm -f chiptest
 
