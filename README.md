@@ -9,7 +9,7 @@ intended to help learning and tutorial writing
 Currently supports XORG (linux) and the raspberry pi (none Xwindows proprietory EGL) on the pi it 
 can be run with or without X
 
-dependencies libpng, libEGL, libGLES (2.0), libode (0.12) for phystest
+dependencies libpng, libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
