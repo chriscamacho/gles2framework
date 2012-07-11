@@ -27,12 +27,17 @@ it should contain just the line
 
 by default users don't have permissions to access the raw mouse device in order
 to change these permissions a simple boot script can be made (TODO find out how
-to do this properly!!!)
+to do this properly!!! udev?)
 
 (as root) make a script in /etc/init.d/rawmousefix
-	echo "*** raw mouse fixup ***"
-	chgrp users /dev/input/mouse0
-	chmod 640 /dev/input/mouse0
+
+	#!/bin/sh
+	if [ -c /dev/input/mouse0 ]
+	then
+	        echo "*** raw mouse fixup ***"
+	        chgrp users /dev/input/mouse0
+	        chmod 640 /dev/input/mouse0
+	fi
 
 check which runlevel you default to with runlevel and make the script run
 at boot
