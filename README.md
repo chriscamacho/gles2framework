@@ -280,7 +280,8 @@ to get a pointer to a joystick call getJoystick with the index of the joystick 0
 call this once only
 
 once a frame call updateJoystick you will then have (in the joystick structure)
-	js->axis[0..7]		upto 8 axes per joystick (signed short)
-	js->buttons			long each bit represents a button
+
+		js->axis[0..7]		upto 8 axes per joystick (signed short)
+		js->buttons			long each bit represents a button
 	
 _____
