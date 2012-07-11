@@ -36,4 +36,5 @@ struct joystick_t {
 
 struct joystick_t *getJoystick(int j);
 void updateJoystick(struct joystick_t *js);
+void releaseJoystick(struct joystick_t *js);
 

@@ -9,7 +9,7 @@
 #include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
 
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>		// usleep
 
@@ -222,7 +222,7 @@ int main()
     }
 
     closeContext();		// tidy up
-	free(joy1);
+	releaseJoystick(joy1);
 
     return 0;
 }

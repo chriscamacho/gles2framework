@@ -95,29 +95,29 @@ you only need compile a static library
 ## Project structure
 
 
--include________source code include files
+-include		source code include files
 
--kazmath________source code and docs for the kazmath library
+-kazmath		source code and docs for the kazmath library
 
--lib____________kazmath compiled as static lib, after manually compiling ode place in here
+-lib			kazmath compiled as static lib goes here other libs may follow the framework may become a library
 
--o______________somewhere to put intermediate binary objects
+-o				somewhere to put intermediate binary objects
 
--src____________source code for the framework
+-src			source code for the framework
 
--obj2opengl_____script used to turn wavefront OBJ models into source code also contains script to build GBO objects
+-obj2opengl		script used to turn wavefront OBJ models into source code also contains script to build GBO objects
 
--resources______holds textures, shaders and binary 3d models for the samples
+-resources		holds textures, shaders and binary 3d models for the samples
 
--examples_______example code showing use of the framework
+-examples		example code showing use of the framework
 
-Makefile________tells the compiler how to build the examples
+Makefile		tells the compiler how to build the examples
 
-README.md_______this file!
+README.md		this file!
 
-TODO.md_________aide memoire, ideas and inspiration for future development
+TODO.md			aide memoire, ideas and inspiration for future development
 
-kazmath
+#### kazmath
 there is no need to seperatly compile the kazmath library for your platform kazmath sources are now 
 automatically compiled into a static library
 
@@ -125,7 +125,7 @@ All though the source is unchanged I have deleted everthing except the C source 
 documentation the full distribution of kazmath is available at https://github.com/Kazade/kazmath
 
 
-### obj2opengl
+#### obj2opengl
 
 In order to create code from OBJ files use this script, ensure you set the output file name to 
 something like shape.c
@@ -148,12 +148,13 @@ This is a binary file format, a kind of compiled OBJ file which can be used inst
 your objects in the executable (which can be wasteful in terms of ram) Once the object data is 
 passed to the GPU the loaded data its based on is freed from memory...
 
-To make a gbo (Gles Binary Object) file place your wavefront object into the same directory if 
-for example the shape is called alien.obj then execute ./makeGBO alien - note the lack of the 
+To make a gbo (Gles Binary Object) file place your wavefront object into the same directory, if 
+for example the shape is called alien.obj then execute ./makeGBO.sh alien - note the lack of the 
 file extension it will output alien.gbo which you can then copy to your resources directory - 
-see loadObj command detailed below.
+see loadObj command detailed below.  makeGBO.sh relies on obj2opengl which must be in the same 
+directory, it also needs at least the build esentials if going on another (artists) machine.
 
-### support routines
+## support routines
 
 int loadPNG(const char *filename);
 
@@ -249,7 +250,9 @@ lighting
 
 _____
 
-int getDisplayWidth(); int getDisplayHeight();
+int getDisplayWidth(); 
+
+int getDisplayHeight();
 
 returns full screen width and height, for now when not on Raspberry PI the "screen" is fixed to a 
 640x480 window
@@ -287,12 +290,18 @@ struct joystick_t *getJoystick(int j);
 
 void updateJoystick(struct joystick_t *js);
 
+void releaseJoystick(struct joystick_t *js);
+
 to get a pointer to a joystick call getJoystick with the index of the joystick 0-7
 call this once only
 
 once a frame call updateJoystick you will then have (in the joystick structure)
 
 	js->axis[0..7]		upto 8 axes per joystick (signed short)
-	js->buttons			long each bit represents a button
+	js->buttons			long - each bit represents a button
 	
+when finished with a joystick you should call releaseJoystick to close its file
+handle and free the structures memory.
+
 _____
+

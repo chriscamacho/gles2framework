@@ -1,7 +1,7 @@
 #include "support.h"
 
 #include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
 
 #include  <GLES2/gl2.h>
@@ -1173,3 +1173,11 @@ void updateJoystick(struct joystick_t *js) {
 	}
 	
 }
+
+void releaseJoystick(struct joystick_t *js) {
+
+	close(js->fd);
+	free(js);
+	
+}
+

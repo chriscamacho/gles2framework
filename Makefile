@@ -4,9 +4,9 @@
 # rpi		- uses xwindows to provide event handling
 # rpi_noX	- get keyboard events from raw input, xwindows not needed
 
-#PLATFORM=xorg
+PLATFORM=xorg
 #PLATFORM=rpi
-PLATFORM=rpi_noX
+#PLATFORM=rpi_noX
 
 ####
 
@@ -82,7 +82,7 @@ o/%.o: kazmath/kazmath/%.c
 
 # makes the code look nice!
 indent:
-	astyle src/*.c include/*.h *.c
+	astyle src/*.c include/*.h example/*.c
 
 
 # deletes all intermediate object files and all compiled
