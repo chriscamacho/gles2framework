@@ -1,19 +1,19 @@
 
-// turned into a lighting test as 6 planes (a cube) is not idea for
-// checking frag lighting, there is also a sphere
+// turned into a lighting test as 6 planes (a cube) is not idea for // checking frag lighting, there is also a sphere
 
 // press Q & W
 // and A & S to rotate the camera and light
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>		// usleep
-
-#include <kazmath.h>		// matrix manipulation routines
 
 #include "support.h"		// support routines
 #include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
+
+//#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>		// usleep
+
+#include <kazmath.h>		// matrix manipulation routines
 
 
 unsigned int cubeNumVerts = 36;
@@ -199,7 +199,7 @@ int main()
     // get a pointer to the key down array
     keys = getKeys();
     mouse = getMouse();
-	joy1=getJoystick(1);
+    joy1=getJoystick(0);
     //setMouseRelative(true);
 
     while (!quit) {		// the main loop

@@ -1,3 +1,4 @@
+//#include <linux/types.h>
 
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>

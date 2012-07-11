@@ -1,5 +1,7 @@
+#include "support.h"
+
 #include <stdio.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
 
 #include  <GLES2/gl2.h>
@@ -34,7 +36,6 @@ Display *__x_display;
 
 #include <png.h>
 #include <kazmath.h>
-#include "support.h"
 
 
 
