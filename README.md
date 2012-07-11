@@ -269,3 +269,18 @@ void setMouseRelative(bool mode);
 if mode is true the mouse will report relative position changes only, this is handy for mouse 
 look where you dont want the mouse constrained by the window. By default absolute mouse position 
 is reported
+
+_____
+
+struct joystick_t *getJoystick(int j);
+
+void updateJoystick(struct joystick_t *js);
+
+to get a pointer to a joystick call getJoystick with the index of the joystick 0-7
+call this once only
+
+once a frame call updateJoystick you will then have (in the joystick structure)
+	js->axis[0..7]		upto 8 axes per joystick (signed short)
+	js->buttons			long each bit represents a button
+	
+_____
