@@ -82,8 +82,14 @@ position of the slopes are scaled depending on the display size, so the sample w
 different on for example xorg or the pi (or even on the pi if using hdmi v's composite)
 and is a good example of why you should use scaled sizes!
 
-You will need to edit CMakeLists.txt so as to NOT compile the demos, you only need compile
-a static library
+You can pass parameters to cmake or edit CMakeLists.txt so as to NOT compile the demos, 
+you only need compile a static library
+
+	option(BUILD_DEMOS "Build the demo applications" ON)
+	option(INSTALL_DEMOS "Install the demo applications" OFF)
+	option(BUILD_SHARED "Build and install the shared library" ON)
+	option(BUILD_STATIC "Build as static library" ON)
+	option(INSTALL_STATIC "Install the static library" ON)
 
 
 ## Project structure
