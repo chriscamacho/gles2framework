@@ -122,9 +122,12 @@ float camAng,lightAng;
 
 bool *keys;
 int *mouse;
+struct joystick_t *joy1;
 
 int main()
 {
+	
+	
     // creates a window and GLES context
     if (makeContext() != 0)
         exit(-1);
@@ -196,11 +199,13 @@ int main()
     // get a pointer to the key down array
     keys = getKeys();
     mouse = getMouse();
+	joy1=getJoystick(1);
     //setMouseRelative(true);
 
     while (!quit) {		// the main loop
 
         doEvents();	// update mouse and key arrays
+        updateJoystick(joy1);
 
         if (keys[KEY_ESC])
             quit = true;	// exit if escape key pressed
@@ -217,6 +222,7 @@ int main()
     }
 
     closeContext();		// tidy up
+	free(joy1);
 
     return 0;
 }
@@ -300,9 +306,10 @@ void render()
     // see printf documentation for the formatting of variables...
     glPrintf(100, 240, "frame=%i", frame);
 
-    glPrintf(100, 260, "%i  %i   %i", mouse[0],mouse[1],mouse[2]);
+    glPrintf(100, 260, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
-
+	glPrintf(100, 280, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+	 
     //rmx+=mouse[0];
     //rmy+=mouse[1];
     //glPrintf(100, 280, "%i  %i", rmx,rmy);

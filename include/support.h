@@ -26,3 +26,13 @@ int getDisplayHeight();
 void initSprite(int w, int h);
 void drawSprite(float x, float y, float w, float h, float a, int tex);
 void setMouseRelative(bool mode);
+
+struct joystick_t {
+	int fd;
+	signed short axis[8]; // could have 2 analogue sticks with 2 digital hats
+	long buttons;
+};
+
+struct joystick_t *getJoystick(int j);
+void updateJoystick(struct joystick_t *js);
+

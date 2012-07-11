@@ -5,6 +5,8 @@
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
+#include <linux/joystick.h>
+#include "fcntl.h"
 
 #ifdef __FOR_RPi_noX__ 
 
@@ -12,7 +14,6 @@
 
 #include "linux/kd.h"	// keyboard stuff...
 #include "termios.h"
-#include "fcntl.h"
 #include "sys/ioctl.h"
 
 static struct termios tty_attr_old;
@@ -922,6 +923,12 @@ int makeContext()
     return 0;
 }
 
+
+#ifdef  __FOR_RPi_noX__
+int __mouse_fd=-1;    
+#endif
+
+
 void closeContext()
 {
     eglDestroyContext(__egl_display, __egl_context);
@@ -929,15 +936,17 @@ void closeContext()
     eglTerminate(__egl_display);
 
     closeNativeWindow();
+    
+#ifdef __FOR_RPi_noX__    
+	if (__mouse_fd!=-1) {
+		close(__mouse_fd);
+	}
+#endif
 
 }
 
 bool __keys[256];
 int __mouse[3];
-
-#ifdef  __FOR_RPi_noX__
-int __mouse_fd=1;    
-#endif
 
 
 void doEvents()
@@ -1115,4 +1124,51 @@ bool *getKeys()
 
 
     return &__keys[0];
+}
+
+struct joystick_t *getJoystick(int j) {
+
+	char devpath[20];
+	sprintf(devpath,"/dev/input/js%i\0",j);
+	
+	struct joystick_t *js=malloc(sizeof(struct joystick_t));
+	js->fd = open(devpath, O_RDONLY);
+	if (js->fd < 0) {
+		printf("joystick %i open failed\n",j);
+	} else {
+		// make none blocking
+		int flags = fcntl(js->fd, F_GETFL);
+		flags |= O_NONBLOCK;
+		fcntl(js->fd, F_SETFL, flags);
+    }		
+	js->buttons=0;
+	return js;
+}
+
+void updateJoystick(struct joystick_t *js) {
+	struct js_event jse;
+	int jres;
+	jres=read(js->fd,&jse,sizeof(struct js_event));
+	while(jres>=0){
+		jse.type &= ~JS_EVENT_INIT; // mask out synthetic event flag
+		
+		if (jse.type == JS_EVENT_AXIS) {
+			if (jse.number<8) {
+				js->axis[jse.number]=jse.value;
+			}
+		}
+		
+		if (jse.type == JS_EVENT_BUTTON) {
+
+			if (jse.value==1) {
+				js->buttons = js->buttons | 1<<jse.number;
+			} else {
+				js->buttons = js->buttons & ~(1<<jse.number);
+			}
+		}
+		
+		
+		jres=read(js->fd,&jse,sizeof(struct js_event));
+	}
+	
 }
