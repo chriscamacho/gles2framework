@@ -42,9 +42,9 @@ struct cloud_t {
 struct cloud_t clouds[max_clouds];
 
 
-float rand_range(float min,float max) {
-    return min + (max - min) * ((float)rand() / RAND_MAX) / 2.0;
-}
+//float rand_range(float min,float max) {
+//    return min + (max - min) * ((float)rand() / RAND_MAX) / 2.0;
+//}
 
 int main()
 {
@@ -71,14 +71,14 @@ int main()
 
     centreX=((float)getDisplayWidth())/2.0;
     centreY=((float)getDisplayHeight())/2.0;
-    cloudW=centreX/5.f;
-    cloudH=centreY/5.f; // optional! scale sprite to screen
+    cloudW=centreX/8.f;
+    cloudH=centreY/8.f; // optional! scale sprite to screen
     planeW=centreX/6.;
     planeH=planeW*.75;
 
     for (int i=0; i<max_clouds; i++) {
-        clouds[i].x=rand_range(0,centreX*4);
-        clouds[i].y=rand_range(0,centreY*3);
+        clouds[i].x=rand_range(0,centreX*2);
+        clouds[i].y=rand_range(0,centreY*2);
         float size=rand_range(1,4);
         clouds[i].w=cloudW*size;
         clouds[i].h=cloudH*size;
@@ -121,8 +121,8 @@ int main()
                 clouds[i].w=cloudW*size;
                 clouds[i].h=cloudH*size;
                 clouds[i].v=(5.-size);
-                clouds[i].x=centreX*2.+cloudW;
-                clouds[i].y=rand_range(0,centreY*3.);
+                clouds[i].x=centreX*2.+cloudW*2;
+                clouds[i].y=rand_range(0,centreY*2.);
 
             }
         }
