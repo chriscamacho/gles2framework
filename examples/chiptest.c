@@ -82,30 +82,30 @@ int main()
 
     centreX=((float)getDisplayWidth())/2.0;
     centreY=((float)getDisplayHeight())/2.0;
-    cloudW=centreX/5.f;
-    cloudH=centreY/5.f; // optional! scale sprite to screen
+    cloudW=centreX/8.f;
+    cloudH=centreY/8.f; // optional! scale sprite to screen
 
     for (int i=0; i<max_clouds; i++) {
-        clouds[i].x=rand_range(0,centreX*4);
-        clouds[i].y=rand_range(0,centreY*3);
+        clouds[i].x=rand_range(0,centreX*2);
+        clouds[i].y=rand_range(0,centreY*2);
         float size=rand_range(1,4);
         clouds[i].w=cloudW*size;
         clouds[i].h=cloudH*size;
-        clouds[i].v=5-size;
+        clouds[i].v=(5-size)*2;
     }
 
 	space = cpSpaceNew();
 	cpSpaceSetGravity(space, cpv(0, 100));
 
-	ground = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-64), 0);
+	ground = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-128), 0);
 	cpShapeSetFriction(ground, 1);
 	cpSpaceAddShape(space, ground);
 
-	ground2 = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY), cpv(centreX, centreY+64), 0);
+	ground2 = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY), cpv(centreX, centreY+128), 0);
 	cpShapeSetFriction(ground2, 1);
 	cpSpaceAddShape(space, ground2);
 
-	ground3 = cpSegmentShapeNew(space->staticBody, cpv(centreX, centreY/2.0+64), cpv(centreX*2, centreY/2.0), 0);
+	ground3 = cpSegmentShapeNew(space->staticBody, cpv(centreX, centreY/2.0+128), cpv(centreX*2, centreY/2.0), 0);
 	cpShapeSetFriction(ground3, 1);
 	cpSpaceAddShape(space, ground3);
 
@@ -151,14 +151,14 @@ int main()
                 float size=rand_range(1.,4.);
                 clouds[i].w=cloudW*size;
                 clouds[i].h=cloudH*size;
-                clouds[i].v=(5.-size);
+                clouds[i].v=(5.-size)*2.;
                 clouds[i].x=clouds[i].w+centreX*2.;
-                clouds[i].y=rand_range(0,centreY*3.);
+                clouds[i].y=rand_range(0,centreY*2.);
 
             }
         }
         
-        cpSpaceStep(space, 1.0/40.0);
+        cpSpaceStep(space, 1.0/30.0);
         
         for (int i=0; i<max_balls; i++) {
 			
