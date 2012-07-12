@@ -8,6 +8,7 @@
 
 #include "support.h"		// support routines
 #include "keys.h"		// defines key indexes for key down boolean array
+#include "input.h"
 
 #include <chipmunk.h>
 

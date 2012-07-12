@@ -13,7 +13,7 @@ cobbled together quickly in a few hours...
 #include "support.h"		// support routines
 #include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
-
+#include "input.h"
 
 #include <unistd.h>		// usleep
 
