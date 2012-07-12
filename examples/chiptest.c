@@ -57,9 +57,6 @@ struct cloud_t {
 struct cloud_t clouds[max_clouds];
 
 
-float rand_range(float min,float max) {
-    return min + (max - min) * ((float)rand() / RAND_MAX) / 2.0;
-}
 
 int main()
 {

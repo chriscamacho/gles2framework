@@ -342,6 +342,14 @@ void makeNativeWindow()
 
 }
 
+
+float rand_range(float start,float range) {
+    return start + range * ((float)rand() / RAND_MAX) ;
+
+}
+
+
+
 int loadPNG(const char *filename)
 {
 
@@ -923,3 +931,113 @@ void closeContext()
 }
 
 
+
+
+
+struct __pointGlobs {
+	int Partprogram,part_mvp_uniform,part_tex_attrib;
+	int part_tex_uniform,part_vert_attrib;
+} __pg;
+
+void resetPointCloud(struct pointCloud_t* pntC) {
+
+	pntC->tick=0;
+	for (int i=0;i<numParts;i++) {
+		kmVec3 v;
+		kmVec3Fill(&v,rand_range(-1,2),rand_range(-1,2),rand_range(-1,2));
+		kmVec3Normalize(&v,&v);
+		
+		pntC->partsVec[i*3]=v.x;
+		pntC->partsVec[i*3+1]=v.y;
+		pntC->partsVec[i*3+2]=v.z;
+		
+		pntC->partsVerts[i*3]=0;
+		pntC->partsVerts[i*3+1]=0;
+		pntC->partsVerts[i*3+2]=0;
+		
+	}
+	
+}
+
+void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
+	
+    glUseProgram(__pg.Partprogram);
+    glUniformMatrix4fv(__pg.part_mvp_uniform, 1, GL_FALSE, (GLfloat *) mat);
+    glUniform1i(__pg.part_tex_uniform, 0);
+
+
+	for (int i=0;i<numParts;i++) {
+	
+		pntC->partsVerts[i*3]=pntC->partsVec[i*3] * pntC->tick;
+		pntC->partsVerts[i*3+1]=pntC->partsVec[i*3+1] * pntC->tick;
+		pntC->partsVerts[i*3+2]=pntC->partsVec[i*3+2] * pntC->tick;
+		
+	}
+
+    
+    
+    glEnable(GL_POINTS);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glEnableVertexAttribArray(__pg.part_vert_attrib);
+    glBindBuffer(GL_ARRAY_BUFFER, pntC->partBuf);
+    glBufferSubData(GL_ARRAY_BUFFER, 0,sizeof(float)*3*numParts, &pntC->partsVerts);
+    glVertexAttribPointer(__pg.part_vert_attrib,3,GL_FLOAT,GL_FALSE,0,0);
+    glDrawArrays(GL_POINTS,0,numParts);
+    glDisableVertexAttribArray(pntC->partBuf);
+    glDisable(GL_POINTS);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    
+    
+	
+	
+}
+
+
+struct pointCloud_t* createPointCloud() {
+
+	struct pointCloud_t* pntC=malloc(sizeof(struct pointCloud_t));
+	resetPointCloud(pntC);	
+
+    glGenBuffers(1, &pntC->partBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, pntC->partBuf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numParts, &pntC->partsVerts,
+                 GL_DYNAMIC_DRAW);
+
+	return pntC;
+}
+
+void initPointClouds(const char* vertS, const char* fragS) {
+    
+    
+    GLint link_ok = GL_FALSE;
+
+    GLuint vs, fs;
+    vs = create_shader(vertS, GL_VERTEX_SHADER);
+    fs = create_shader(fragS, GL_FRAGMENT_SHADER);
+    printf("vs=%i fs=%i\n",vs,fs);
+    __pg.Partprogram = glCreateProgram();
+    glAttachShader(__pg.Partprogram, vs);
+    glAttachShader(__pg.Partprogram, fs);
+    glLinkProgram(__pg.Partprogram);
+    glGetProgramiv(__pg.Partprogram, GL_LINK_STATUS, &link_ok);
+    if (!link_ok) {
+        printf("particle glLinkProgram error \n");
+    //    print_log(Partprogram);
+    //    return 0;
+    }
+
+    __pg.part_vert_attrib =
+        getShaderLocation(shaderAttrib, __pg.Partprogram, "vertex_attrib");
+    __pg.part_mvp_uniform =
+        getShaderLocation(shaderUniform, __pg.Partprogram, "mvp_uniform");
+    __pg.part_tex_uniform =
+        getShaderLocation(shaderUniform, __pg.Partprogram, "u_texture");
+
+
+
+        
+        
+	
+}

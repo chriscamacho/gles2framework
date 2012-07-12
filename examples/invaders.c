@@ -17,7 +17,7 @@
 void render();			// func prototype
 
 // obj shape textures
-GLuint cubeTex, shipTex, alienTex, shotTex;
+GLuint cubeTex, shipTex, alienTex, shotTex, expTex;
 
 // structures holding various pointers and handles for obj shapes
 struct obj_t cubeObj, shipObj, alienObj, shotObj;
@@ -51,7 +51,8 @@ struct alien_t {
     kmVec3 shot;
     bool alive;
     bool shotActive;
-
+    struct pointCloud_t* explosion;
+    bool exploding;
 };
 
 #define  MAX_ALIENS 12
@@ -76,7 +77,7 @@ void resetAliens()
             aliens[n].pos.z = -8;
         }
         aliens[n].alive = true;
-
+        aliens[n].exploding = false;
     }
 }
 
@@ -121,9 +122,14 @@ float PIDcal(float setpoint, float actual_position, float *pre_error,
     return output;
 }
 
+
+
 int main()
 {
 
+
+	
+	
     lightDir.x=0.5;
     lightDir.y=.7;
     lightDir.z=-0.5;
@@ -152,6 +158,12 @@ int main()
     shotTex = loadPNG("resources/textures/shot.png");
     loadObjCopyShader(&shotObj, "resources/models/shot.gbo", &cubeObj);
 
+    expTex = loadPNG("resources/textures/explosion.png");
+
+    
+    
+    
+    
     playerPos.x = 0;
     playerPos.y = 0;
     playerPos.z = 0;
@@ -206,6 +218,17 @@ int main()
         playerShots[n].alive = false;
     }
 
+    
+    initPointClouds("resources/shaders/particle.vert",
+    		"resources/shaders/particle.frag");
+    
+
+    for (int n = 0; n < MAX_ALIENS; n++) {
+    	aliens[n].explosion=createPointCloud();
+	}
+    	
+
+    
     while (!quit) {		// the main loop
 
         doEvents();	// update mouse and key arrays
@@ -371,10 +394,27 @@ void render()
                         && playerShots[i].alive) {
                     aliens[n].alive = false;
                     playerShots[i].alive = false;
+                    aliens[n].exploding = true;
+                    resetPointCloud(aliens[n].explosion);
                 }
             }
         } else {
-            deadAliens++;
+        	if (aliens[n].exploding==true) {
+				kmMat4Identity(&model);
+				kmMat4Translation(&model, aliens[n].pos.x,
+								  aliens[n].pos.y, aliens[n].pos.z);
+	
+				kmMat4Assign(&mvp, &vp);
+				kmMat4Multiply(&mvp, &mvp, &model);
+				glBindTexture(GL_TEXTURE_2D, expTex);
+        		drawPointCloud(aliens[n].explosion, &mvp);
+        		aliens[n].explosion->tick=aliens[n].explosion->tick+0.05;
+        		if (aliens[n].explosion->tick>1.25) {
+        			aliens[n].exploding=false;
+        		}
+        	} else {
+        		deadAliens++;
+        	}
         }
     }
 
@@ -382,6 +422,11 @@ void render()
         resetAliens();
     }
 
+    
+
+
+    
+	// move camera    
     kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
 
     kmMat4Assign(&vp, &projection);
@@ -390,12 +435,15 @@ void render()
     kmVec3Subtract(&viewDir,&pEye,&pCenter);
     kmVec3Normalize(&viewDir,&viewDir);
 
-
+    // dump values 
     glPrintf(100, 280, "eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
     glPrintf(100, 296, "centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
              pCenter.z);
     glPrintf(100, 320, "mouse %i,%i %i ", mouse[0], mouse[1], mouse[2]);
+    glPrintf(100, 340, "frame %i %i ", frame, frame % 20);
 
+    
+    
     swapBuffers();
 
 }
