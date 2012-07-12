@@ -252,7 +252,7 @@ void makeNativeWindow()
     dst_rect.height = __display_height;
 
 
-  
+
     src_rect.x = 0;
     src_rect.y = 0;
     src_rect.width = __display_width << 16;
@@ -294,7 +294,7 @@ void makeNativeWindow()
         //return EGL_FALSE;
     }
 
-    
+
     static EGL_DISPMANX_WINDOW_T nativewindow;
 
     DISPMANX_ELEMENT_HANDLE_T dispman_element;
@@ -303,7 +303,7 @@ void makeNativeWindow()
     VC_RECT_T dst_rect;
     VC_RECT_T src_rect;
 
-    
+
     dst_rect.x = 0;
     dst_rect.y = 0;
     dst_rect.width = __display_width;
@@ -1010,14 +1010,13 @@ struct pointCloud_t* createPointCloud() {
 }
 
 void initPointClouds(const char* vertS, const char* fragS) {
-    
-    
+
     GLint link_ok = GL_FALSE;
 
     GLuint vs, fs;
     vs = create_shader(vertS, GL_VERTEX_SHADER);
     fs = create_shader(fragS, GL_FRAGMENT_SHADER);
-    printf("vs=%i fs=%i\n",vs,fs);
+    //printf("vs=%i fs=%i\n",vs,fs);
     __pg.Partprogram = glCreateProgram();
     glAttachShader(__pg.Partprogram, vs);
     glAttachShader(__pg.Partprogram, fs);
@@ -1025,7 +1024,7 @@ void initPointClouds(const char* vertS, const char* fragS) {
     glGetProgramiv(__pg.Partprogram, GL_LINK_STATUS, &link_ok);
     if (!link_ok) {
         printf("particle glLinkProgram error \n");
-    //    print_log(Partprogram);
+        print_log(__pg.Partprogram);
     //    return 0;
     }
 
@@ -1038,7 +1037,4 @@ void initPointClouds(const char* vertS, const char* fragS) {
 
 
 
-        
-        
-	
 }
