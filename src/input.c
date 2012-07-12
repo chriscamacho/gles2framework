@@ -38,6 +38,18 @@ int __mouse[3];
 bool __rel_mouse;
 
 
+#ifdef __FOR_RPi_noX__
+
+void restoreKbd() {
+        tcsetattr(0, TCSAFLUSH, &tty_attr_old);
+	//              ioctl(0, KDSKBMODE, old_keyboard_mode);
+        ioctl(0, KDSKBMODE, K_XLATE);
+}
+
+#endif
+
+
+
 
 void doEvents()
 {

@@ -7,6 +7,10 @@
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
+#ifdef __FOR_RPi_noX__
+extern void restoreKbd();
+extern int __mouse_fd;
+#endif
 
 #ifndef __FOR_RPi_noX__
 
@@ -70,10 +74,7 @@ void closeNativeWindow()
 #endif				//__FOR_RPi__
 
 #ifdef __FOR_RPi_noX__
-// restore keyboard
-	tcsetattr(0, TCSAFLUSH, &tty_attr_old);
-//		ioctl(0, KDSKBMODE, old_keyboard_mode);
-	ioctl(0, KDSKBMODE, K_XLATE);
+	restoreKbd();
 #endif
 
 }
