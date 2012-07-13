@@ -298,9 +298,13 @@ _____
 
 
 void initPointClouds(const char* vertS, const char* fragS, float pntSize);
+
 struct pointCloud_t* createPointCloud(int size);
+
 void drawPointCloud(struct pointCloud_t* pntC,kmMat4* m);
+
 void freePointCloud(struct pointCloud_t* pntC);
+
 
 initPointClouds is used initialise the common shader used by the point clouds and set the size
 of the individual points (this can be changed on the fly later by changing a shader uniform)
