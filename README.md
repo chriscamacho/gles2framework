@@ -95,10 +95,10 @@ you only need compile a static library
 ## Project structure
 
 | |description|
-|------------|---------------------------------------------------------------------|
+|------------|--------------------------------------------------------------|
 |-include|source code include files|
 |-kazmath|source code and docs for the kazmath library|
-|-lib|kazmath compiled as static lib goes here other libs may follow the framework may become a library|
+|-lib|kazmath compiled as static lib goes here. Other libs may follow.  The framework may become a library|
 |-o|somewhere to put intermediate binary objects|
 |-src|source code for the framework|
 |-obj2opengl|script used to turn wavefront OBJ models into source code also contains script to build GBO objects|
