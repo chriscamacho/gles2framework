@@ -90,9 +90,11 @@ indent:
 clean:
 	rm -f o/*.o
 	rm -f lib/libkazmath.a
+	rm -f *~
 	rm -f src/*~
 	rm -f include/*~
 	rm -f examples/*~
+	rm -f resources/shaders/*~
 	rm -f invaders
 	rm -f simple
 	rm -f phystest

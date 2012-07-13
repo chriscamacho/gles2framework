@@ -317,8 +317,8 @@ when drawing a point cloud you must pass the combined model/view/projection matr
 a similar manner to drawing obj shapes, note you must update the individual point positions
 optionally using the supplied velocity value for each point
 
-While it is ok to keep a point cloud around without drawing it for later use
-when the resources used by the cloud need to be used call freePoint cloud
+While it is ok to keep a point cloud around without drawing it for later use.
+When the resources used by the cloud need to be released call freePoint cloud
 this frees the point cloud structure itself and the associated points data
 
 _____
