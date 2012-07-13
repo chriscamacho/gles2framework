@@ -297,13 +297,13 @@ handle and free the structures memory.
 _____
 
 
-void initPointClouds(const char* vertS, const char* fragS, float pntSize);
+__void initPointClouds(const char* vertS, const char* fragS, float pntSize);
 
-struct pointCloud_t* createPointCloud(int size);
+struct pointCloud\_t* createPointCloud(int size);
 
-__void drawPointCloud(struct pointCloud\_t* pntC,kmMat4* m);__
+void drawPointCloud(struct pointCloud\_t* pntC,kmMat4* m);
 
-_void freePointCloud(struct pointCloud\_t* pntC);_
+void freePointCloud(struct pointCloud\_t* pntC);__
 
 
 initPointClouds is used initialise the common shader used by the point clouds and set the size
