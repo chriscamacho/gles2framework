@@ -53,7 +53,7 @@ void restoreKbd() {
 #endif
 
 
-
+int __key_fd=0; // defaults to 0 ie console 
 
 void doEvents()
 {
@@ -126,8 +126,9 @@ void doEvents()
     char buf[1];
     int res;
 
-    res = read(0, &buf[0], 1);
+    res = read(__key_fd, &buf[0], 1);
     while (res >= 0) {
+    	//printf("keyboard %i\n",buf[0]);
 		if (buf[0] & 0x80) {
 			//printf("key %i released\n",(buf[0]&~0x80));
 			__keys[buf[0]&~0x80]=false;
@@ -136,7 +137,7 @@ void doEvents()
 			__keys[buf[0]&~0x80]=true;
 
 		}
-		res = read(0, &buf[0], 1);
+		res = read(__key_fd, &buf[0], 1);
     }
      
     if (__rel_mouse) {
@@ -210,7 +211,7 @@ static int __dfilter(const struct dirent *d) {
 	return 0;	
 }
 
-int __key_fd=0; // defaults to 0 ie console 
+
 
 bool *getKeys()
 {
@@ -223,36 +224,42 @@ bool *getKeys()
     {
     	// only check 1st usb keyboard....
         //printf ("file %s\n",eps[0]->d_name);
-        __key_fd=open(eps[0]->d_name, O_RDONLY);
+       // __key_fd=open(eps[0]->d_name, O_RDONLY);
+         __key_fd=open("/dev/input/event1", O_RDONLY);
+        //printf("using file handle %i for keyboard\n",__key_fd);
     }
 	
 	
+    __key_fd=0; // override to console now
+    // need to write evdev event handler to sit along
+    // side event handling for console keyboard
+    
 #ifdef  __FOR_RPi_noX__
 
     struct termios tty_attr;
     int flags;
 
     /* make stdin non-blocking */
-    flags = fcntl(0, F_GETFL);
+    flags = fcntl(__key_fd, F_GETFL);
     flags |= O_NONBLOCK;
-    fcntl(0, F_SETFL, flags);
+    fcntl(__key_fd, F_SETFL, flags);
 
     /* save old keyboard mode */
-    if (ioctl(0, KDGKBMODE, &old_keyboard_mode) < 0) {
+    if (ioctl(__key_fd, KDGKBMODE, &old_keyboard_mode) < 0) {
 	//return 0;
 		printf("couldn't get the keyboard, are you running via ssh?\n");
 		printf("keyboard routines do not work as expected over ssh...\n");
     }
 
-    tcgetattr(0, &tty_attr_old);
+    tcgetattr(__key_fd, &tty_attr_old);
 
     /* turn off buffering, echo and key processing */
     tty_attr = tty_attr_old;
     tty_attr.c_lflag &= ~(ICANON | ECHO | ISIG);
     tty_attr.c_iflag &= ~(ISTRIP | INLCR | ICRNL | IGNCR | IXON | IXOFF);
-    tcsetattr(0, TCSANOW, &tty_attr);
+    tcsetattr(__key_fd, TCSANOW, &tty_attr);
 
-    ioctl(0, KDSKBMODE, K_RAW);
+    ioctl(__key_fd, KDSKBMODE, K_RAW);
     
 #endif  //__FOR_RPi_noX__
 
