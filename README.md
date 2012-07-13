@@ -146,71 +146,72 @@ see loadObj command detailed below.  makeGBO.sh relies on obj2opengl which must 
 directory, it also needs at least the build esentials if going on another (artists) machine.
 
 ## support routines
+_____
 
-int loadPNG(const char *filename);
+__int loadPNG(const char *filename);__
 
 loads a specified png file returning a GLES texture handle
 
 _____
 
-int makeContext();
+__int makeContext();__
 
 creates a native window and sets up a GLES context within it
 
 _____
 
-void closeContext();
+__void closeContext();__
 
 closes GLES context and window
 
 _____
 
-GLuint create_shader(const char *filename, GLenum type);
+__GLuint create\_shader(const char *filename, GLenum type);__
 
 returns a GLES shader handle from a file you must specify what type of shader it is either 
-GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
+GL\_VERTEX\_SHADER or GL\_FRAGMENT\_SHADER
 
 _____
 
-GLuint getShaderLocation(int type, GLuint prog, const char *name);
+__GLuint getShaderLocation(int type, GLuint prog, const char *name);__
 
 given a type of shaderAttrib or shaderUniform, a shader program handle and a name for the attrib 
 or uniform it returns a location handle
 
 _____
 
-void initGlPrint(int w, int h);
+__void initGlPrint(int w, int h);__
 
 This initialises the resources used by the glPrintf you must supply the windows width and height
 
 _____
 
-void glPrintf(float x, float y, const char *fmt, ...);
+__void glPrintf(float x, float y, const char *fmt, ...);__
 
 this behaves exactly like a normal printf except for the first two parameters which specify the starting coordinate
 
 _____
 
-void swapBuffers();
+__void swapBuffers();__
 
 In order isolate egl and native window handles use this routine instead of eglSwapBuffers
 
 _____
 
-void doEvents();
+__void doEvents();__
 
 this should be called once a frame to update the key down boolean array and the mouse information
 
 _____
 
-int* getMouse();
+__int* getMouse();__
 
 this returns a pointer to an array of 3 ints the first 2 are the x and y mouse position the 3rd int 
 is a bit field reflecting the state of the mouse buttons
 
 _____
 
-bool* getKeys();
+__bool* getKeys();__
 
 this is an array of 256 bools, while a key is held down the coresponding bool is true, key values are defined in keys.h
 
@@ -218,7 +219,7 @@ _____
 
 *** deprecated may be removed in later version ***
 
-int createObj(struct obj_t *obj, int numVerts, float verts[], float txVert[], float norms[], char *vertShader, char *fragShader);
+__int createObj(struct obj\_t *obj, int numVerts, float verts[], float txVert[], float norms[], char *vertShader, char *fragShader);__
 
 pass an empty obj_t struct, the number of vertices and arrays of verts, texture coordinates and 
 normals, finally you need to specify the file names for the vert and frag shaders
@@ -227,13 +228,13 @@ _____
 
 *** deprecated may be removed in later version ***
 
-int createObjCopyShader(struct obj_t *obj, int numVerts, float verts[], float txVert[], float norms[], struct obj_t *sdrobj);
+__int createObjCopyShader(struct obj\_t *obj, int numVerts, float verts[], float txVert[], float norms[], struct obj\_t *sdrobj);__
 
 this allows you to initialise a obj shape but using an existing obj's shader.
 
 _____
 
-void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir);
+__void drawObj(struct obj\_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir);__
 
 this draws an obj, you need to supply a combined model, view and projection matrices as well as a 
 combined model, view matrix for the lighting, light and view direction vectors are also needed for 
@@ -241,27 +242,27 @@ lighting
 
 _____
 
-int getDisplayWidth(); 
+__int getDisplayWidth();__ 
 
-int getDisplayHeight();
+__int getDisplayHeight();__
 
 returns full screen width and height, for now when not on Raspberry PI the "screen" is fixed to a 
 640x480 window
 
 _____
 
-int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag);
+__int loadObj(struct obj\_t *obj,const char *objFile, char *vert, char *frag);__
 
-int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrobj);
+__int loadObjCopyShader(struct obj\_t *obj,const char *objFile, struct obj\_t *sdrobj);__
 
 these are basically the same as their createObj counterparts except the OBJ is loaded from a 
 compiled binary wavefront object instead of from embedded data.
 
 _____
 
-void initSprite(int w, int h);
+__void initSprite(int w, int h);__
 
-void drawSprite(float x, float y, float w, float h, float a, int tex);
+__void drawSprite(float x, float y, float w, float h, float a, int tex);__
 
 like glPrinf the sprite subsystem must be initialised before use, pass the dimensions of the screen.
 
@@ -269,7 +270,7 @@ when drawing a sprite you specify where you want it (x & y) the size of the spri
 
 _____
 
-void setMouseRelative(bool mode);
+__void setMouseRelative(bool mode);__
 
 if mode is true the mouse will report relative position changes only, this is handy for mouse 
 look where you dont want the mouse constrained by the window. By default absolute mouse position 
@@ -277,11 +278,11 @@ is reported
 
 _____
 
-struct joystick_t *getJoystick(int j);
+__struct joystick\_t *getJoystick(int j);__
 
-void updateJoystick(struct joystick_t *js);
+__void updateJoystick(struct joystick\_t *js);__
 
-void releaseJoystick(struct joystick_t *js);
+__void releaseJoystick(struct joystick\_t *js);__
 
 to get a pointer to a joystick call getJoystick with the index of the joystick 0-7
 call this once only
@@ -297,13 +298,13 @@ handle and free the structures memory.
 _____
 
 
-__void initPointClouds(const char* vertS, const char* fragS, float pntSize);
+__void initPointClouds(const char* vertS, const char* fragS, float pntSize);__
 
-struct pointCloud\_t* createPointCloud(int size);
+__struct pointCloud\_t* createPointCloud(int size);__
 
-void drawPointCloud(struct pointCloud\_t* pntC,kmMat4* m);
+__void drawPointCloud(struct pointCloud\_t* pntC,kmMat4* m);__
 
-void freePointCloud(struct pointCloud\_t* pntC);__
+__void freePointCloud(struct pointCloud\_t* pntC);__
 
 
 initPointClouds is used initialise the common shader used by the point clouds and set the size
