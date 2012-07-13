@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
 
+
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
@@ -914,6 +915,7 @@ int makeContext()
 }
 
 
+extern int __key_fd;
 
 void closeContext()
 {
@@ -928,6 +930,9 @@ void closeContext()
         close(__mouse_fd);
     }
 #endif
+
+    close(__key_fd);
+
 
 }
 

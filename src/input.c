@@ -14,6 +14,9 @@
 
 #endif //NOT  __FOR_RPi_noX__
 
+	#include <dirent.h>  // scandir
+	#include <string.h> // strlen
+
 #ifdef __FOR_RPi_noX__ 
 
 	// sudo kbd_mode -a - on RPi if you have to kill it...
@@ -21,6 +24,7 @@
 	#include "linux/kd.h"	// keyboard stuff...
 	#include "termios.h"
 	#include "sys/ioctl.h"
+	
 
 	static struct termios tty_attr_old;
 	static int old_keyboard_mode;
@@ -192,9 +196,37 @@ int *getMouse()
     return &__mouse[0];
 }
 
+static int __dsort (const struct dirent **a,const struct dirent **b) {
+	return 1; // dummy sort
+}
+
+static int __dfilter(const struct dirent *d) {
+	if (d->d_type==DT_DIR) return 0;
+	int i=0;
+	i=strlen(d->d_name)-1;
+	//printf ("%i %c %c %c \n",d->d_type,d->d_name[i-2],d->d_name[i-1],d->d_name[i]);
+	// allegedly usb keyboard symlink *always* ends kbd
+	if (d->d_name[i-2]=='k'  & d->d_name[i-1]=='b'  & d->d_name[i]=='d'  ) return 1;
+	return 0;	
+}
+
+int __key_fd=0; // defaults to 0 ie console 
+
 bool *getKeys()
 {
 
+  struct dirent **eps;
+  int n;
+
+  n = scandir ("/dev/input/by-path/", &eps, __dfilter, __dsort);
+  if (n >= 0)
+    {
+    	// only check 1st usb keyboard....
+        //printf ("file %s\n",eps[0]->d_name);
+        __key_fd=open(eps[0]->d_name, O_RDONLY);
+    }
+	
+	
 #ifdef  __FOR_RPi_noX__
 
     struct termios tty_attr;
