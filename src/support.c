@@ -40,7 +40,7 @@ int getDisplayHeight() {
 
 #ifdef __FOR_XORG__
 
-	Window __win, __eventWin;
+Window __win, __eventWin;
 
 #endif
 
@@ -74,7 +74,7 @@ void closeNativeWindow()
 #endif				//__FOR_RPi__
 
 #ifdef __FOR_RPi_noX__
-	restoreKbd();
+    restoreKbd();
 #endif
 
 }
@@ -336,7 +336,7 @@ void makeNativeWindow()
     __egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (__egl_display == EGL_NO_DISPLAY) {
         printf("Got no EGL display.\n");
-    }    
+    }
 
 #endif //__FOR_RPi_noX__
 
@@ -750,10 +750,10 @@ void initSprite(int w, int h)
 {
     const GLfloat quadVertices[] = {
         -.5,	-.5,	0,
-         .5,  	 .5,	0,
-         .5,	-.5,	0,
+        .5,  	 .5,	0,
+        .5,	-.5,	0,
 
-         .5,  	 .5,	0,
+        .5,  	 .5,	0,
         -.5,	-.5,	0,
         -.5,	 .5,	0
     };
@@ -922,11 +922,11 @@ void closeContext()
     eglTerminate(__egl_display);
 
     closeNativeWindow();
-    
-#ifdef __FOR_RPi_noX__    
-	if (__mouse_fd!=-1) {
-		close(__mouse_fd);
-	}
+
+#ifdef __FOR_RPi_noX__
+    if (__mouse_fd!=-1) {
+        close(__mouse_fd);
+    }
 #endif
 
 }
@@ -936,80 +936,63 @@ void closeContext()
 
 
 struct __pointGlobs {
-	int Partprogram,part_mvp_uniform,part_tex_attrib;
-	int part_tex_uniform,part_vert_attrib;
+    int Partprogram,part_mvp_uniform,part_tex_attrib;
+    int part_tex_uniform,part_vert_attrib;
+    int part_size_uniform;
 } __pg;
 
-void resetPointCloud(struct pointCloud_t* pntC) {
-
-	pntC->tick=0;
-	for (int i=0;i<numParts;i++) {
-		kmVec3 v;
-		kmVec3Fill(&v,rand_range(-1,2),rand_range(-1,2),rand_range(-1,2));
-		kmVec3Normalize(&v,&v);
-		
-		pntC->partsVec[i*3]=v.x;
-		pntC->partsVec[i*3+1]=v.y;
-		pntC->partsVec[i*3+2]=v.z;
-		
-		pntC->partsVerts[i*3]=0;
-		pntC->partsVerts[i*3+1]=0;
-		pntC->partsVerts[i*3+2]=0;
-		
-	}
-	
-}
 
 void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
-	
+
     glUseProgram(__pg.Partprogram);
     glUniformMatrix4fv(__pg.part_mvp_uniform, 1, GL_FALSE, (GLfloat *) mat);
     glUniform1i(__pg.part_tex_uniform, 0);
 
 
-	for (int i=0;i<numParts;i++) {
-	
-		pntC->partsVerts[i*3]=pntC->partsVec[i*3] * pntC->tick;
-		pntC->partsVerts[i*3+1]=pntC->partsVec[i*3+1] * pntC->tick;
-		pntC->partsVerts[i*3+2]=pntC->partsVec[i*3+2] * pntC->tick;
-		
-	}
-
-    
-    
     glEnable(GL_POINTS);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glEnableVertexAttribArray(__pg.part_vert_attrib);
-    glBindBuffer(GL_ARRAY_BUFFER, pntC->partBuf);
-    glBufferSubData(GL_ARRAY_BUFFER, 0,sizeof(float)*3*numParts, &pntC->partsVerts);
+    glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
+    glBufferSubData(GL_ARRAY_BUFFER, 0,sizeof(float)*3*pntC->totalPoints, pntC->pos);
     glVertexAttribPointer(__pg.part_vert_attrib,3,GL_FLOAT,GL_FALSE,0,0);
-    glDrawArrays(GL_POINTS,0,numParts);
-    glDisableVertexAttribArray(pntC->partBuf);
+    glDrawArrays(GL_POINTS,0,pntC->totalPoints);
+    glDisableVertexAttribArray(pntC->vertBuf);
     glDisable(GL_POINTS);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
-    
-    
-	
-	
+
+
+
+
 }
 
 
-struct pointCloud_t* createPointCloud() {
+struct pointCloud_t* createPointCloud(int size) {
 
-	struct pointCloud_t* pntC=malloc(sizeof(struct pointCloud_t));
-	resetPointCloud(pntC);	
+    struct pointCloud_t* pntC=malloc(sizeof(struct pointCloud_t));
+    pntC->totalPoints=size;
+    pntC->pos=malloc(size*sizeof(float)*3);
+    pntC->vel=malloc(size*sizeof(float)*3);
+    
 
-    glGenBuffers(1, &pntC->partBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, pntC->partBuf);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numParts, &pntC->partsVerts,
+    glGenBuffers(1, &pntC->vertBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * maxPoints, &pntC->vertBuf,
+//                 GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * pntC->totalPoints, pntC->pos,
                  GL_DYNAMIC_DRAW);
 
-	return pntC;
+    return pntC;
 }
 
-void initPointClouds(const char* vertS, const char* fragS) {
+void freePointCloud(struct pointCloud_t* pntC) {
+    free(pntC->pos);
+    free(pntC->vel);
+	free(pntC);
+}
+
+void initPointClouds(const char* vertS, const char* fragS, float pntSize) {
 
     GLint link_ok = GL_FALSE;
 
@@ -1025,7 +1008,7 @@ void initPointClouds(const char* vertS, const char* fragS) {
     if (!link_ok) {
         printf("particle glLinkProgram error \n");
         print_log(__pg.Partprogram);
-    //    return 0;
+        //    return 0;
     }
 
     __pg.part_vert_attrib =
@@ -1035,6 +1018,9 @@ void initPointClouds(const char* vertS, const char* fragS) {
     __pg.part_tex_uniform =
         getShaderLocation(shaderUniform, __pg.Partprogram, "u_texture");
 
-
+    __pg.part_size_uniform =
+        getShaderLocation(shaderUniform, __pg.Partprogram, "u_point_size");
+    glUseProgram(__pg.Partprogram);
+    glUniform1f(__pg.part_size_uniform, pntSize);
 
 }

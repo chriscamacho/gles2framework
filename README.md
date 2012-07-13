@@ -305,3 +305,26 @@ handle and free the structures memory.
 
 _____
 
+
+void initPointClouds(const char* vertS, const char* fragS, float pntSize);
+struct pointCloud_t* createPointCloud(int size);
+void drawPointCloud(struct pointCloud_t* pntC,kmMat4* m);
+void freePointCloud(struct pointCloud_t* pntC);
+
+initPointClouds is used initialise the common shader used by the point clouds and set the size
+of the individual points (this can be changed on the fly later by changing a shader uniform)
+
+createPointCloud reserves space for the position and velocity components of each individual 
+point in a cloud
+
+when drawing a point cloud you must pass the combined model/view/projection matrix in
+a similar manner to drawing obj shapes, note you must update the individual point positions
+optionally using the supplied velocity value for each point
+
+While it is ok to keep a point cloud around without drawing it for later use
+when the resources used by the cloud need to be used call freePoint cloud
+this frees the point cloud structure itself and the associated points data
+
+_____
+
+

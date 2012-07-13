@@ -24,18 +24,19 @@ void initSprite(int w, int h);
 void drawSprite(float x, float y, float w, float h, float a, int tex);
 float rand_range(float min,float max);
 
-#define numParts 20
+
 
 struct pointCloud_t {
-	float partsVerts[numParts*3];
-	float partsVec[numParts*3];
-	int partBuf;
+	int totalPoints;
+	float *pos;
+	float *vel;
+	int vertBuf;
 	float tick;
 };
 
-void initPointClouds(const char* vertS, const char* fragS);
-struct pointCloud_t* createPointCloud();
+void initPointClouds(const char* vertS, const char* fragS, float pntSize);
+struct pointCloud_t* createPointCloud(int size);
 void drawPointCloud(struct pointCloud_t* pntC,kmMat4* m);
-void resetPointCloud(struct pointCloud_t* pntC);
+void freePointCloud(struct pointCloud_t* pntC);
 
 
