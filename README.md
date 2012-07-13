@@ -94,28 +94,28 @@ you only need compile a static library
 
 ## Project structure
 
+|
+-include|source code include files
 
--include		source code include files
+-kazmath|source code and docs for the kazmath library
 
--kazmath		source code and docs for the kazmath library
+-lib|kazmath compiled as static lib goes here other libs may follow the framework may become a library
 
--lib			kazmath compiled as static lib goes here other libs may follow the framework may become a library
+-o|somewhere to put intermediate binary objects
 
--o				somewhere to put intermediate binary objects
+-src|source code for the framework
 
--src			source code for the framework
+-obj2opengl|script used to turn wavefront OBJ models into source code also contains script to build GBO objects
 
--obj2opengl		script used to turn wavefront OBJ models into source code also contains script to build GBO objects
+-resources|holds textures, shaders and binary 3d models for the samples
 
--resources		holds textures, shaders and binary 3d models for the samples
+-examples|example code showing use of the framework
 
--examples		example code showing use of the framework
+Makefile|tells the compiler how to build the examples
 
-Makefile		tells the compiler how to build the examples
+README.md|this file!
 
-README.md		this file!
-
-TODO.md			aide memoire, ideas and inspiration for future development
+TODO.md|aide memoire, ideas and inspiration for future development
 
 #### kazmath
 there is no need to seperatly compile the kazmath library for your platform kazmath sources are now 
