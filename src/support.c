@@ -948,9 +948,10 @@ void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
     glUniformMatrix4fv(__pg.part_mvp_uniform, 1, GL_FALSE, (GLfloat *) mat);
     glUniform1i(__pg.part_tex_uniform, 0);
 
-
+// least sucky depth fudge!
     glEnable(GL_POINTS);
-    glDisable(GL_DEPTH_TEST);
+//    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glEnableVertexAttribArray(__pg.part_vert_attrib);
     glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
@@ -959,9 +960,9 @@ void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
     glDrawArrays(GL_POINTS,0,pntC->totalPoints);
     glDisableVertexAttribArray(pntC->vertBuf);
     glDisable(GL_POINTS);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
-
+    //glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+glDepthMask(GL_TRUE);
 
 
 
@@ -978,8 +979,6 @@ struct pointCloud_t* createPointCloud(int size) {
 
     glGenBuffers(1, &pntC->vertBuf);
     glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * maxPoints, &pntC->vertBuf,
-//                 GL_DYNAMIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * pntC->totalPoints, pntC->pos,
                  GL_DYNAMIC_DRAW);
 
