@@ -25,34 +25,26 @@ it should contain just the line
 
 ##### raw mouse on Raspberry pi
 
-by default users don't have permissions to access the raw mouse device in order
-to change these permissions a simple boot script can be made (TODO find out how
-to do this properly!!! udev?)
+When not using xwindows (ie via ssh) input including keyboard is now done entirely via
+the kernel evdev interface.
 
-(as root) make a script in /etc/init.d/rawmousefix
+you need some udev rules (this does open the way for keyloggers for the paranoid!)
+you may choose to use some other group than users for better security should you
+use your Pi for online banking ;)
 
-	#!/bin/sh
-	if [ -c /dev/input/mouse0 ]
-	then
-	        echo "*** raw mouse fixup ***"
-	        chgrp users /dev/input/mouse0
-	        chmod 640 /dev/input/mouse0
-	fi
+make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain the following
 
-check which runlevel you default to with runlevel and make the script run
-at boot
+	KERNEL=="event*", NAME="input/%k", MODE="0640", GROUP="users"
+	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="users"
 
-	update-rc.d rawmousefix start 2
+you'll need to reboot or tell udev to reload its rules.
 
-reboot and check you see the raw mouse fixup message in your boot sequence
-also verify the group and permission with
-	ls -l /dev/input/mouse0
-	
-it goes without saying (yet I will...) that your user account needs to be in
-the users group - (it might not be depending on distro!)
+You can now run your programs from ssh and it will only use the Pi's attached
+usb keyboard rather than being confused with the ssh console
 
+editing files via ssh (sftp enabled editor) and compiling with a ssh console is the recommended
+way of developing with this framework
 
-	
 	
 ### file structure for external libraries
 

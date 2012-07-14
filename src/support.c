@@ -310,7 +310,6 @@ void makeNativeWindow()
     dst_rect.width = __display_width;
     dst_rect.height = __display_height;
 
-
     src_rect.x = 0;
     src_rect.y = 0;
     src_rect.width = __display_width << 16;
@@ -966,8 +965,8 @@ void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
     glDisableVertexAttribArray(pntC->vertBuf);
     glDisable(GL_POINTS);
     //glEnable(GL_DEPTH_TEST);
-        glDisable(GL_BLEND);
-glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 
 
 
@@ -980,7 +979,7 @@ struct pointCloud_t* createPointCloud(int size) {
     pntC->totalPoints=size;
     pntC->pos=malloc(size*sizeof(float)*3);
     pntC->vel=malloc(size*sizeof(float)*3);
-    
+
 
     glGenBuffers(1, &pntC->vertBuf);
     glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
@@ -993,7 +992,7 @@ struct pointCloud_t* createPointCloud(int size) {
 void freePointCloud(struct pointCloud_t* pntC) {
     free(pntC->pos);
     free(pntC->vel);
-	free(pntC);
+    free(pntC);
 }
 
 void initPointClouds(const char* vertS, const char* fragS, float pntSize) {
