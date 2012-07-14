@@ -23,21 +23,25 @@ it should contain just the line
 
 /opt/vc/lib
 
-##### raw mouse on Raspberry pi
+##### raw mouse, keyboard and joystick on Raspberry pi
 
 When not using xwindows (ie via ssh) input including keyboard is now done entirely via
 the kernel evdev interface.
 
 you need some udev rules (this does open the way for keyloggers for the paranoid!)
-you may choose to use some other group than users for better security should you
-use your Pi for online banking ;)
 
 make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain the following
 
-	KERNEL=="event*", NAME="input/%k", MODE="0640", GROUP="users"
-	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="users"
+	KERNEL=="event*", NAME="input/%k", MODE="0640", GROUP="evdev"
+	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="evdev"
+	KERNEL=="js*", NAME="input/%k", MODE="0640", GROUP="evdev"
 
-you'll need to reboot or tell udev to reload its rules.
+you need to add an new group and add you user account to the group (as root)
+
+	groupadd evdev
+	usermod -a -G evdev your_user_name
+
+you'll need to reboot
 
 You can now run your programs from ssh and it will only use the Pi's attached
 usb keyboard rather than being confused with the ssh console
