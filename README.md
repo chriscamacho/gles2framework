@@ -39,7 +39,7 @@ make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain 
 you need to add an new group and add your user account to the group (as root)
 
 	groupadd evdev
-	usermod -a -G evdev your\_user\_name
+	usermod -a -G evdev your_user_name
 
 you'll need to reboot
 
