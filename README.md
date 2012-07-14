@@ -36,10 +36,10 @@ make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain 
 	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="evdev"
 	KERNEL=="js*", NAME="input/%k", MODE="0640", GROUP="evdev"
 
-you need to add an new group and add you user account to the group (as root)
+you need to add an new group and add your user account to the group (as root)
 
 	groupadd evdev
-	usermod -a -G evdev your_user_name
+	usermod -a -G evdev your\_user\_name
 
 you'll need to reboot
 
