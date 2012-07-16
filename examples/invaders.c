@@ -384,36 +384,11 @@ int main()
                         resetExposion(aliens[n].explosion);
                     }
                 }
-            } else {
-                if (aliens[n].exploding==true) {
-                    kmMat4Identity(&model);
-                    kmMat4Translation(&model, aliens[n].pos.x,
-                                      aliens[n].pos.y, aliens[n].pos.z);
+            } 
 
-                    kmMat4Assign(&mvp, &vp);
-                    kmMat4Multiply(&mvp, &mvp, &model);
-                    glBindTexture(GL_TEXTURE_2D, expTex);
-                    drawPointCloud(aliens[n].explosion, &mvp);
-                    aliens[n].explosion->tick=aliens[n].explosion->tick+0.05;
-                    if (aliens[n].explosion->tick>1.25) {
-                        aliens[n].exploding=false;                   	
-                    } else {
-                    	// update the explosion
-                    	
-						for (int i=0; i<aliens[n].explosion->totalPoints; i++) {
-					
-							float t;
-							t=aliens[n].explosion->tick;
-							if (i>aliens[n].explosion->totalPoints/2) t=t/2.0;
-							aliens[n].explosion->pos[i*3]=aliens[n].explosion->vel[i*3] * t;
-							aliens[n].explosion->pos[i*3+1]=aliens[n].explosion->vel[i*3+1] * t;
-							aliens[n].explosion->pos[i*3+2]=aliens[n].explosion->vel[i*3+2] * t;
-					
-						}
-                    }
-                } else {
+            if (aliens[n].alive != true && aliens[n].exploding != true) {
                     deadAliens++;
-                }
+                
             }
         }
 
@@ -421,9 +396,36 @@ int main()
             resetAliens();
         }
 
+		// draw explosions after ALL aliens
+        for (int n = 0; n < MAX_ALIENS; n++) {
+			if (aliens[n].exploding==true) {
+				kmMat4Identity(&model);
+				kmMat4Translation(&model, aliens[n].pos.x,
+								  aliens[n].pos.y, aliens[n].pos.z);
 
-
-
+				kmMat4Assign(&mvp, &vp);
+				kmMat4Multiply(&mvp, &mvp, &model);
+				glBindTexture(GL_TEXTURE_2D, expTex);
+				drawPointCloud(aliens[n].explosion, &mvp);
+				aliens[n].explosion->tick=aliens[n].explosion->tick+0.05;
+				if (aliens[n].explosion->tick>1.25) {
+					aliens[n].exploding=false;                   	
+				} else {
+					// update the explosion
+					
+					for (int i=0; i<aliens[n].explosion->totalPoints; i++) {
+				
+						float t;
+						t=aliens[n].explosion->tick;
+						if (i>aliens[n].explosion->totalPoints/2) t=t/2.0;
+						aliens[n].explosion->pos[i*3]=aliens[n].explosion->vel[i*3] * t;
+						aliens[n].explosion->pos[i*3+1]=aliens[n].explosion->vel[i*3+1] * t;
+						aliens[n].explosion->pos[i*3+2]=aliens[n].explosion->vel[i*3+2] * t;
+				
+					}
+				}
+			}
+		}
 
         // move camera
         kmMat4LookAt(&view, &pEye, &pCenter, &pUp);
