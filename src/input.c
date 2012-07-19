@@ -11,6 +11,8 @@
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
+extern Display *__x_display;
+extern Window __eventWin;
 
 #endif //NOT  __FOR_RPi_noX__
 
