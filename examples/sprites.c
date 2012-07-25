@@ -24,6 +24,7 @@ void render();			// func prototype
 GLuint cloudTex,biTex,triTex;
 float centreX,centreY,cloudW,cloudH,planeW,planeH;
 
+font_t *font1;
 
 // matrices and combo matrices
 kmMat4 model, view, projection, mvp, vp, mv;
@@ -67,6 +68,7 @@ int main()
 
     // initialises glprint's matrix, shader and texture
     initGlPrint(getDisplayWidth(), getDisplayHeight());
+    font1=createFont("resources/textures/font.png",0,256,16,16,16);
     initSprite(getDisplayWidth(), getDisplayHeight());
 
     centreX=((float)getDisplayWidth())/2.0;
@@ -165,7 +167,7 @@ void render()
 
 
     // see printf documentation for the formatting of variables...
-    glPrintf(100, 240, "frame=%i", frame);
+    glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
     swapBuffers();

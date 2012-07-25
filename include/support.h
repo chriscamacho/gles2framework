@@ -15,8 +15,6 @@ void print_log(GLuint object);
 int loadPNG(const char *filename);
 int makeContext();
 void closeContext();
-void initGlPrint(int w, int h);
-void glPrintf(float x, float y, const char *fmt, ...);
 void swapBuffers();
 int getDisplayWidth();
 int getDisplayHeight();
@@ -38,5 +36,23 @@ void initPointClouds(const char* vertS, const char* fragS, float pntSize);
 struct pointCloud_t* createPointCloud(int size);
 void drawPointCloud(struct pointCloud_t* pntC,kmMat4* m);
 void freePointCloud(struct pointCloud_t* pntC);
+
+
+struct __fnt {
+	uint tex;
+	uint base;
+	uint vertBuf;
+	uint texBuf;
+	float tHeight;
+	float tLines;
+	int fWidth;
+	int fHeight;
+};
+
+typedef struct __fnt font_t;
+
+font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines, int fWidth, int fHeight);
+void initGlPrint(int w, int h);
+void glPrintf(float x, float y, font_t* fnt, const char *fmt, ...);
 
 

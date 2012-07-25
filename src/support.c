@@ -620,6 +620,7 @@ struct {  // blob of globals for the glPrint routine
 
 void initGlPrint(int w, int h)
 {
+/*	
     const GLfloat quadVertices[] = {
         0,	0,	0,
         16, 16, 0,
@@ -638,7 +639,7 @@ void initGlPrint(int w, int h)
         0,			0,
         0,			1. / 16
     };
-
+*/
 
     kmMat4OrthographicProjection(&__glp.opm, 0, w, h, 0, -10, 10);
 
@@ -668,6 +669,7 @@ void initGlPrint(int w, int h)
     __glp.vert_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "vert_attrib");
     __glp.uv_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "uv_attrib");
 
+/*
     __glp.fonttex = loadPNG("resources/textures/font.png");
 
     glGenBuffers(1, &__glp.quadvbo);
@@ -679,10 +681,51 @@ void initGlPrint(int w, int h)
     glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
                  GL_STATIC_DRAW);
-
+*/
 }
 
-void glPrintf(float x, float y, const char *fmt, ...)
+
+
+
+font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int fWidth,int fHeight) {
+	font_t *t=malloc(sizeof(font_t));
+	
+	t->tex = loadPNG(tpath);
+	t->base=cbase;
+	t->tHeight=tHeight;
+	t->tLines=tLines;
+	t->fWidth=fWidth;
+	t->fHeight=fHeight;
+	
+	float *vb=malloc(sizeof(float) * 3 * 6);
+    
+    vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[14]=vb[15]=vb[17]=0;
+    vb[3]=vb[6]=vb[9]=fWidth;
+	vb[4]=vb[10]=vb[16]=fHeight;
+
+    glGenBuffers(1, &t->vertBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, t->vertBuf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, vb, GL_STATIC_DRAW);
+
+	free(vb);
+
+	float *tc=malloc(sizeof(float) * 2 * 6);
+	tc[0]=tc[1]=tc[5]=tc[8]=tc[9]=tc[10]=0;
+	tc[2]=tc[4]=tc[6]=1./16;
+	tc[3]=tc[7]=tc[11]=1./tLines;
+	
+	glGenBuffers(1, &t->texBuf);
+	glBindBuffer(GL_ARRAY_BUFFER, t->texBuf);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, tc, GL_STATIC_DRAW);
+	
+	free(tc);
+	
+	
+
+	return t;
+}
+
+void glPrintf(float x, float y, font_t *fnt, const char *fmt, ...)
 {
     char text[256];
     va_list ap;
@@ -698,24 +741,31 @@ void glPrintf(float x, float y, const char *fmt, ...)
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 
-    glBindTexture(GL_TEXTURE_2D, __glp.fonttex);
+    //glBindTexture(GL_TEXTURE_2D, __glp.fonttex);
+	glBindTexture(GL_TEXTURE_2D, fnt->tex);
 
     glEnableVertexAttribArray(__glp.vert_attrib);
-    glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
+//    glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
+    glBindBuffer(GL_ARRAY_BUFFER, fnt->vertBuf);
     glVertexAttribPointer(__glp.vert_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(__glp.uv_attrib);
-    glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
+//    glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
+    glBindBuffer(GL_ARRAY_BUFFER, fnt->texBuf);
     glVertexAttribPointer(__glp.uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glUniform1i(__glp.texture_uniform, 0);
 
     for (int n = 0; n < strlen(text); n++) {
 
-        int c = (int)text[n];
+        int c = (int)text[n]-fnt->base;
+//        float cx = c % 16;
+//        float cy = (int)(c / 16.0);
+//        cy = cy * (1. / 16);
+//        cx = cx * (1. / 16);
         float cx = c % 16;
-        float cy = (int)(c / 16.0);
-        cy = cy * (1. / 16);
+        float cy = (int)(c/16.0);
+        cy = cy * (1. / (fnt->tLines));
         cx = cx * (1. / 16);
 
         glUniformMatrix4fv(__glp.opm_uniform, 1, GL_FALSE, (GLfloat *) & __glp.otm);
@@ -724,7 +774,7 @@ void glPrintf(float x, float y, const char *fmt, ...)
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        kmMat4Translation(&__glp.t, 16, 0, 0);
+        kmMat4Translation(&__glp.t, fnt->fWidth, 0, 0);
         kmMat4Multiply(&__glp.otm, &__glp.otm, &__glp.t);
     }
 

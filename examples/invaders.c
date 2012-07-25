@@ -21,6 +21,9 @@ GLuint cubeTex, shipTex, alienTex, shotTex, expTex;
 // structures holding various pointers and handles for obj shapes
 struct obj_t cubeObj, shipObj, alienObj, shotObj;
 
+// pointers to glprint font structures
+font_t *font1,*font2;
+
 // matrices and combo matrices
 kmMat4 model, view, projection, mvp, vp, mv;
 
@@ -217,6 +220,9 @@ int main()
     // initialises glprint's matrix shader and texture
     initGlPrint(getDisplayWidth(), getDisplayHeight());
 
+	font1=createFont("resources/textures/font.png",0,256,16,16,16);
+	font2=createFont("resources/textures/bigfont.png",32,512,9.5,32,48);
+
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -294,8 +300,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, shipTex);
         drawObj(&shipObj, &mvp, &mv, lightDir, viewDir);
 
-        glPrintf(100 + sinf(rad) * 16, 240 + cosf(rad) * 16,
-                 "frame=%i fps=%3.2f", frame, lfps);
+        glPrintf(50 + sinf(rad) * 16, 240 + cosf(rad) * 16,
+                 font2,"frame=%i fps=%3.2f", frame, lfps);
 
         kmVec3 tmp;
 
@@ -437,11 +443,11 @@ int main()
         kmVec3Normalize(&viewDir,&viewDir);
 
         // dump values
-        glPrintf(100, 280, "eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
-        glPrintf(100, 296, "centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
+        glPrintf(100, 280, font1,"eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
+        glPrintf(100, 296, font1,"centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
                  pCenter.z);
-        glPrintf(100, 320, "mouse %i,%i %i ", mouse[0], mouse[1], mouse[2]);
-        glPrintf(100, 340, "frame %i %i ", frame, frame % 20);
+        glPrintf(100, 320, font1,"mouse %i,%i %i ", mouse[0], mouse[1], mouse[2]);
+        glPrintf(100, 340, font1,"frame %i %i ", frame, frame % 20);
 
 
 

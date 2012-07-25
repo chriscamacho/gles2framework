@@ -125,6 +125,8 @@ bool *keys;
 int *mouse;
 struct joystick_t *joy1;
 
+font_t *font1,*font2;
+
 int main()
 {
 	
@@ -181,6 +183,9 @@ int main()
     // initialises glprint's matrix, shader and texture
     initGlPrint(getDisplayWidth(), getDisplayHeight());
 
+	font1=createFont("resources/textures/font.png",0,256,16,16,16);
+	font2=createFont("resources/textures/bigfont.png",32,512,9.5,32,48);
+	
     // we don't want to draw the back of triangles
     // the blending is set up for glprint but disabled
     // while not in use
@@ -305,12 +310,14 @@ void render()
 
 
     // see printf documentation for the formatting of variables...
-    glPrintf(100, 240, "frame=%i", frame);
+    glPrintf(24, 24, font2, "frame=%i", frame);
 
-    glPrintf(100, 260, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
+    glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
-	glPrintf(100, 280, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
-	 
+	glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+	
+	
+	glPrintf(100, 320, font2, "abcABCqrsQRS123"); 
     //rmx+=mouse[0];
     //rmy+=mouse[1];
     //glPrintf(100, 280, "%i  %i", rmx,rmy);

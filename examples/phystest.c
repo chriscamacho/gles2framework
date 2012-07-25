@@ -126,6 +126,7 @@ void render();			// func prototype
 
 // obj shape textures
 GLuint cubeTex, groundTex,ballTex;
+font_t *font1;
 
 // structures holding various pointers and handles for obj shapes
 struct obj_t cubeObj, groundObj,ballObj;
@@ -205,7 +206,7 @@ int main()
 
     // initialises glprint's matrix, shader and texture
     initGlPrint(getDisplayWidth(), getDisplayHeight());
-
+	font1=createFont("resources/textures/font.png",0,256,16,16,16);
     // we don't want to draw the back of triangles
     // the blending is set up for glprint but disabled
     // while not in use
@@ -379,7 +380,7 @@ void render()
         }
     }
     // see printf documentation for the formatting of variables...
-    glPrintf(100, 240, "frame=%i", frame);
+    glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
     swapBuffers();

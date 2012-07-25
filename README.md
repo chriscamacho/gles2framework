@@ -182,9 +182,19 @@ This initialises the resources used by the glPrintf you must supply the windows 
 
 _____
 
-__void glPrintf(float x, float y, const char *fmt, ...);__
+__font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines, int fWidth, int fHeight);__
 
-this behaves exactly like a normal printf except for the first two parameters which specify the starting coordinate
+tpath is the full path and of the texture for this font, cbase is the ascii code of the first character 
+tHeight is the height in pixels of the texture, tLines specifies the number of lines in total the texture 
+contains (I think there is a bug with this!) fWidth and fHeight are the width and height a character
+
+TODO freeFont to release a fonts resources...
+_____
+
+__void glPrintf(float x, float y, font_t fnt, const char *fmt, ...);__
+
+this behaves exactly like a normal printf except for the first two parameters which specify the starting coordinate 
+you must specify a previously created font structure to print with
 
 _____
 

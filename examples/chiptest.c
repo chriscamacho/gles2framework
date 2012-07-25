@@ -56,7 +56,7 @@ struct cloud_t {
 
 struct cloud_t clouds[max_clouds];
 
-
+font_t *font1;
 
 int main()
 {
@@ -78,7 +78,9 @@ int main()
 
     // initialises glprint's matrix, shader and texture
     initGlPrint(getDisplayWidth(), getDisplayHeight());
-    initSprite(getDisplayWidth(), getDisplayHeight());
+	font1=createFont("resources/textures/font.png",0,256,16,16,16);
+	
+	initSprite(getDisplayWidth(), getDisplayHeight());
 
     centreX=((float)getDisplayWidth())/2.0;
     centreY=((float)getDisplayHeight())/2.0;
@@ -208,7 +210,7 @@ void render()
     }
 
     // see printf documentation for the formatting of variables...
-    glPrintf(100, 240, "frame=%i", frame);
+    glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
     swapBuffers();
