@@ -11,7 +11,7 @@ PLATFORM=xorg
 ####
 
 ifeq ($(PLATFORM),xorg)
-	FLAGS= -D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	LIBS=-lX11 -lEGL -lGLESv2 `pkg-config libpng --libs` -lm
 endif
 
