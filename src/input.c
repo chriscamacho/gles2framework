@@ -246,7 +246,7 @@ bool *getKeys()
     int n;
 
     n = scandir ("/dev/input/by-path/", &eps, __dfilter, __dsort);
-    if (n >= 0)
+    if (n > 0)
     {
         // only check 1st usb keyboard....
         char fn[256];
