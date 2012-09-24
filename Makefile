@@ -4,9 +4,9 @@
 # rpi		- uses xwindows to provide event handling
 # rpi_noX	- get keyboard events from raw input, xwindows not needed
 
-#PLATFORM=xorg
+PLATFORM=xorg
 #PLATFORM=rpi
-PLATFORM=rpi_noX
+#PLATFORM=rpi_noX
 
 ####
 

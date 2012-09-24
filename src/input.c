@@ -246,7 +246,7 @@ bool *getKeys()
     int n;
 
     n = scandir ("/dev/input/by-path/", &eps, __dfilter, __dsort);
-    if (n > 0)
+    if (n >= 0)
     {
         // only check 1st usb keyboard....
         char fn[256];
@@ -276,7 +276,7 @@ bool *getKeys()
         if (ioctl(__key_fd, KDGKBMODE, &old_keyboard_mode) < 0) {
             //return 0;
             printf("couldn't get the keyboard, are you running via ssh\n");
-            printf("without setting evdev permissions? \n");
+            printf("or without setting evdev permissions? \n");
         }
 
         tcgetattr(__key_fd, &tty_attr_old);
