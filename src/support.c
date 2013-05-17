@@ -699,7 +699,7 @@ font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int f
 	
 	float *vb=malloc(sizeof(float) * 3 * 6);
     
-    vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[14]=vb[15]=vb[17]=0;
+    vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[13]=vb[14]=vb[15]=vb[17]=0;
     vb[3]=vb[6]=vb[9]=fWidth;
 	vb[4]=vb[10]=vb[16]=fHeight;
 
