@@ -26,6 +26,7 @@ Display *__x_display;
 #include <png.h>
 #include <kazmath.h>
 
+#include "lodepng.h"
 
 int __display_width,__display_height;
 
@@ -350,8 +351,109 @@ float rand_range(float start,float range) {
 }
 
 
+int loadPNG_lodepng(const char *filename)
+{
+    unsigned error;
+    unsigned char* image;
+    unsigned w, h;
+    GLuint texture;
+    LodePNGState state;
+    unsigned char* png;
+    size_t pngsize;
+    size_t components;
+
+    lodepng_state_init(&state);
+
+    lodepng_load_file(&png, &pngsize, filename);
+
+    error = lodepng_inspect(&w, &h, &state, png, 1024);
+    if(error)
+    {
+	return 0;
+    }
+
+    GLenum glcolortype = GL_RGBA;
+    LodePNGColorMode colormode = state.info_png.color;
+    unsigned bitdepth = colormode.bitdepth;
+    LodePNGColorType colortype = colormode.colortype;
+    switch(colortype)
+    {
+    case LCT_GREY: 
+	glcolortype = GL_LUMINANCE;
+	error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
+	components = 1;
+	break;
+    case LCT_GREY_ALPHA:
+	glcolortype = GL_LUMINANCE_ALPHA;
+	error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
+	components = 2;
+	break;
+    case LCT_RGB:
+	glcolortype = GL_RGB;
+	error = lodepng_decode24(&image, &w, &h, png, pngsize);
+	components = 3;
+	break;
+    case LCT_RGBA:
+	glcolortype = GL_RGBA;
+	error = lodepng_decode32(&image, &w, &h, png, pngsize);
+	components = 4;
+	break;
+    case LCT_PALETTE:
+    default:
+	glcolortype = GL_RGBA;
+	error = lodepng_decode32(&image, &w, &h, png, pngsize);
+	components = 4;
+	break;
+    }
+
+    if(error)
+    {
+	printf("decoder error %u: %s\n", error, lodepng_error_text(error));
+	return 0;
+    }
+
+    free(png);
+
+    // Texture size must be power of two for the primitive OpenGL version this is written for. 
+    //Find next power of two
+    size_t u2 = 1; while(u2 < w) u2 *= 2;
+    size_t v2 = 1; while(v2 < h) v2 *= 2;
+
+    // Make power of two version of the image.
+    unsigned char *image2 = (unsigned char *)malloc(sizeof(unsigned char) * u2 * v2 * components);
+    for(size_t y = 0; y < h; y++)
+    {
+	for(size_t x = 0; x < w; x++)
+	{
+	    for(size_t c = 0; c < components; c++)
+	    {
+		unsigned char val = image[components * w * y + components * x + c];
+		image2[components * u2 * y + components * x + c] = val;
+	    }
+	}
+    }
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //printf("%s has %i colour components\n",filename,components);
+    glTexImage2D(GL_TEXTURE_2D, 0, glcolortype, u2, v2, 0, glcolortype, GL_UNSIGNED_BYTE, image2);
+
+    /*cleanup*/
+    lodepng_state_cleanup(&state);
+    free(image2);
+    free(image);
+
+    return texture;
+}
 
 int loadPNG(const char *filename)
+{
+    return loadPNG_lodepng(filename);
+}
+int loadPNG_libpng(const char *filename)
 {
 
     GLuint texture;
