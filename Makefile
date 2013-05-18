@@ -4,9 +4,11 @@
 # rpi		- uses xwindows to provide event handling
 # rpi_noX	- get keyboard events from raw input, xwindows not needed
 
-PLATFORM=xorg
+#PLATFORM=xorg
 #PLATFORM=rpi
-#PLATFORM=rpi_noX
+PLATFORM=rpi_noX
+
+CC = g++
 
 ####
 
@@ -18,12 +20,16 @@ endif
 ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
+	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
+	FLAGS+= -fpermissive
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
 
 ifeq ($(PLATFORM),rpi_noX)
 	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
+	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
+	FLAGS+= -fpermissive
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
 endif
 
@@ -38,46 +44,46 @@ KAZ=$(shell find kazmath/kazmath/*.c | sed 's/\(.*\.\)c/\1o/g' | sed 's/kazmath\
 all: invaders simple sprites
 
 invaders: $(OBJ) o/invaders.o lib/libkazmath.a
-	gcc $^ -o invaders $(LIBS)
+	$(CC) $^ -o invaders $(LIBS)
 
 o/invaders.o: examples/invaders.c
-	gcc $(FLAGS) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 simple: $(OBJ) o/simple.o lib/libkazmath.a
-	gcc $^ -o simple $(LIBS)
+	$(CC) $^ -o simple $(LIBS)
 
 o/simple.o: examples/simple.c
-	gcc $(FLAGS) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
-	gcc $^ -o phystest $(LIBS) ../ode-0.12/ode/src/.libs/libode.a -lstdc++
+	$(CC) $^ -o phystest $(LIBS) ../ode-0.12/ode/src/.libs/libode.a -lstdc++
 
 o/phystest.o: examples/phystest.c
-	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
+	$(CC) $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
 sprites: $(OBJ) o/sprites.o lib/libkazmath.a
-	gcc $^ -o sprites $(LIBS)
+	$(CC) $^ -o sprites $(LIBS)
 
 o/sprites.o: examples/sprites.c
-	gcc $(FLAGS) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
-	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+	$(CC) $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
 
 o/chiptest.o: examples/chiptest.c
-	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
+	$(CC) $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory
 o/%.o: src/%.c
-	gcc $(FLAGS) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 
 lib/libkazmath.a: $(KAZ)
 	ar -cvq lib/libkazmath.a $(KAZ) 
 
 o/%.o: kazmath/kazmath/%.c
-	gcc $(FLAGS) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 
 # makes the code look nice!

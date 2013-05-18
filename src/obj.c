@@ -36,13 +36,13 @@ int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag)
     }
     fread(&NumVerts,1,sizeof(unsigned int), pFile );
 
-    float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+    float* Verts = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+    float* Norms = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+    float* TexCoords = (float*)malloc(sizeof(float) * 2 * NumVerts);
     fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
 
     createObj(obj,NumVerts,Verts,TexCoords,Norms,vert,frag);
@@ -72,13 +72,13 @@ int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrob
     }
     fread(&NumVerts,1,sizeof(unsigned int), pFile );
 
-    float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+    float* Verts = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+    float* Norms = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+    float* TexCoords = (float*)malloc(sizeof(float) * 2 * NumVerts);
     fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
 
     createObjCopyShader(obj,NumVerts, Verts,TexCoords,

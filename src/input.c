@@ -300,7 +300,7 @@ struct joystick_t *getJoystick(int j) {
     char devpath[20];
     sprintf(devpath,"/dev/input/js%i\0",j);
 
-    struct joystick_t *js=malloc(sizeof(struct joystick_t));
+    struct joystick_t *js=(struct joystick_t*)malloc(sizeof(struct joystick_t));
     js->fd = open(devpath, O_RDONLY);
     if (js->fd < 0) {
         printf("joystick %i open failed\n",j);
