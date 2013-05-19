@@ -3,8 +3,8 @@
 # rpi		- uses xwindows to provide event handling
 # rpi_noX	- get keyboard events from raw input, xwindows not needed
 
-#PLATFORM=rpi
-PLATFORM=rpi_noX
+PLATFORM=rpi
+#PLATFORM=rpi_noX
 
 CC = gcc
 

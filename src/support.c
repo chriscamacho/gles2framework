@@ -20,7 +20,7 @@ extern void restoreKbd();
 extern int __mouse_fd;
 #endif
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
@@ -28,7 +28,7 @@ extern int __mouse_fd;
 
 Display *__x_display;
 
-#endif //NOT  __FOR_RPi_noX__
+#endif //__FOR_RPi__
 
 #include <png.h>
 #include <kazmath.h>
@@ -46,15 +46,7 @@ int getDisplayHeight() {
     return __display_height;
 }
 
-
-#ifdef __FOR_XORG__
-
-Window __win, __eventWin;
-
-#endif
-
-
-#ifndef __FOR_XORG__ // ie one of pi options
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 
 EGLNativeWindowType __win;
 
@@ -71,12 +63,6 @@ EGLSurface __egl_surface;
 // only used internally
 void closeNativeWindow()
 {
-
-#ifdef __FOR_XORG__
-    XDestroyWindow(__x_display, __win);	// on normal X (ie not pi) win and __eventWin point to same window
-    XCloseDisplay(__x_display);
-#endif				//__FOR_XORG__
-
 #ifdef __FOR_RPi__
     XDestroyWindow(__x_display, __eventWin);	// on the pi win is dummy "context" window
     XCloseDisplay(__x_display);
@@ -91,81 +77,6 @@ void closeNativeWindow()
 // only used internally
 void makeNativeWindow()
 {
-
-#ifdef __FOR_XORG__
-
-    __x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
-    if (__x_display == NULL) {
-        printf("cannot connect to X server\n");
-    }
-
-    Window root = DefaultRootWindow(__x_display);	// get the root window (usually the whole screen)
-
-
-    XSetWindowAttributes swa;
-    swa.event_mask =
-        ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
-
-    __display_width=640;
-    __display_height=480;  // xorg hard coded for now
-    int s = DefaultScreen(__x_display);
-    __win = XCreateSimpleWindow(__x_display, root,
-                                10, 10, __display_width, __display_height, 1,
-                                BlackPixel(__x_display, s),
-                                WhitePixel(__x_display, s));
-    XSelectInput(__x_display, __win, ExposureMask |
-                 KeyPressMask | KeyReleaseMask |
-                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
-
-    XSetWindowAttributes xattr;
-    Atom atom;
-    int one = 1;
-
-    xattr.override_redirect = False;
-    XChangeWindowAttributes(__x_display, __win, CWOverrideRedirect, &xattr);
-
-    /*
-    	atom = XInternAtom(__x_display, "_NET_WM_STATE_FULLSCREEN", True);
-    	XChangeProperty(__x_display, win,
-    			XInternAtom(__x_display, "_NET_WM_STATE", True),
-    			XA_ATOM, 32, PropModeReplace, (unsigned char *)&atom,
-    			1);
-    */
-
-    XWMHints hints;
-    hints.input = True;
-    hints.flags = InputHint;
-    XSetWMHints(__x_display, __win, &hints);
-
-    XMapWindow(__x_display, __win);	// make the window visible on the screen
-    XStoreName(__x_display, __win, "GLES2.0 framework");	// give the window a name
-
-    // NB - RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
-    __egl_display = eglGetDisplay((EGLNativeDisplayType) __x_display);
-    if (__egl_display == EGL_NO_DISPLAY) {
-        printf("Got no EGL display.\n");
-    }
-
-    __eventWin = __win;
-
-
-
-
-    Cursor invisibleCursor;
-    Pixmap bitmapNoData;
-    XColor black;
-    static char noData[] = { 0,0,0,0,0,0,0,0 };
-    black.red = black.green = black.blue = 0;
-
-    bitmapNoData = XCreateBitmapFromData(__x_display, __win, noData, 8, 8);
-    invisibleCursor = XCreatePixmapCursor(__x_display, bitmapNoData, bitmapNoData,
-                                          &black, &black, 0, 0);
-    XDefineCursor(__x_display,__win, invisibleCursor);
-    XFreeCursor(__x_display, invisibleCursor);
-
-
-#endif				//__FOR_XORG__
-
 #ifdef __FOR_RPi__
 
     bcm_host_init();
@@ -368,17 +279,17 @@ int loadPNG_lodepng(const char *filename)
     unsigned char* png;
     size_t pngsize;
     size_t components;
-
+   
     lodepng_state_init(&state);
-
+   
     lodepng_load_file(&png, &pngsize, filename);
-
+   
     error = lodepng_inspect(&w, &h, &state, png, 1024);
     if(error)
     {
-	return 0;
+        return 0;
     }
-
+   
     GLenum glcolortype = GL_RGBA;
     LodePNGColorMode colormode = state.info_png.color;
     unsigned bitdepth = colormode.bitdepth;
@@ -386,37 +297,37 @@ int loadPNG_lodepng(const char *filename)
     switch(colortype)
     {
     case LCT_GREY: 
-	glcolortype = GL_LUMINANCE;
-	error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
-	components = 1;
-	break;
+        glcolortype = GL_LUMINANCE;
+        error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
+        components = 1;
+        break;
     case LCT_GREY_ALPHA:
-	glcolortype = GL_LUMINANCE_ALPHA;
-	error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
-	components = 2;
-	break;
+        glcolortype = GL_LUMINANCE_ALPHA;
+        error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
+        components = 2;
+        break;
     case LCT_RGB:
-	glcolortype = GL_RGB;
-	error = lodepng_decode24(&image, &w, &h, png, pngsize);
-	components = 3;
-	break;
+        glcolortype = GL_RGB;
+        error = lodepng_decode24(&image, &w, &h, png, pngsize);
+        components = 3;
+        break;
     case LCT_RGBA:
-	glcolortype = GL_RGBA;
-	error = lodepng_decode32(&image, &w, &h, png, pngsize);
-	components = 4;
-	break;
+        glcolortype = GL_RGBA;
+        error = lodepng_decode32(&image, &w, &h, png, pngsize);
+        components = 4;
+        break;
     case LCT_PALETTE:
     default:
-	glcolortype = GL_RGBA;
-	error = lodepng_decode32(&image, &w, &h, png, pngsize);
-	components = 4;
-	break;
+        glcolortype = GL_RGBA;
+        error = lodepng_decode32(&image, &w, &h, png, pngsize);
+        components = 4;
+        break;
     }
 
     if(error)
     {
-	printf("decoder error %u: %s\n", error, lodepng_error_text(error));
-	return 0;
+        printf("decoder error %u: %s\n", error, lodepng_error_text(error));
+        return 0;
     }
 
     free(png);
@@ -430,14 +341,14 @@ int loadPNG_lodepng(const char *filename)
     unsigned char *image2 = (unsigned char *)malloc(sizeof(unsigned char) * u2 * v2 * components);
     for(size_t y = 0; y < h; y++)
     {
-	for(size_t x = 0; x < w; x++)
-	{
-	    for(size_t c = 0; c < components; c++)
-	    {
-		unsigned char val = image[components * w * y + components * x + c];
-		image2[components * u2 * y + components * x + c] = val;
-	    }
-	}
+        for(size_t x = 0; x < w; x++)
+        {
+            for(size_t c = 0; c < components; c++)
+            {
+                unsigned char val = image[components * w * y + components * x + c];
+                image2[components * u2 * y + components * x + c] = val;
+            }
+        }
     }
 
     glGenTextures(1, &texture);
@@ -591,7 +502,9 @@ int loadPNG_libpng(const char *filename)
 // only here to keep egl pointers out of frontend code
 void swapBuffers()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     eglSwapBuffers(__egl_display, __egl_surface);	// get the rendered buffer to the screen
+#endif
 }
 
 GLuint getShaderLocation(int type, GLuint prog, const char *name)
@@ -1013,6 +926,7 @@ void drawSprite(float x, float y, float w, float h, float a, int tex)
 
 int makeContext()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     makeNativeWindow();	// sets global pointers for win and disp
 
     EGLint majorVersion;
@@ -1070,6 +984,11 @@ int makeContext()
     eglMakeCurrent(__egl_display, __egl_surface, __egl_surface, __egl_context);
 
     return 0;
+#endif
+#ifdef __FOR_GLFW__
+    //TODO
+    return 0;
+#endif
 }
 
 
@@ -1077,6 +996,7 @@ extern int __key_fd;
 
 void closeContext()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     eglDestroyContext(__egl_display, __egl_context);
     eglDestroySurface(__egl_display, __egl_surface);
     eglTerminate(__egl_display);
@@ -1090,8 +1010,11 @@ void closeContext()
 #endif
 
     close(__key_fd);
+#endif
 
-
+#ifdef __FOR_GLFW__
+    //TODO
+#endif
 }
 
 

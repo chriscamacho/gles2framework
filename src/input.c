@@ -6,7 +6,7 @@
 #include <unistd.h> // read close 
 #include <linux/joystick.h>
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
@@ -14,7 +14,7 @@
 extern Display *__x_display;
 extern Window __eventWin;
 
-#endif //NOT  __FOR_RPi_noX__
+#endif // __FOR_RPi__
 
 #include <dirent.h>  // scandir
 #include <string.h> // strlen
@@ -62,7 +62,7 @@ void restoreKbd() {
 void doEvents()
 {
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
     XEvent event;
 
@@ -121,7 +121,7 @@ void doEvents()
         }
     }
 
-#endif // NOT  __FOR_RPi_noX__
+#endif // __FOR_RPi__
 
 
 #ifdef __FOR_RPi_noX__

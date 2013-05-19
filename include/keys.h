@@ -1,5 +1,4 @@
-
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #define KEY_ESC			9
 #define KEY_ONE			10
