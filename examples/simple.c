@@ -226,6 +226,10 @@ int main()
         render();	// the render loop
 
         sleepMicrosecs(16000); 	// no need to run cpu/gpu full tilt
+
+        if(!isWindowOpened()) {
+            quit = true;
+        }
     }
     
     closeContext();		// tidy up

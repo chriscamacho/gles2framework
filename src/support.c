@@ -1015,3 +1015,14 @@ void sleepMicrosecs(unsigned long useconds)
     glfwSleep(useconds * 0.000001);
 #endif
 }
+
+bool isWindowOpened()
+{
+#ifdef __FOR_GLFW__
+    return (glfwGetWindowParam(GLFW_OPENED) ==  GL_TRUE);
+#endif
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+    return true;
+#endif
+}
