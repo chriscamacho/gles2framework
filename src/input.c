@@ -329,7 +329,9 @@ void doEvents()
     int pos[2];
     glfwGetMousePos(&pos[0], &pos[1]);
     //save previous mouse pos
-    static int prev[2] = { pos[0], pos[1] };
+    static int prev[2];
+    prev[0] = pos[0];
+    prev[1] = pos[1];
 
     if(__rel_mouse == false) 
     {
