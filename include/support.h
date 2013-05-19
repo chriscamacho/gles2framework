@@ -33,7 +33,7 @@ void initSprite(int w, int h);
 void drawSprite(float x, float y, float w, float h, float a, int tex);
 float rand_range(float min,float max);
 
-
+void sleepMicrosecs(unsigned long useconds);
 
 struct pointCloud_t {
 	int totalPoints;

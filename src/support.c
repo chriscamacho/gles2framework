@@ -5,9 +5,11 @@
 #include <stdarg.h>		// va_lists for glprint
 
 #if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
-#include  <GLES2/gl2.h>
-#include  <EGL/egl.h>
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
+#include <unistd.h>		// usleep
 #endif
+
 #ifdef __FOR_GLFW__
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -1012,4 +1014,14 @@ void initPointClouds(const char* vertS, const char* fragS, float pntSize) {
     glUseProgram(__pg.Partprogram);
     glUniform1f(__pg.part_size_uniform, pntSize);
 
+}
+
+void sleepMicrosecs(unsigned long useconds)
+{
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+    usleep(useconds);
+#endif
+#ifdef __FOR_GLFW__
+    glfwSleep(useconds * 0.000001);
+#endif
 }

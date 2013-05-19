@@ -15,9 +15,6 @@
 #include <stdbool.h>
 #endif
 
-//TODO
-//#include <unistd.h>		// usleep
-
 #include <kazmath.h>		// matrix manipulation routines
 
 
@@ -229,8 +226,7 @@ int main()
         */
         render();	// the render loop
 
-        //usleep(16000);	// no need to run cpu/gpu full tilt
-
+        sleepMicrosecs(16000); 	// no need to run cpu/gpu full tilt
     }
 
     closeContext();		// tidy up
