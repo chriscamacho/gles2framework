@@ -23,7 +23,7 @@ extern Window __eventWin;
 #include <dirent.h>  // scandir
 #include <string.h> // strlen
 
-#ifdef __FOR_RPi_noX__
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 
 // sudo kbd_mode -a - on RPi if you have to kill it...
 
