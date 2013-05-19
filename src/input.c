@@ -56,6 +56,7 @@ bool __rel_mouse;
 
 int __key_fd=0; // defaults to 0 ie console
 
+#ifdef __FOR_GLFW__
 int __keyList[] = {
     KEY_ESC,
     KEY_ONE,
@@ -161,6 +162,7 @@ int __keyList[] = {
     KEY_CURSU,
     KEY_CURSD
 };
+#endif
 
 #ifdef __FOR_RPi_noX__
 
