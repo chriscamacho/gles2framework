@@ -324,8 +324,24 @@ void doEvents()
         }
     }
 
-    //TODO support __rel_mouse
-    glfwGetMousePos(&__mouse[0], &__mouse[1]);
+    int pos[2];
+    glfwGetMousePos(&pos[0], &pos[1]);
+    //save previous mouse pos
+    static int prev[2] = { pos[0], pos[1] };
+
+    if(__rel_mouse == false) 
+    {
+        __mouse[0] = pos[0];
+        __mouse[1] = pos[1];
+    }
+    else 
+    {
+        __mouse[0] = pos[0] - prev[0];
+        __mouse[1] = pos[1] - prev[1];
+        prev[0] = pos[0];
+        prev[1] = pos[1];
+    }
+
     __mouse[2] = 0;
     if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
@@ -476,6 +492,8 @@ struct joystick_t *getJoystick(int j) {
     if(js->fd == -1) 
     {
         printf("joystick not exist\n");
+        memset(js->axis, 0, sizeof(js->axis));
+        js->buttons = 0;
     }
     return js;
 #endif
