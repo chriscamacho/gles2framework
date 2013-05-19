@@ -9,30 +9,20 @@ PLATFORM=glfw
 
 CC = gcc
 
-ifeq ($(PLATFORM),xorg)
-	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	LIBS=-lX11 -lEGL -lGLESv2 -lm
-endif
-
 ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
-	FLAGS+= -fpermissive
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
 
 ifeq ($(PLATFORM),rpi_noX)
 	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
-	FLAGS+= -fpermissive
 	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
 
 ifeq ($(PLATFORM),glfw)
 	FLAGS=-D__FOR_GLFW__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	FLAGS+= -fpermissive
 	LIBS=-lGL -lglfw -lGLEW -lm
 endif
 
