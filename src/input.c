@@ -324,6 +324,7 @@ void doEvents()
         }
     }
 
+    //TODO support __rel_mouse
     glfwGetMousePos(&__mouse[0], &__mouse[1]);
     __mouse[2] = 0;
     if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
@@ -460,8 +461,23 @@ struct joystick_t *getJoystick(int j) {
 #endif
 
 #ifdef __FOR_GLFW__
-    //TODO
-    return NULL;
+    struct joystick_t *js=(struct joystick_t*)malloc(sizeof(struct joystick_t));
+    js->fd = -1;
+
+    for(int joy = GLFW_JOYSTICK_1 ; joy <= GLFW_JOYSTICK_LAST ; ++joy)
+    {
+        if(glfwGetJoystickParam(joy, GLFW_PRESENT) == GL_TRUE)
+        {
+            js->fd = joy;
+            printf("joystick %d exist\n",joy);
+            break;
+        }
+    }
+    if(js->fd == -1) 
+    {
+        printf("joystick not exist\n");
+    }
+    return js;
 #endif
 }
 
@@ -494,13 +510,48 @@ void updateJoystick(struct joystick_t *js) {
 #endif
 
 #ifdef __FOR_GLFW__
-    //TODO
+    if(js->fd < 0) {
+        return;
+    }
+    int retval = 0;
+
+    // initialize valie
+    memset(js->axis, 0, sizeof(js->axis));
+    js->buttons = 0;
+
+    //axis
+    const int MAX_POS_COUNT = 16;
+    float pos[MAX_POS_COUNT];
+    memset(pos, 0, sizeof(pos));
+    retval = glfwGetJoystickPos(js->fd, pos, MAX_POS_COUNT);
+    for(int i = 0; i < retval ; i++) {
+        float raw = pos[i];
+        //-1~1 -> signed short
+        signed short val = (signed short)(raw * (65535 * 0.5f));
+        js->axis[i] = val;
+    }
+
+    //button
+    const int BUTTON_COUNT = 32;
+    unsigned char buttonlist[BUTTON_COUNT];
+    retval = glfwGetJoystickButtons(js->fd, buttonlist, BUTTON_COUNT);
+    for(int i = 0 ; i < retval ; ++i) 
+    {
+        if(buttonlist[i] != 0) 
+        {
+            js->buttons |= (0x01 << i);
+        }
+    }
 #endif
 }
 
 void releaseJoystick(struct joystick_t *js) {
 #if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     close(js->fd);
+    free(js);
+#endif
+
+#ifdef __FOR_GLFW__
     free(js);
 #endif
 }

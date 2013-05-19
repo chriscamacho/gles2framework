@@ -312,14 +312,15 @@ void render()
     // see printf documentation for the formatting of variables...
     glPrintf(24, 24, font2, "frame=%i", frame);
 
-    //TODO
     glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
-    //TODO
-	//glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+    glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+    for(int i = 0 ; i < 8 ; i++) {
+        glPrintf(100, 300 + 20*i, font1, "joystick-axis[%d] %i",i,joy1->axis[i]);
+    }
 	
 	
-	glPrintf(100, 320, font2, "abcABCqrsQRS123"); 
+	glPrintf(100, 200, font2, "abcABCqrsQRS123"); 
     //rmx+=mouse[0];
     //rmy+=mouse[1];
     //glPrintf(100, 280, "%i  %i", rmx,rmy);
