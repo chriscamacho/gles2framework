@@ -23,26 +23,9 @@
 *.vcxproj.user
 *.exp
 ipch
+*.sln
+*.vcxproj
+*.vcxproj.filters
 
-# compiled result
-*.exe
-Debug/*
-Release/*
-*/Debug/*
-*/Release/*
-
-# glm
-glm/test/*
-glm/doc/*
-glm/util/*
-glm/CMakeLists.txt
-glm/CTestConfig.cmake
-
-# glfw
-glfw/docs
-glfw/lib-mingw
-glfw/lib-msvc90
-glfw/lib-msvc100
-
-# glew
-glew/doc
+glfw/*
+glew/*
