@@ -214,8 +214,6 @@ int main()
         doEvents();	// update mouse and key arrays
         updateJoystick(joy1);
 
-        //TOOD
-        /*
         if (keys[KEY_ESC])
             quit = true;	// exit if escape key pressed
 
@@ -223,7 +221,7 @@ int main()
         if (keys[KEY_S]) camAng=camAng-1;
         if (keys[KEY_W]) lightAng=lightAng+1;
         if (keys[KEY_Q]) lightAng=lightAng-1;
-        */
+        
         render();	// the render loop
 
         sleepMicrosecs(16000); 	// no need to run cpu/gpu full tilt
@@ -314,7 +312,8 @@ void render()
     // see printf documentation for the formatting of variables...
     glPrintf(24, 24, font2, "frame=%i", frame);
 
-    glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
+    //TODO
+    //glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
     //TODO
 	//glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);

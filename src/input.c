@@ -41,18 +41,126 @@ int __mouse_fd=-1;
 #endif
 
 #ifdef __FOR_GLFW__
+#include <GL/glfw.h>
+#include <string.h>
+#include "keys.h"
 #endif
 
 #include "input.h"
 
 
-
-bool __keys[256];
+//glfw need more than 256 key for special keys
+bool __keys[256+128];
 int __mouse[3];
 bool __rel_mouse;
 
 int __key_fd=0; // defaults to 0 ie console
 
+int __keyList[] = {
+    KEY_ESC,
+    KEY_ONE,
+    KEY_TWO,
+    KEY_THREE,
+    KEY_FOUR,
+    KEY_FIVE,
+    KEY_SIX,
+    KEY_SEVEN,
+    KEY_EIGHT,
+    KEY_NINE,
+    KEY_ZERO,
+    KEY_MINUS,
+    KEY_TAB,
+    KEY_Q,
+    KEY_W,
+    KEY_E,
+    KEY_R,
+    KEY_T,
+    KEY_Y,
+    KEY_U,
+    KEY_I,
+    KEY_O,
+    KEY_P,
+    KEY_LBRACKET,
+    KEY_RBRACKET,
+    KEY_RETURN,
+    KEY_LCTRL,
+    KEY_A,
+    KEY_S,
+    KEY_D,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_SEMICOLON,
+    KEY_APOST,
+    KEY_BACKTICK,
+    KEY_LSHIFT,
+    KEY_HASH,
+    KEY_Z,
+    KEY_X,
+    KEY_C,
+    KEY_V,
+    KEY_B,
+    KEY_N,
+    KEY_M,
+    KEY_COMMA,
+    KEY_PERIOD,
+    KEY_BSLASH,
+    KEY_RSHIFT,
+    KEY_NUMMULT,
+    KEY_LALT,
+    KEY_SPACE,
+    KEY_CAPS,
+    KEY_F1,
+    KEY_F2,
+    KEY_F3,
+    KEY_F4,
+    KEY_F5,
+    KEY_F6,
+    KEY_F7,
+    KEY_F8,
+    KEY_F9,
+    KEY_F10,
+    KEY_NUMLOCK,
+    KEY_SCLOCK,
+    KEY_NUM7,
+    KEY_NUM8,
+    KEY_NUM9,
+    KEY_NUMMINUS,
+    KEY_NUM4,
+    KEY_NUM5,
+    KEY_NUM6,
+    KEY_NUMPLUS,
+    KEY_NUM1,
+    KEY_NUM2,
+    KEY_NUM3,
+    KEY_NUMZERO,
+    KEY_NUMPERIOD,
+    KEY_FSLASH,
+    KEY_F11,
+    KEY_F12,
+    KEY_NUMENTER,
+    KEY_RCTRL,
+    KEY_NUMSLASH,
+    KEY_SYSRQ,
+    KEY_ALTGR,
+    KEY_HOME,
+    KEY_PGUP,
+    KEY_END,
+    KEY_PGDOWN,
+    KEY_INSERT,
+    KEY_DELETE,
+    KEY_BREAK,
+    KEY_LMETA,
+    KEY_RMETA,
+    KEY_MENU,
+    KEY_CURSL,
+    KEY_CURSR,
+    KEY_CURSU,
+    KEY_CURSD
+};
 
 #ifdef __FOR_RPi_noX__
 
@@ -204,7 +312,18 @@ void doEvents()
 
 #endif  // __FOR_RPi_noX__
 
-
+#ifdef __FOR_GLFW__
+    memset(__keys, GLFW_RELEASE, sizeof(__keys) / sizeof(__keys[0]));
+    int keycount = sizeof(__keyList) / sizeof(__keyList[0]);
+    for(int i = 0 ; i < keycount ; ++i)
+    {
+        int key = __keyList[i];
+        if(glfwGetKey(key) == GLFW_PRESS)
+        {
+            __keys[key] = true;
+        }
+    }
+#endif
 }
 
 void setMouseRelative(bool mode) {
@@ -213,6 +332,7 @@ void setMouseRelative(bool mode) {
 
 int *getMouse()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     __rel_mouse=false;
 
 #ifdef  __FOR_RPi_noX__
@@ -229,6 +349,12 @@ int *getMouse()
 #endif //  __FOR_RPi_noX__
 
     return &__mouse[0];
+#endif
+
+#ifdef __FOR_GLFW__
+    //TODO
+    return NULL;
+#endif
 }
 
 static int __dsort (const struct dirent **a,const struct dirent **b) {
@@ -305,8 +431,7 @@ bool *getKeys()
 #endif
 
 #ifdef __FOR_GLFW__
-    //TODO
-    return NULL;
+    return &__keys[0];
 #endif
 }
 
