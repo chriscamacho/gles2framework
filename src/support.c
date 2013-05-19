@@ -8,6 +8,13 @@
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
 
+#ifdef __cplusplus
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+#include <bcm_host.h>
+#include <vchost.h>
+#endif
+#endif
+
 #ifdef __FOR_RPi_noX__
 extern void restoreKbd();
 extern int __mouse_fd;
@@ -790,7 +797,7 @@ void initGlPrint(int w, int h)
 
 
 font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int fWidth,int fHeight) {
-	font_t *t=malloc(sizeof(font_t));
+    font_t *t=(font_t*)malloc(sizeof(font_t));
 	
 	t->tex = loadPNG(tpath);
 	t->base=cbase;
@@ -799,7 +806,7 @@ font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int f
 	t->fWidth=fWidth;
 	t->fHeight=fHeight;
 	
-	float *vb=malloc(sizeof(float) * 3 * 6);
+	float *vb=(float*)malloc(sizeof(float) * 3 * 6);
     
     vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[13]=vb[14]=vb[15]=vb[17]=0;
     vb[3]=vb[6]=vb[9]=fWidth;
@@ -811,7 +818,7 @@ font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int f
 
 	free(vb);
 
-	float *tc=malloc(sizeof(float) * 2 * 6);
+	float *tc=(float*)malloc(sizeof(float) * 2 * 6);
 	tc[0]=tc[1]=tc[5]=tc[8]=tc[9]=tc[10]=0;
 	tc[2]=tc[4]=tc[6]=1./16;
 	tc[3]=tc[7]=tc[11]=1./tLines;
@@ -1127,13 +1134,13 @@ void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
 
 struct pointCloud_t* createPointCloud(int size) {
 
-    struct pointCloud_t* pntC=malloc(sizeof(struct pointCloud_t));
+    struct pointCloud_t* pntC=(struct pointCloud_t*)malloc(sizeof(struct pointCloud_t));
     pntC->totalPoints=size;
-    pntC->pos=malloc(size*sizeof(float)*3);
-    pntC->vel=malloc(size*sizeof(float)*3);
+    pntC->pos=(float*)malloc(size*sizeof(float)*3);
+    pntC->vel=(float*)malloc(size*sizeof(float)*3);
 
 
-    glGenBuffers(1, &pntC->vertBuf);
+    glGenBuffers(1, (GLuint*)&pntC->vertBuf);
     glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * pntC->totalPoints, pntC->pos,
                  GL_DYNAMIC_DRAW);
