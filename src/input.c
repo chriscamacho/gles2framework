@@ -323,6 +323,21 @@ void doEvents()
             __keys[key] = true;
         }
     }
+
+    glfwGetMousePos(&__mouse[0], &__mouse[1]);
+    __mouse[2] = 0;
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x01;
+    }
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x02;
+    }
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x04;
+    }
 #endif
 }
 
@@ -347,14 +362,9 @@ int *getMouse()
     }
 
 #endif //  __FOR_RPi_noX__
+#endif
 
     return &__mouse[0];
-#endif
-
-#ifdef __FOR_GLFW__
-    //TODO
-    return NULL;
-#endif
 }
 
 static int __dsort (const struct dirent **a,const struct dirent **b) {
@@ -425,14 +435,9 @@ bool *getKeys()
         ioctl(__key_fd, KDSKBMODE, K_RAW);
     }
 #endif  //__FOR_RPi_noX__
-
-
-    return &__keys[0];
 #endif
 
-#ifdef __FOR_GLFW__
     return &__keys[0];
-#endif
 }
 
 struct joystick_t *getJoystick(int j) {

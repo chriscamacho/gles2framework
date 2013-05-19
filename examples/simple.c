@@ -313,7 +313,7 @@ void render()
     glPrintf(24, 24, font2, "frame=%i", frame);
 
     //TODO
-    //glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
+    glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
     //TODO
 	//glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
