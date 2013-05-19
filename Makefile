@@ -3,28 +3,36 @@
 # rpi		- uses xwindows to provide event handling
 # rpi_noX	- get keyboard events from raw input, xwindows not needed
 
-PLATFORM=rpi
+#PLATFORM=rpi
 #PLATFORM=rpi_noX
+PLATFORM=glfw
 
 CC = gcc
 
 ####
 
 ifeq ($(PLATFORM),rpi)
-	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS=-D__FOR_RPi__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
 	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
 	FLAGS+= -fpermissive
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
 
 ifeq ($(PLATFORM),rpi_noX)
-	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
 	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
 	FLAGS+= -fpermissive
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
+
+ifeq ($(PLATFORM),glfw)
+	FLAGS=-D__FOR_GLFW__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
+	FLAGS+= -fpermissive
+	LIBS=-lGL -lglfw -lGLEW -lm
+endif
+
 
 
 # ok.... find all src/*.c replace all .c with .o then replace src\ with o\ - and breath
