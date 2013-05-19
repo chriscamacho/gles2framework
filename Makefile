@@ -9,7 +9,10 @@ PLATFORM=glfw
 
 CC = gcc
 
-####
+ifeq ($(PLATFORM),xorg)
+	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
+	LIBS=-lX11 -lEGL -lGLESv2 -lm
+endif
 
 ifeq ($(PLATFORM),rpi)
 	FLAGS=-D__FOR_RPi__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
@@ -57,9 +60,11 @@ o/simple.o: examples/simple.c
 	$(CC) $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
+#	$(CC) $^ -o phystest $(LIBS) ../opende/ode/src/.libs/libode.a -lstdc++
 	$(CC) $^ -o phystest $(LIBS) ../ode-0.12/ode/src/.libs/libode.a -lstdc++
 
 o/phystest.o: examples/phystest.c
+#	$(CC) $(FLAGS) -DdSingle -I../opende/include/ $< -o $@
 	$(CC) $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
 sprites: $(OBJ) o/sprites.o lib/libkazmath.a
@@ -69,10 +74,12 @@ o/sprites.o: examples/sprites.c
 	$(CC) $(FLAGS) $< -o $@
 
 chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
-	$(CC) $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+#	$(CC) $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+	$(CC) $^ -o chiptest $(LIBS) ../Chipmunk-Physics/src/libchipmunk.a
 
 o/chiptest.o: examples/chiptest.c
-	$(CC) $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
+#	$(CC) $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
+	$(CC) $(FLAGS) -I../Chipmunk-Physics/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory
