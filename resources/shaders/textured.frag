@@ -20,7 +20,9 @@ void main() {
 	
 		
 // spec strength (could be a material uniform) - TODO seems wrong?	
-	vec4 specu = vec4(.9,.9,.9,0) * (rDOTv/99.);//pow(rDOTv,20);
+	//vec4 specu = vec4(.9,.9,.9,0) * (rDOTv/99.);//pow(rDOTv,20);
+    vec4 specu = vec4(.7,.7,.7,0) * pow(rDOTv,20);
 
 	gl_FragColor = ambi + diffu + specu;
+
 }

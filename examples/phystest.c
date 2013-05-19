@@ -226,6 +226,7 @@ int main()
     // get a pointer to the key down array
     keys = getKeys();
 
+
     dInitODE2(0);
     world = dWorldCreate();
     space = dHashSpaceCreate(0);
@@ -236,7 +237,8 @@ int main()
 
     dMatrix3 R;
     dMass m;
-    dMassSetBox(&m, 0.75, 0.5, 0.5, 0.5);
+    dMassSetZero(&m);
+    dMassSetBox(&m, 20, 0.5, 0.5, 0.5);
     for (int i = 0; i < numObj; i++) {
         obj[i] = dBodyCreate(world);
         if (i<numObj/2) {
@@ -256,6 +258,7 @@ int main()
         dBodySetRotation(obj[i], R);
         dBodySetMass(obj[i], &m);
         dGeomSetBody(geoms[i], obj[i]);
+
     }
 
     groundColl = loadCollisionObj("resources/models/ground.gbo");

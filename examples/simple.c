@@ -10,6 +10,7 @@
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
 #include "input.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>		// usleep
@@ -226,7 +227,7 @@ int main()
         usleep(16000);	// no need to run cpu/gpu full tilt
 
     }
-
+    
     closeContext();		// tidy up
 	releaseJoystick(joy1);
 
@@ -249,8 +250,9 @@ void render()
 
     // rotate the light direction depending on lightAng
     lightDir.x=cos(lightAng/10.);
-    lightDir.z=sin(lightAng/10.);
-    lightDir.y=0;
+    lightDir.z=-1;
+    lightDir.y=sin(lightAng/10.);
+    kmVec3Normalize(&lightDir,&lightDir);
 
 
     pEye.x=cos(camAng/10.)*7.;

@@ -11,20 +11,20 @@ PLATFORM=xorg
 ####
 
 ifeq ($(PLATFORM),xorg)
-	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
-	LIBS=-lX11 -lEGL -lGLESv2 `pkg-config libpng --libs` -lm
+	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
+	LIBS=-lX11 -lEGL -lGLESv2 -lm
 endif
 
 ifeq ($(PLATFORM),rpi)
-	FLAGS=-D__FOR_RPi__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS=-D__FOR_RPi__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
 
 ifeq ($(PLATFORM),rpi_noX)
-	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 `pkg-config libpng --cflags` -Iinclude -Ikazmath/kazmath
+	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
 	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib `pkg-config libpng --libs`
+	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
 endif
 
 
@@ -50,9 +50,11 @@ o/simple.o: examples/simple.c
 	gcc $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
+#	gcc $^ -o phystest $(LIBS) ../opende/ode/src/.libs/libode.a -lstdc++
 	gcc $^ -o phystest $(LIBS) ../ode-0.12/ode/src/.libs/libode.a -lstdc++
 
 o/phystest.o: examples/phystest.c
+#	gcc $(FLAGS) -DdSingle -I../opende/include/ $< -o $@
 	gcc $(FLAGS) -DdSINGLE -I../ode-0.12/include/ $< -o $@
 
 sprites: $(OBJ) o/sprites.o lib/libkazmath.a
@@ -62,10 +64,12 @@ o/sprites.o: examples/sprites.c
 	gcc $(FLAGS) $< -o $@
 
 chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
-	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+#	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
+	gcc $^ -o chiptest $(LIBS) ../Chipmunk-Physics/src/libchipmunk.a
 
 o/chiptest.o: examples/chiptest.c
-	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
+#	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
+	gcc $(FLAGS) -I../Chipmunk-Physics/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory
