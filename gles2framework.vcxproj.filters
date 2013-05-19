@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{65707efe-41a4-42ed-b9f0-ddf69dad5b5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{bb1ec36f-ca2d-492c-81ae-7dfe77052ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples">
+      <UniqueIdentifier>{aea0e4ee-ba91-4863-b1ba-9ffee7528609}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="kazmath">
+      <UniqueIdentifier>{c74b1db4-c386-42a2-9a2f-ec2262545f9b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\obj.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\support.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lodepng.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\mat4.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\plane.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\quaternion.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\ray2.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\utility.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\vec2.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\vec3.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\vec4.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\GL\mat4stack.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\GL\matrix.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\aabb.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="kazmath\kazmath\mat3.c">
+      <Filter>kazmath</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\simple.c">
+      <Filter>examples</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\lodepng.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\support.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\input.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\keys.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\obj.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\mat4.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\plane.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\quaternion.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\ray2.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\utility.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\vec2.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\vec3.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\vec4.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\GL\mat4stack.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\GL\matrix.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\aabb.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\kazmath.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+    <ClInclude Include="kazmath\kazmath\mat3.h">
+      <Filter>kazmath</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

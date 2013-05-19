@@ -1,7 +1,11 @@
+#ifndef __cplusplus
 #include <stdbool.h>
+#endif
 #include <stdio.h> // sprintf
 #include <stdlib.h>  // malloc
 #include <math.h>
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include <fcntl.h>  // open fcntl
 #include <unistd.h> // read close 
 #include <linux/joystick.h>
@@ -27,12 +31,16 @@ extern Window __eventWin;
 #include "termios.h"
 #include "sys/ioctl.h"
 
+#endif
 
 static struct termios tty_attr_old;
 static int old_keyboard_mode;
 
 int __mouse_fd=-1;
 
+#endif
+
+#ifdef __FOR_GLFW__
 #endif
 
 #include "input.h"
@@ -227,6 +235,7 @@ static int __dsort (const struct dirent **a,const struct dirent **b) {
     return 1; // dummy sort
 }
 
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 static int __dfilter(const struct dirent *d) {
     if (d->d_type==DT_DIR) return 0;
     int i=0;
@@ -236,12 +245,12 @@ static int __dfilter(const struct dirent *d) {
     if (d->d_name[i-2]=='k'  & d->d_name[i-1]=='b'  & d->d_name[i]=='d'  ) return 1;
     return 0;
 }
-
+#endif
 
 
 bool *getKeys()
 {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     struct dirent **eps;
     int n;
 
@@ -293,10 +302,16 @@ bool *getKeys()
 
 
     return &__keys[0];
+#endif
+
+#ifdef __FOR_GLFW__
+    //TODO
+    return NULL;
+#endif
 }
 
 struct joystick_t *getJoystick(int j) {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     char devpath[20];
     sprintf(devpath,"/dev/input/js%i\0",j);
 
@@ -312,9 +327,16 @@ struct joystick_t *getJoystick(int j) {
     }
     js->buttons=0;
     return js;
+#endif
+
+#ifdef __FOR_GLFW__
+    //TODO
+    return NULL;
+#endif
 }
 
 void updateJoystick(struct joystick_t *js) {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     struct js_event jse;
     int jres;
     jres=read(js->fd,&jse,sizeof(struct js_event));
@@ -339,13 +361,17 @@ void updateJoystick(struct joystick_t *js) {
 
         jres=read(js->fd,&jse,sizeof(struct js_event));
     }
+#endif
 
+#ifdef __FOR_GLFW__
+    //TODO
+#endif
 }
 
 void releaseJoystick(struct joystick_t *js) {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     close(js->fd);
     free(js);
-
+#endif
 }
 

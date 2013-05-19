@@ -27,6 +27,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 #include <memory.h>
 
+//c++03 + NULL
+#include <stdlib.h>
+
 #include "utility.h"
 #include "mat3.h"
 #include "vec3.h"

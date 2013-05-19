@@ -11,8 +11,12 @@
 #include "input.h"
 
 #include <stdlib.h>
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include <stdbool.h>
-#include <unistd.h>		// usleep
+#endif
+
+//TODO
+//#include <unistd.h>		// usleep
 
 #include <kazmath.h>		// matrix manipulation routines
 
@@ -213,6 +217,8 @@ int main()
         doEvents();	// update mouse and key arrays
         updateJoystick(joy1);
 
+        //TOOD
+        /*
         if (keys[KEY_ESC])
             quit = true;	// exit if escape key pressed
 
@@ -220,10 +226,10 @@ int main()
         if (keys[KEY_S]) camAng=camAng-1;
         if (keys[KEY_W]) lightAng=lightAng+1;
         if (keys[KEY_Q]) lightAng=lightAng-1;
-
+        */
         render();	// the render loop
 
-        usleep(16000);	// no need to run cpu/gpu full tilt
+        //usleep(16000);	// no need to run cpu/gpu full tilt
 
     }
 
@@ -314,7 +320,8 @@ void render()
 
     glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
 
-	glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+    //TODO
+	//glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
 	
 	
 	glPrintf(100, 320, font2, "abcABCqrsQRS123"); 

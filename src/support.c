@@ -4,9 +4,14 @@
 #include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
 
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include  <GLES2/gl2.h>
 #include  <EGL/egl.h>
+#endif
+#ifdef __FOR_GLFW__
+#include <GL/glew.h>
+#include <GL/glfw.h>
+#endif
 
 #ifdef __cplusplus
 #if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
@@ -30,7 +35,6 @@ Display *__x_display;
 
 #endif //__FOR_RPi__
 
-#include <png.h>
 #include <kazmath.h>
 
 #include "lodepng.h"
@@ -54,11 +58,11 @@ EGLNativeWindowType __win;
 Window __eventWin;
 #endif
 
-#endif
-
 EGLDisplay __egl_display;
 EGLContext __egl_context;
 EGLSurface __egl_surface;
+
+#endif
 
 // only used internally
 void closeNativeWindow()
@@ -269,7 +273,7 @@ float rand_range(float start,float range) {
 }
 
 
-int loadPNG_lodepng(const char *filename)
+int loadPNG(const char *filename)
 {
     unsigned error;
     unsigned char* image;
@@ -367,143 +371,15 @@ int loadPNG_lodepng(const char *filename)
     return texture;
 }
 
-int loadPNG(const char *filename)
-{
-    return loadPNG_lodepng(filename);
-}
-int loadPNG_libpng(const char *filename)
-{
-
-    GLuint texture;
-    png_structp png_ptr = NULL;
-    png_infop info_ptr = NULL;
-    png_bytep *row_pointers = NULL;
-    int bitDepth, colourType;
-
-    FILE *pngFile = fopen(filename, "rb");
-
-    if (!pngFile)
-        return 0;
-
-    png_byte sig[8];
-
-    fread(&sig, 8, sizeof(png_byte), pngFile);
-    rewind(pngFile);
-    if (!png_check_sig(sig, 8)) {
-        printf("png sig failure\n");
-        return 0;
-    }
-
-    png_ptr =
-        png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
-    if (!png_ptr) {
-        printf("png ptr not created\n");
-        return 0;
-    }
-
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        printf("set jmp failed\n");
-        return 0;
-    }
-
-    info_ptr = png_create_info_struct(png_ptr);
-
-    if (!info_ptr) {
-        printf("cant get png info ptr\n");
-        return 0;
-    }
-
-    png_init_io(png_ptr, pngFile);
-    png_read_info(png_ptr, info_ptr);
-    bitDepth = png_get_bit_depth(png_ptr, info_ptr);
-    colourType = png_get_color_type(png_ptr, info_ptr);
-
-    if (colourType == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(png_ptr);
-    if (colourType == PNG_COLOR_TYPE_GRAY && bitDepth < 8)
-        //png_set_gray_1_2_4_to_8(png_ptr);
-        png_set_expand_gray_1_2_4_to_8(png_ptr);  // thanks to Jesse Jaara for bug fix for newer libpng...
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(png_ptr);
-
-    if (bitDepth == 16)
-        png_set_strip_16(png_ptr);
-    else if (bitDepth < 8)
-        png_set_packing(png_ptr);
-
-    png_read_update_info(png_ptr, info_ptr);
-
-    png_uint_32 width, height;
-    png_get_IHDR(png_ptr, info_ptr, &width, &height,
-                 &bitDepth, &colourType, NULL, NULL, NULL);
-
-    int components;		// = GetTextureInfo(colourType);
-    switch (colourType) {
-    case PNG_COLOR_TYPE_GRAY:
-        components = 1;
-        break;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
-        components = 2;
-        break;
-    case PNG_COLOR_TYPE_RGB:
-        components = 3;
-        break;
-    case PNG_COLOR_TYPE_RGB_ALPHA:
-        components = 4;
-        break;
-    default:
-        components = -1;
-    }
-
-    if (components == -1) {
-        if (png_ptr)
-            png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        printf("%s broken?\n", filename);
-        return 0;
-    }
-
-    GLubyte *pixels =
-        (GLubyte *) malloc(sizeof(GLubyte) * (width * height * components));
-    row_pointers = (png_bytep *) malloc(sizeof(png_bytep) * height);
-
-    for (int i = 0; i < height; ++i)
-        row_pointers[i] =
-            (png_bytep) (pixels + (i * width * components));
-
-    png_read_image(png_ptr, row_pointers);
-    png_read_end(png_ptr, NULL);
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GLuint glcolours;
-    (components == 4) ? (glcolours = GL_RGBA) : (0);
-    (components == 3) ? (glcolours = GL_RGB) : (0);
-    (components == 2) ? (glcolours = GL_LUMINANCE_ALPHA) : (0);
-    (components == 1) ? (glcolours = GL_LUMINANCE) : (0);
-
-    //printf("%s has %i colour components\n",filename,components);
-    //glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, glcolours, GL_UNSIGNED_BYTE, pixels);
-    glTexImage2D(GL_TEXTURE_2D, 0, glcolours, width, height, 0, glcolours,
-                 GL_UNSIGNED_BYTE, pixels);
-
-    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-
-    fclose(pngFile);
-    free(row_pointers);
-    free(pixels);
-
-    return texture;
-
-}
-
 // only here to keep egl pointers out of frontend code
 void swapBuffers()
 {
 #if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     eglSwapBuffers(__egl_display, __egl_surface);	// get the rendered buffer to the screen
+#endif
+
+#ifdef __FOR_GLFW__
+    glfwSwapBuffers();
 #endif
 }
 
@@ -552,7 +428,7 @@ char *file_read(const char *filename)
 }
 
 /**
- * Display compilation errors from the OpenGL shader compiler
+* Display compilation errors from the OpenGL shader compiler
  */
 void print_log(GLuint object)
 {
@@ -986,7 +862,35 @@ int makeContext()
     return 0;
 #endif
 #ifdef __FOR_GLFW__
-    //TODO
+    if(!glfwInit())
+    {
+        return -1;
+    }
+
+    //TODO width, height??
+    int width = 640;
+    int height = 480;
+
+    __display_width = width;
+    __display_height = height;
+
+    if(!glfwOpenWindow(width, height, 0, 0, 0, 0, 0, 0, GLFW_WINDOW))
+    {
+        glfwTerminate();
+        return -1;
+    }
+
+    GLenum err = glewInit();
+    if(GLEW_OK != err) 
+    {
+        /* Problem: glewInit failed, something is seriously wrong. */
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+
+        glfwTerminate();
+        return -1;
+    }
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
     return 0;
 #endif
 }
@@ -1013,7 +917,7 @@ void closeContext()
 #endif
 
 #ifdef __FOR_GLFW__
-    //TODO
+    glfwTerminate();
 #endif
 }
 

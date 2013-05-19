@@ -1,4 +1,11 @@
+#ifdef __FOR_GLFW__
+#include <GL/glew.h>
+#endif
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include  <GLES2/gl2.h>
+#endif
+
 #include <kazmath.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,7 +155,8 @@ int createObj(struct obj_t *obj, int numVerts, float *verts, float *txVert,
     obj->viewDir_uniform =
         getShaderLocation(shaderUniform, obj->program, "u_viewDir");
 
-
+    //C++03 need return value
+    return 1;
 }
 
 /*
@@ -182,7 +190,7 @@ int createObjCopyShader(struct obj_t *obj, int numVerts, float *verts,
     obj->lightDir_uniform = sdrobj->lightDir_uniform;
     obj->viewDir_uniform =  sdrobj->viewDir_uniform;
     obj->program = sdrobj->program;
-
+    return 0;
 }
 
 void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir)

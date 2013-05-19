@@ -1,10 +1,21 @@
 //#include <linux/types.h>
 
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
+#endif
+
+#ifdef __FOR_GLFW__
+#include <GL/glew.h>
+#include <GL/glfw.h>
+typedef unsigned int uint;
+#endif
+
 #include <kazmath.h>
 
+#ifndef __cplusplus
 #include <stdbool.h>
+#endif
 
 
 enum shaderLocationType { shaderAttrib, shaderUniform };
