@@ -1,5 +1,7 @@
 #include "support.h"
 
+#include "lodepng.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
@@ -346,137 +348,102 @@ void makeNativeWindow()
 
 float rand_range(float start,float range) {
     return start + range * ((float)rand() / RAND_MAX) ;
-
 }
 
 
 
 int loadPNG(const char *filename)
 {
-
+    unsigned error;
+    unsigned char* image;
+    unsigned w, h;
     GLuint texture;
-    png_structp png_ptr = NULL;
-    png_infop info_ptr = NULL;
-    png_bytep *row_pointers = NULL;
-    int bitDepth, colourType;
+    LodePNGState state;
+    unsigned char* png;
+    size_t pngsize;
+    size_t components;
 
-    FILE *pngFile = fopen(filename, "rb");
+    lodepng_state_init(&state);
+    lodepng_load_file(&png, &pngsize, filename);
+    error = lodepng_inspect(&w, &h, &state, png, 1024);
+    if (error) return 0;
 
-    if (!pngFile)
-        return 0;
-
-    png_byte sig[8];
-
-    fread(&sig, 8, sizeof(png_byte), pngFile);
-    rewind(pngFile);
-    if (!png_check_sig(sig, 8)) {
-        printf("png sig failure\n");
-        return 0;
-    }
-
-    png_ptr =
-        png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
-    if (!png_ptr) {
-        printf("png ptr not created\n");
-        return 0;
-    }
-
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        printf("set jmp failed\n");
-        return 0;
-    }
-
-    info_ptr = png_create_info_struct(png_ptr);
-
-    if (!info_ptr) {
-        printf("cant get png info ptr\n");
-        return 0;
-    }
-
-    png_init_io(png_ptr, pngFile);
-    png_read_info(png_ptr, info_ptr);
-    bitDepth = png_get_bit_depth(png_ptr, info_ptr);
-    colourType = png_get_color_type(png_ptr, info_ptr);
-
-    if (colourType == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(png_ptr);
-    if (colourType == PNG_COLOR_TYPE_GRAY && bitDepth < 8)
-        //png_set_gray_1_2_4_to_8(png_ptr);
-        png_set_expand_gray_1_2_4_to_8(png_ptr);  // thanks to Jesse Jaara for bug fix for newer libpng...
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(png_ptr);
-
-    if (bitDepth == 16)
-        png_set_strip_16(png_ptr);
-    else if (bitDepth < 8)
-        png_set_packing(png_ptr);
-
-    png_read_update_info(png_ptr, info_ptr);
-
-    png_uint_32 width, height;
-    png_get_IHDR(png_ptr, info_ptr, &width, &height,
-                 &bitDepth, &colourType, NULL, NULL, NULL);
-
-    int components;		// = GetTextureInfo(colourType);
-    switch (colourType) {
-    case PNG_COLOR_TYPE_GRAY:
+    GLenum glcolortype = GL_RGBA;
+    LodePNGColorMode colormode = state.info_png.color;
+    unsigned bitdepth = colormode.bitdepth;
+    LodePNGColorType colortype = colormode.colortype;
+    switch(colortype)
+    {
+    case LCT_GREY:
+        glcolortype = GL_LUMINANCE;
+        error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
         components = 1;
         break;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
+    case LCT_GREY_ALPHA:
+        glcolortype = GL_LUMINANCE_ALPHA;
+        error = lodepng_decode_memory(&image, &w, &h, png, pngsize, colortype, bitdepth);
         components = 2;
         break;
-    case PNG_COLOR_TYPE_RGB:
+    case LCT_RGB:
+        glcolortype = GL_RGB;
+        error = lodepng_decode24(&image, &w, &h, png, pngsize);
         components = 3;
         break;
-    case PNG_COLOR_TYPE_RGB_ALPHA:
+    case LCT_RGBA:
+        glcolortype = GL_RGBA;
+        error = lodepng_decode32(&image, &w, &h, png, pngsize);
         components = 4;
         break;
+    case LCT_PALETTE:
     default:
-        components = -1;
+        glcolortype = GL_RGBA;
+        error = lodepng_decode32(&image, &w, &h, png, pngsize);
+        components = 4;
+        break;
     }
 
-    if (components == -1) {
-        if (png_ptr)
-            png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        printf("%s broken?\n", filename);
+    if(error)
+    {
+        printf("PNG decoder error %u: %s\n", error, lodepng_error_text(error));
         return 0;
     }
 
-    GLubyte *pixels =
-        (GLubyte *) malloc(sizeof(GLubyte) * (width * height * components));
-    row_pointers = (png_bytep *) malloc(sizeof(png_bytep) * height);
+    free(png);
 
-    for (int i = 0; i < height; ++i)
-        row_pointers[i] =
-            (png_bytep) (pixels + (i * width * components));
+    // Texture size must be power of 2 (for some implementations of GLES)
+    // Find next power of two
+    size_t u2 = 1;
+    while(u2 < w) u2 *= 2;
+    size_t v2 = 1;
+    while(v2 < h) v2 *= 2;
 
-    png_read_image(png_ptr, row_pointers);
-    png_read_end(png_ptr, NULL);
+    // Make power of two version of the image.
+    unsigned char *image2 = (unsigned char *)malloc(sizeof(unsigned char) * u2 * v2 * components);
+    for(size_t y = 0; y < h; y++)
+    {
+        for(size_t x = 0; x < w; x++)
+        {
+            for(size_t c = 0; c < components; c++)
+            {
+                unsigned char val = image[components * w * y + components * x + c];
+                image2[components * u2 * y + components * x + c] = val;
+            }
+        }
+    }
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GLuint glcolours;
-    (components == 4) ? (glcolours = GL_RGBA) : (0);
-    (components == 3) ? (glcolours = GL_RGB) : (0);
-    (components == 2) ? (glcolours = GL_LUMINANCE_ALPHA) : (0);
-    (components == 1) ? (glcolours = GL_LUMINANCE) : (0);
 
-    //printf("%s has %i colour components\n",filename,components);
-    //glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, glcolours, GL_UNSIGNED_BYTE, pixels);
-    glTexImage2D(GL_TEXTURE_2D, 0, glcolours, width, height, 0, glcolours,
-                 GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, glcolortype, u2, v2, 0, glcolortype, GL_UNSIGNED_BYTE, image2);
 
-    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-
-    fclose(pngFile);
-    free(row_pointers);
-    free(pixels);
+    /*cleanup*/
+    lodepng_state_cleanup(&state);
+    free(image2);
+    free(image);
 
     return texture;
-
 }
 
 // only here to keep egl pointers out of frontend code
@@ -620,26 +587,26 @@ struct {  // blob of globals for the glPrint routine
 
 void initGlPrint(int w, int h)
 {
-/*	
-    const GLfloat quadVertices[] = {
-        0,	0,	0,
-        16, 16, 0,
-        16,	0,	0,
+    /*
+        const GLfloat quadVertices[] = {
+            0,	0,	0,
+            16, 16, 0,
+            16,	0,	0,
 
-        16, 16, 0,
-        0,	0,	0,
-        0,	16,	0
-    };
+            16, 16, 0,
+            0,	0,	0,
+            0,	16,	0
+        };
 
-    const GLfloat texCoord[] = {
-        0,			0,
-        1. / 16,	1. / 16,
-        1. / 16,	0,
-        1. / 16,	1. / 16,
-        0,			0,
-        0,			1. / 16
-    };
-*/
+        const GLfloat texCoord[] = {
+            0,			0,
+            1. / 16,	1. / 16,
+            1. / 16,	0,
+            1. / 16,	1. / 16,
+            0,			0,
+            0,			1. / 16
+        };
+    */
 
     kmMat4OrthographicProjection(&__glp.opm, 0, w, h, 0, -10, 10);
 
@@ -669,60 +636,58 @@ void initGlPrint(int w, int h)
     __glp.vert_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "vert_attrib");
     __glp.uv_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "uv_attrib");
 
-/*
-    __glp.fonttex = loadPNG("resources/textures/font.png");
+    /*
+        __glp.fonttex = loadPNG("resources/textures/font.png");
 
-    glGenBuffers(1, &__glp.quadvbo);
-    glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, quadVertices,
-                 GL_STATIC_DRAW);
+        glGenBuffers(1, &__glp.quadvbo);
+        glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, quadVertices,
+                     GL_STATIC_DRAW);
 
-    glGenBuffers(1, &__glp.texvbo);
-    glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
-                 GL_STATIC_DRAW);
-*/
+        glGenBuffers(1, &__glp.texvbo);
+        glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
+                     GL_STATIC_DRAW);
+    */
 }
 
 
 
 
 font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int fWidth,int fHeight) {
-	font_t *t=malloc(sizeof(font_t));
-	
-	t->tex = loadPNG(tpath);
-	t->base=cbase;
-	t->tHeight=tHeight;
-	t->tLines=tLines;
-	t->fWidth=fWidth;
-	t->fHeight=fHeight;
-	
-	float *vb=malloc(sizeof(float) * 3 * 6);
-    
+    font_t *t=malloc(sizeof(font_t));
+
+    t->tex = loadPNG(tpath);
+    t->base=cbase;
+    t->tHeight=tHeight;
+    t->tLines=tLines;
+    t->fWidth=fWidth;
+    t->fHeight=fHeight;
+
+    float *vb=malloc(sizeof(float) * 3 * 6);
+
     vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[13]=vb[14]=vb[15]=vb[17]=0;
     vb[3]=vb[6]=vb[9]=fWidth;
-	vb[4]=vb[10]=vb[16]=fHeight;
+    vb[4]=vb[10]=vb[16]=fHeight;
 
     glGenBuffers(1, &t->vertBuf);
     glBindBuffer(GL_ARRAY_BUFFER, t->vertBuf);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, vb, GL_STATIC_DRAW);
 
-	free(vb);
+    free(vb);
 
-	float *tc=malloc(sizeof(float) * 2 * 6);
-	tc[0]=tc[1]=tc[5]=tc[8]=tc[9]=tc[10]=0;
-	tc[2]=tc[4]=tc[6]=1./16;
-	tc[3]=tc[7]=tc[11]=1./tLines;
-	
-	glGenBuffers(1, &t->texBuf);
-	glBindBuffer(GL_ARRAY_BUFFER, t->texBuf);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, tc, GL_STATIC_DRAW);
-	
-	free(tc);
-	
-	
+    float *tc=malloc(sizeof(float) * 2 * 6);
+    tc[0]=tc[1]=tc[5]=tc[8]=tc[9]=tc[10]=0;
+    tc[2]=tc[4]=tc[6]=1./16;
+    tc[3]=tc[7]=tc[11]=1./tLines;
 
-	return t;
+    glGenBuffers(1, &t->texBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, t->texBuf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, tc, GL_STATIC_DRAW);
+
+    free(tc);
+
+    return t;
 }
 
 void glPrintf(float x, float y, font_t *fnt, const char *fmt, ...)
@@ -742,7 +707,7 @@ void glPrintf(float x, float y, font_t *fnt, const char *fmt, ...)
     glDisable(GL_DEPTH_TEST);
 
     //glBindTexture(GL_TEXTURE_2D, __glp.fonttex);
-	glBindTexture(GL_TEXTURE_2D, fnt->tex);
+    glBindTexture(GL_TEXTURE_2D, fnt->tex);
 
     glEnableVertexAttribArray(__glp.vert_attrib);
 //    glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
@@ -801,7 +766,7 @@ void initSprite(int w, int h)
     const GLfloat quadVertices[] = {
         -.5,	-.5,	0,
         .5,  	 .5,	0,
-        .5,	-.5,	0,
+        .5,		-.5,	0,
 
         .5,  	 .5,	0,
         -.5,	-.5,	0,
@@ -860,8 +825,6 @@ void initSprite(int w, int h)
 
 void drawSprite(float x, float y, float w, float h, float a, int tex)
 {
-
-
     glUseProgram(__spr.spriteProg);
     kmMat4Assign(&__spr.otm, &__spr.opm);
     kmMat4Translation(&__spr.t, x, y, -1); // support z layers?
@@ -984,9 +947,6 @@ void closeContext()
 
 
 }
-
-
-
 
 
 struct __pointGlobs {
