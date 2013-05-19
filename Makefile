@@ -29,11 +29,10 @@ endif
 
 ifeq ($(PLATFORM),glfw)
 	FLAGS=-D__FOR_GLFW__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	FLAGS+= -I/opt/vc/include/interface/vmcs_host -I/opt/vc/include/interface/vmcs_host/linux
 	FLAGS+= -fpermissive
 	LIBS=-lGL -lglfw -lGLEW -lm
 endif
+
 
 
 # ok.... find all src/*.c replace all .c with .o then replace src\ with o\ - and breath
