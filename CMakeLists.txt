@@ -45,7 +45,5 @@ set_source_files_properties(${C_FILES} PROPERTIES LANGUAGE CXX)
 add_executable( simple ${EXAMPLE_SIMPLE} )
 add_executable( sprites ${EXAMPLE_SPRITES} )
 
-add_subdirectory(glew)
-
 target_link_libraries( simple gles2framework GLFW glew32 opengl32 )
 target_link_libraries( sprites gles2framework GLFW glew32 opengl32 )
