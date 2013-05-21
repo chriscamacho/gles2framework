@@ -42,8 +42,13 @@ file(GLOB C_FILES
 	
 set_source_files_properties(${C_FILES} PROPERTIES LANGUAGE CXX)
 
+# Executables for only Standalone project
+if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+
 add_executable( simple ${EXAMPLE_SIMPLE} )
 add_executable( sprites ${EXAMPLE_SPRITES} )
 
 target_link_libraries( simple gles2framework GLFW glew32 opengl32 )
 target_link_libraries( sprites gles2framework GLFW glew32 opengl32 )
+
+endif()
