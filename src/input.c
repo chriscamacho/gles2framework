@@ -1,12 +1,16 @@
+#ifndef __cplusplus
 #include <stdbool.h>
+#endif
 #include <stdio.h> // sprintf
 #include <stdlib.h>  // malloc
 #include <math.h>
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include <fcntl.h>  // open fcntl
 #include <unistd.h> // read close 
 #include <linux/joystick.h>
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
@@ -14,12 +18,12 @@
 extern Display *__x_display;
 extern Window __eventWin;
 
-#endif //NOT  __FOR_RPi_noX__
+#endif // __FOR_RPi__
 
 #include <dirent.h>  // scandir
 #include <string.h> // strlen
 
-#ifdef __FOR_RPi_noX__
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 
 // sudo kbd_mode -a - on RPi if you have to kill it...
 
@@ -27,6 +31,7 @@ extern Window __eventWin;
 #include "termios.h"
 #include "sys/ioctl.h"
 
+#endif
 
 static struct termios tty_attr_old;
 static int old_keyboard_mode;
@@ -35,16 +40,129 @@ int __mouse_fd=-1;
 
 #endif
 
+#ifdef __FOR_GLFW__
+#include <GL/glfw.h>
+#include <string.h>
+#include "keys.h"
+#endif
+
 #include "input.h"
 
 
-
-bool __keys[256];
+//glfw need more than 256 key for special keys
+bool __keys[256+128];
 int __mouse[3];
 bool __rel_mouse;
 
 int __key_fd=0; // defaults to 0 ie console
 
+#ifdef __FOR_GLFW__
+int __keyList[] = {
+    KEY_ESC,
+    KEY_ONE,
+    KEY_TWO,
+    KEY_THREE,
+    KEY_FOUR,
+    KEY_FIVE,
+    KEY_SIX,
+    KEY_SEVEN,
+    KEY_EIGHT,
+    KEY_NINE,
+    KEY_ZERO,
+    KEY_MINUS,
+    KEY_TAB,
+    KEY_Q,
+    KEY_W,
+    KEY_E,
+    KEY_R,
+    KEY_T,
+    KEY_Y,
+    KEY_U,
+    KEY_I,
+    KEY_O,
+    KEY_P,
+    KEY_LBRACKET,
+    KEY_RBRACKET,
+    KEY_RETURN,
+    KEY_LCTRL,
+    KEY_A,
+    KEY_S,
+    KEY_D,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_SEMICOLON,
+    KEY_APOST,
+    KEY_BACKTICK,
+    KEY_LSHIFT,
+    KEY_HASH,
+    KEY_Z,
+    KEY_X,
+    KEY_C,
+    KEY_V,
+    KEY_B,
+    KEY_N,
+    KEY_M,
+    KEY_COMMA,
+    KEY_PERIOD,
+    KEY_BSLASH,
+    KEY_RSHIFT,
+    KEY_NUMMULT,
+    KEY_LALT,
+    KEY_SPACE,
+    KEY_CAPS,
+    KEY_F1,
+    KEY_F2,
+    KEY_F3,
+    KEY_F4,
+    KEY_F5,
+    KEY_F6,
+    KEY_F7,
+    KEY_F8,
+    KEY_F9,
+    KEY_F10,
+    KEY_NUMLOCK,
+    KEY_SCLOCK,
+    KEY_NUM7,
+    KEY_NUM8,
+    KEY_NUM9,
+    KEY_NUMMINUS,
+    KEY_NUM4,
+    KEY_NUM5,
+    KEY_NUM6,
+    KEY_NUMPLUS,
+    KEY_NUM1,
+    KEY_NUM2,
+    KEY_NUM3,
+    KEY_NUMZERO,
+    KEY_NUMPERIOD,
+    KEY_FSLASH,
+    KEY_F11,
+    KEY_F12,
+    KEY_NUMENTER,
+    KEY_RCTRL,
+    KEY_NUMSLASH,
+    KEY_SYSRQ,
+    KEY_ALTGR,
+    KEY_HOME,
+    KEY_PGUP,
+    KEY_END,
+    KEY_PGDOWN,
+    KEY_INSERT,
+    KEY_DELETE,
+    KEY_BREAK,
+    KEY_LMETA,
+    KEY_RMETA,
+    KEY_MENU,
+    KEY_CURSL,
+    KEY_CURSR,
+    KEY_CURSU,
+    KEY_CURSD
+};
+#endif
 
 #ifdef __FOR_RPi_noX__
 
@@ -62,7 +180,7 @@ void restoreKbd() {
 void doEvents()
 {
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
     XEvent event;
 
@@ -121,7 +239,7 @@ void doEvents()
         }
     }
 
-#endif // NOT  __FOR_RPi_noX__
+#endif // __FOR_RPi__
 
 
 #ifdef __FOR_RPi_noX__
@@ -196,7 +314,57 @@ void doEvents()
 
 #endif  // __FOR_RPi_noX__
 
+#ifdef __FOR_GLFW__
+    memset(__keys, GLFW_RELEASE, sizeof(__keys) / sizeof(__keys[0]));
+    int keycount = sizeof(__keyList) / sizeof(__keyList[0]);
+    for(int i = 0 ; i < keycount ; ++i)
+    {
+        int key = __keyList[i];
+        if(glfwGetKey(key) == GLFW_PRESS)
+        {
+            __keys[key] = true;
+        }
+    }
 
+    int pos[2];
+    glfwGetMousePos(&pos[0], &pos[1]);
+    //save previous mouse pos
+    static int prev[2];
+    static bool firstrun = true;
+    if(firstrun)
+    {
+        prev[0] = pos[0];
+        prev[1] = pos[1];
+        firstrun = false;
+    }
+
+    if(__rel_mouse == false) 
+    {
+        __mouse[0] = pos[0];
+        __mouse[1] = pos[1];
+    }
+    else 
+    {
+        __mouse[0] = pos[0] - prev[0];
+        __mouse[1] = pos[1] - prev[1];
+        prev[0] = pos[0];
+        prev[1] = pos[1];
+    }
+
+    __mouse[2] = 0;
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x01;
+    }
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x02;
+    }
+    if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        __mouse[2] |= 0x04;
+    }
+#endif
 }
 
 void setMouseRelative(bool mode) {
@@ -205,6 +373,7 @@ void setMouseRelative(bool mode) {
 
 int *getMouse()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     __rel_mouse=false;
 
 #ifdef  __FOR_RPi_noX__
@@ -219,6 +388,7 @@ int *getMouse()
     }
 
 #endif //  __FOR_RPi_noX__
+#endif
 
     return &__mouse[0];
 }
@@ -227,6 +397,7 @@ static int __dsort (const struct dirent **a,const struct dirent **b) {
     return 1; // dummy sort
 }
 
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 static int __dfilter(const struct dirent *d) {
     if (d->d_type==DT_DIR) return 0;
     int i=0;
@@ -236,12 +407,12 @@ static int __dfilter(const struct dirent *d) {
     if (d->d_name[i-2]=='k'  & d->d_name[i-1]=='b'  & d->d_name[i]=='d'  ) return 1;
     return 0;
 }
-
+#endif
 
 
 bool *getKeys()
 {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     struct dirent **eps;
     int n;
 
@@ -290,17 +461,17 @@ bool *getKeys()
         ioctl(__key_fd, KDSKBMODE, K_RAW);
     }
 #endif  //__FOR_RPi_noX__
-
+#endif
 
     return &__keys[0];
 }
 
 struct joystick_t *getJoystick(int j) {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     char devpath[20];
     sprintf(devpath,"/dev/input/js%i\0",j);
 
-    struct joystick_t *js=malloc(sizeof(struct joystick_t));
+    struct joystick_t *js=(struct joystick_t*)malloc(sizeof(struct joystick_t));
     js->fd = open(devpath, O_RDONLY);
     if (js->fd < 0) {
         printf("joystick %i open failed\n",j);
@@ -312,9 +483,33 @@ struct joystick_t *getJoystick(int j) {
     }
     js->buttons=0;
     return js;
+#endif
+
+#ifdef __FOR_GLFW__
+    struct joystick_t *js=(struct joystick_t*)malloc(sizeof(struct joystick_t));
+    js->fd = -1;
+
+    for(int joy = GLFW_JOYSTICK_1 ; joy <= GLFW_JOYSTICK_LAST ; ++joy)
+    {
+        if(glfwGetJoystickParam(joy, GLFW_PRESENT) == GL_TRUE)
+        {
+            js->fd = joy;
+            printf("joystick %d exist\n",joy);
+            break;
+        }
+    }
+    if(js->fd == -1) 
+    {
+        printf("joystick not exist\n");
+        memset(js->axis, 0, sizeof(js->axis));
+        js->buttons = 0;
+    }
+    return js;
+#endif
 }
 
 void updateJoystick(struct joystick_t *js) {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     struct js_event jse;
     int jres;
     jres=read(js->fd,&jse,sizeof(struct js_event));
@@ -339,13 +534,52 @@ void updateJoystick(struct joystick_t *js) {
 
         jres=read(js->fd,&jse,sizeof(struct js_event));
     }
+#endif
 
+#ifdef __FOR_GLFW__
+    if(js->fd < 0) {
+        return;
+    }
+    int retval = 0;
+
+    // initialize valie
+    memset(js->axis, 0, sizeof(js->axis));
+    js->buttons = 0;
+
+    //axis
+    const int MAX_POS_COUNT = 16;
+    float pos[MAX_POS_COUNT];
+    memset(pos, 0, sizeof(pos));
+    retval = glfwGetJoystickPos(js->fd, pos, MAX_POS_COUNT);
+    for(int i = 0; i < retval ; i++) {
+        float raw = pos[i];
+        //-1~1 -> signed short
+        signed short val = (signed short)(raw * (65535 * 0.5f));
+        js->axis[i] = val;
+    }
+
+    //button
+    const int BUTTON_COUNT = 32;
+    unsigned char buttonlist[BUTTON_COUNT];
+    retval = glfwGetJoystickButtons(js->fd, buttonlist, BUTTON_COUNT);
+    for(int i = 0 ; i < retval ; ++i) 
+    {
+        if(buttonlist[i] != 0) 
+        {
+            js->buttons |= (0x01 << i);
+        }
+    }
+#endif
 }
 
 void releaseJoystick(struct joystick_t *js) {
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     close(js->fd);
     free(js);
+#endif
 
+#ifdef __FOR_GLFW__
+    free(js);
+#endif
 }
 

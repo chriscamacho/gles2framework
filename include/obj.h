@@ -1,5 +1,9 @@
-
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include  <GLES2/gl2.h>
+#endif
+#ifdef __FOR_GLFW__
+#include <GL/glfw.h>
+#endif
 
 struct obj_t {
     GLuint vbo_vert, vbo_tex, vbo_norm;

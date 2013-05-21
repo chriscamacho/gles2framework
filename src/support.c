@@ -6,16 +6,30 @@
 #include <stdlib.h>
 #include <stdarg.h>		// va_lists for glprint
 
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
+#include <unistd.h>		// usleep
+#endif
 
-#include  <GLES2/gl2.h>
-#include  <EGL/egl.h>
+#ifdef __FOR_GLFW__
+#include <GL/glew.h>
+#include <GL/glfw.h>
+#endif
+
+#ifdef __cplusplus
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+#include <bcm_host.h>
+#include <vchost.h>
+#endif
+#endif
 
 #ifdef __FOR_RPi_noX__
 extern void restoreKbd();
 extern int __mouse_fd;
 #endif
 
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #include  <X11/Xlib.h>
 #include  <X11/Xatom.h>
@@ -23,11 +37,11 @@ extern int __mouse_fd;
 
 Display *__x_display;
 
-#endif //NOT  __FOR_RPi_noX__
+#endif //__FOR_RPi__
 
-#include <png.h>
 #include <kazmath.h>
 
+#include "lodepng.h"
 
 int __display_width,__display_height;
 
@@ -40,15 +54,7 @@ int getDisplayHeight() {
     return __display_height;
 }
 
-
-#ifdef __FOR_XORG__
-
-Window __win, __eventWin;
-
-#endif
-
-
-#ifndef __FOR_XORG__ // ie one of pi options
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 
 EGLNativeWindowType __win;
 
@@ -56,21 +62,15 @@ EGLNativeWindowType __win;
 Window __eventWin;
 #endif
 
-#endif
-
 EGLDisplay __egl_display;
 EGLContext __egl_context;
 EGLSurface __egl_surface;
 
+#endif
+
 // only used internally
 void closeNativeWindow()
 {
-
-#ifdef __FOR_XORG__
-    XDestroyWindow(__x_display, __win);	// on normal X (ie not pi) win and __eventWin point to same window
-    XCloseDisplay(__x_display);
-#endif				//__FOR_XORG__
-
 #ifdef __FOR_RPi__
     XDestroyWindow(__x_display, __eventWin);	// on the pi win is dummy "context" window
     XCloseDisplay(__x_display);
@@ -85,81 +85,6 @@ void closeNativeWindow()
 // only used internally
 void makeNativeWindow()
 {
-
-#ifdef __FOR_XORG__
-
-    __x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
-    if (__x_display == NULL) {
-        printf("cannot connect to X server\n");
-    }
-
-    Window root = DefaultRootWindow(__x_display);	// get the root window (usually the whole screen)
-
-
-    XSetWindowAttributes swa;
-    swa.event_mask =
-        ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
-
-    __display_width=640;
-    __display_height=480;  // xorg hard coded for now
-    int s = DefaultScreen(__x_display);
-    __win = XCreateSimpleWindow(__x_display, root,
-                                10, 10, __display_width, __display_height, 1,
-                                BlackPixel(__x_display, s),
-                                WhitePixel(__x_display, s));
-    XSelectInput(__x_display, __win, ExposureMask |
-                 KeyPressMask | KeyReleaseMask |
-                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
-
-    XSetWindowAttributes xattr;
-    Atom atom;
-    int one = 1;
-
-    xattr.override_redirect = False;
-    XChangeWindowAttributes(__x_display, __win, CWOverrideRedirect, &xattr);
-
-    /*
-    	atom = XInternAtom(__x_display, "_NET_WM_STATE_FULLSCREEN", True);
-    	XChangeProperty(__x_display, win,
-    			XInternAtom(__x_display, "_NET_WM_STATE", True),
-    			XA_ATOM, 32, PropModeReplace, (unsigned char *)&atom,
-    			1);
-    */
-
-    XWMHints hints;
-    hints.input = True;
-    hints.flags = InputHint;
-    XSetWMHints(__x_display, __win, &hints);
-
-    XMapWindow(__x_display, __win);	// make the window visible on the screen
-    XStoreName(__x_display, __win, "GLES2.0 framework");	// give the window a name
-
-    // NB - RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
-    __egl_display = eglGetDisplay((EGLNativeDisplayType) __x_display);
-    if (__egl_display == EGL_NO_DISPLAY) {
-        printf("Got no EGL display.\n");
-    }
-
-    __eventWin = __win;
-
-
-
-
-    Cursor invisibleCursor;
-    Pixmap bitmapNoData;
-    XColor black;
-    static char noData[] = { 0,0,0,0,0,0,0,0 };
-    black.red = black.green = black.blue = 0;
-
-    bitmapNoData = XCreateBitmapFromData(__x_display, __win, noData, 8, 8);
-    invisibleCursor = XCreatePixmapCursor(__x_display, bitmapNoData, bitmapNoData,
-                                          &black, &black, 0, 0);
-    XDefineCursor(__x_display,__win, invisibleCursor);
-    XFreeCursor(__x_display, invisibleCursor);
-
-
-#endif				//__FOR_XORG__
-
 #ifdef __FOR_RPi__
 
     bcm_host_init();
@@ -351,7 +276,6 @@ float rand_range(float start,float range) {
 }
 
 
-
 int loadPNG(const char *filename)
 {
     unsigned error;
@@ -449,7 +373,13 @@ int loadPNG(const char *filename)
 // only here to keep egl pointers out of frontend code
 void swapBuffers()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     eglSwapBuffers(__egl_display, __egl_surface);	// get the rendered buffer to the screen
+#endif
+
+#ifdef __FOR_GLFW__
+    glfwSwapBuffers();
+#endif
 }
 
 GLuint getShaderLocation(int type, GLuint prog, const char *name)
@@ -497,7 +427,7 @@ char *file_read(const char *filename)
 }
 
 /**
- * Display compilation errors from the OpenGL shader compiler
+* Display compilation errors from the OpenGL shader compiler
  */
 void print_log(GLuint object)
 {
@@ -655,7 +585,7 @@ void initGlPrint(int w, int h)
 
 
 font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int fWidth,int fHeight) {
-    font_t *t=malloc(sizeof(font_t));
+    font_t *t=(font_t*)malloc(sizeof(font_t));
 
     t->tex = loadPNG(tpath);
     t->base=cbase;
@@ -664,7 +594,7 @@ font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int f
     t->fWidth=fWidth;
     t->fHeight=fHeight;
 
-    float *vb=malloc(sizeof(float) * 3 * 6);
+    float *vb=(float*)malloc(sizeof(float) * 3 * 6);
 
     vb[0]=vb[1]=vb[2]=vb[5]=vb[7]=vb[8]=vb[11]=vb[12]=vb[13]=vb[14]=vb[15]=vb[17]=0;
     vb[3]=vb[6]=vb[9]=fWidth;
@@ -676,7 +606,7 @@ font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int f
 
     free(vb);
 
-    float *tc=malloc(sizeof(float) * 2 * 6);
+    float *tc=(float*)malloc(sizeof(float) * 2 * 6);
     tc[0]=tc[1]=tc[5]=tc[8]=tc[9]=tc[10]=0;
     tc[2]=tc[4]=tc[6]=1./16;
     tc[3]=tc[7]=tc[11]=1./tLines;
@@ -867,6 +797,7 @@ void drawSprite(float x, float y, float w, float h, float a, int tex)
 
 int makeContext()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     makeNativeWindow();	// sets global pointers for win and disp
 
     EGLint majorVersion;
@@ -924,6 +855,39 @@ int makeContext()
     eglMakeCurrent(__egl_display, __egl_surface, __egl_surface, __egl_context);
 
     return 0;
+#endif
+#ifdef __FOR_GLFW__
+    if(!glfwInit())
+    {
+        return -1;
+    }
+
+    //TODO width, height??
+    int width = 640;
+    int height = 480;
+
+    __display_width = width;
+    __display_height = height;
+
+    if(!glfwOpenWindow(width, height, 0, 0, 0, 0, 0, 0, GLFW_WINDOW))
+    {
+        glfwTerminate();
+        return -1;
+    }
+
+    GLenum err = glewInit();
+    if(GLEW_OK != err) 
+    {
+        /* Problem: glewInit failed, something is seriously wrong. */
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+
+        glfwTerminate();
+        return -1;
+    }
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+    return 0;
+#endif
 }
 
 
@@ -931,6 +895,7 @@ extern int __key_fd;
 
 void closeContext()
 {
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
     eglDestroyContext(__egl_display, __egl_context);
     eglDestroySurface(__egl_display, __egl_surface);
     eglTerminate(__egl_display);
@@ -944,8 +909,11 @@ void closeContext()
 #endif
 
     close(__key_fd);
+#endif
 
-
+#ifdef __FOR_GLFW__
+    glfwTerminate();
+#endif
 }
 
 
@@ -985,13 +953,13 @@ void drawPointCloud(struct pointCloud_t* pntC, kmMat4* mat) {
 
 struct pointCloud_t* createPointCloud(int size) {
 
-    struct pointCloud_t* pntC=malloc(sizeof(struct pointCloud_t));
+    struct pointCloud_t* pntC=(struct pointCloud_t*)malloc(sizeof(struct pointCloud_t));
     pntC->totalPoints=size;
-    pntC->pos=malloc(size*sizeof(float)*3);
-    pntC->vel=malloc(size*sizeof(float)*3);
+    pntC->pos=(float*)malloc(size*sizeof(float)*3);
+    pntC->vel=(float*)malloc(size*sizeof(float)*3);
 
 
-    glGenBuffers(1, &pntC->vertBuf);
+    glGenBuffers(1, (GLuint*)&pntC->vertBuf);
     glBindBuffer(GL_ARRAY_BUFFER, pntC->vertBuf);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * pntC->totalPoints, pntC->pos,
                  GL_DYNAMIC_DRAW);
@@ -1036,4 +1004,25 @@ void initPointClouds(const char* vertS, const char* fragS, float pntSize) {
     glUseProgram(__pg.Partprogram);
     glUniform1f(__pg.part_size_uniform, pntSize);
 
+}
+
+void sleepMicrosecs(unsigned long useconds)
+{
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+    usleep(useconds);
+#endif
+#ifdef __FOR_GLFW__
+    glfwSleep(useconds * 0.000001);
+#endif
+}
+
+bool isWindowOpened()
+{
+#ifdef __FOR_GLFW__
+    return (glfwGetWindowParam(GLFW_OPENED) ==  GL_TRUE);
+#endif
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
+    return true;
+#endif
 }

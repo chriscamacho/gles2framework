@@ -1,8 +1,9 @@
 
 
 #include <stdlib.h>
+#ifndef __cplusplus
 #include <stdbool.h>
-#include <unistd.h>		// usleep
+#endif
 
 #include <kazmath.h>		// matrix manipulation routines
 
@@ -131,7 +132,7 @@ int main()
 
         render();	// the render loop
 
-        usleep(16000);	// no need to run cpu/gpu full tilt
+        sleepMicrosecs(16000);	// no need to run cpu/gpu full tilt
 
     }
 

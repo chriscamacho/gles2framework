@@ -1,4 +1,11 @@
+#ifdef __FOR_GLFW__
+#include <GL/glew.h>
+#endif
+
+#if (defined(__FOR_RPi_noX__) || defined(__FOR_RPi__))
 #include  <GLES2/gl2.h>
+#endif
+
 #include <kazmath.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,13 +43,13 @@ int loadObj(struct obj_t *obj,const char *objFile, char *vert, char *frag)
     }
     fread(&NumVerts,1,sizeof(unsigned int), pFile );
 
-    float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+    float* Verts = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+    float* Norms = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+    float* TexCoords = (float*)malloc(sizeof(float) * 2 * NumVerts);
     fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
 
     createObj(obj,NumVerts,Verts,TexCoords,Norms,vert,frag);
@@ -72,13 +79,13 @@ int loadObjCopyShader(struct obj_t *obj,const char *objFile, struct obj_t *sdrob
     }
     fread(&NumVerts,1,sizeof(unsigned int), pFile );
 
-    float* Verts = malloc(sizeof(float) * 3 * NumVerts);
+    float* Verts = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Verts,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* Norms = malloc(sizeof(float) * 3 * NumVerts);
+    float* Norms = (float*)malloc(sizeof(float) * 3 * NumVerts);
     fread(Norms,1,sizeof(float) * 3 * NumVerts, pFile );
 
-    float* TexCoords = malloc(sizeof(float) * 2 * NumVerts);
+    float* TexCoords = (float*)malloc(sizeof(float) * 2 * NumVerts);
     fread(TexCoords,1,sizeof(float) * 2 * NumVerts, pFile );
 
     createObjCopyShader(obj,NumVerts, Verts,TexCoords,
@@ -148,7 +155,8 @@ int createObj(struct obj_t *obj, int numVerts, float *verts, float *txVert,
     obj->viewDir_uniform =
         getShaderLocation(shaderUniform, obj->program, "u_viewDir");
 
-
+    //C++03 need return value
+    return 1;
 }
 
 /*
@@ -182,7 +190,7 @@ int createObjCopyShader(struct obj_t *obj, int numVerts, float *verts,
     obj->lightDir_uniform = sdrobj->lightDir_uniform;
     obj->viewDir_uniform =  sdrobj->viewDir_uniform;
     obj->program = sdrobj->program;
-
+    return 0;
 }
 
 void drawObj(struct obj_t *obj, kmMat4 * combined, kmMat4 * mv, kmVec3 lightDir, kmVec3 viewDir)

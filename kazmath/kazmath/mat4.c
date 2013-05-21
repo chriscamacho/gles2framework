@@ -85,9 +85,10 @@ int gaussj(kmMat4 *a, kmMat4 *b)
 {
     int i, icol = 0, irow = 0, j, k, l, ll, n = 4, m = 4;
     float big, dum, pivinv;
-    int indxc[n];
-    int indxr[n];
-    int ipiv[n];
+	// C++03 doesn't support variable length array
+    int indxc[4];	// n=4
+    int indxr[4];	// n=4
+    int ipiv[4];	// n=4
 
     for (j = 0; j < n; j++) {
         ipiv[j] = 0;

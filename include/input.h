@@ -1,13 +1,6 @@
 
 extern int __display_width,__display_height;
 
-#ifdef __FOR_XORG__
-
-	extern Window __win, __eventWin;
-	extern Display *__x_display;
-
-#endif
-
 void doEvents();
 int *getMouse();
 bool *getKeys();

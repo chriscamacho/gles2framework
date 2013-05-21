@@ -1,5 +1,4 @@
-
-#ifndef __FOR_RPi_noX__
+#ifdef __FOR_RPi__
 
 #define KEY_ESC			9
 #define KEY_ONE			10
@@ -234,5 +233,126 @@
 #define KEY_CURSD		108
 
 
+
+#endif
+
+
+#ifdef __FOR_GLFW__
+
+#include <GL/glfw.h>
+
+#define KEY_ESC			GLFW_KEY_ESC
+#define KEY_ONE			'1'
+#define KEY_TWO			'2'
+#define KEY_THREE		'3'
+#define KEY_FOUR		'4'
+#define KEY_FIVE		'5'
+#define KEY_SIX			'6'
+#define KEY_SEVEN		'7'
+#define KEY_EIGHT		'8'
+#define KEY_NINE		'9'
+#define KEY_ZERO		'0'
+#define KEY_MINUS		'-'
+
+#define KEY_TAB 		GLFW_KEY_TAB
+#define KEY_Q			'Q'
+#define KEY_W			'W'
+#define KEY_E			'E'
+#define KEY_R			'R'
+#define KEY_T			'T'
+#define KEY_Y			'Y'
+#define KEY_U			'U'
+#define KEY_I			'I'
+#define KEY_O			'O'
+#define KEY_P			'P'
+#define KEY_LBRACKET	'['
+#define KEY_RBRACKET	']'
+#define KEY_RETURN		GLFW_KEY_ENTER
+#define KEY_LCTRL		GLFW_KEY_LCTRL
+#define KEY_A			'A'
+#define KEY_S			'S'
+#define KEY_D			'D'
+#define KEY_F			'F'
+#define KEY_G			'G'
+#define KEY_H			'H'
+#define KEY_J			'J'
+#define KEY_K			'K'
+#define KEY_L			'L'
+#define KEY_SEMICOLON	';'
+#define KEY_APOST		'\''
+#define KEY_BACKTICK	'`'
+#define KEY_LSHIFT		GLFW_KEY_LSHIFT
+#define KEY_HASH		GLFW_KEY_LAST   /*correct?*/
+#define KEY_Z			'Z'
+#define KEY_X			'X'
+#define KEY_C			'C'
+#define KEY_V			'V'
+#define KEY_B			'B'
+#define KEY_N			'N'
+#define KEY_M			'M'
+#define KEY_COMMA		','
+#define KEY_PERIOD		'.'
+#define KEY_BSLASH		'\\'
+#define KEY_RSHIFT		GLFW_KEY_RSHIFT
+#define KEY_NUMMULT		GLFW_KEY_KP_MULTIPLY
+#define KEY_LALT		GLFW_KEY_LALT
+#define KEY_SPACE		GLFW_KEY_SPACE
+#define KEY_CAPS		GLFW_KEY_CAPS_LOCK
+#define KEY_F1			GLFW_KEY_F1
+#define KEY_F2			GLFW_KEY_F2
+#define KEY_F3			GLFW_KEY_F3
+#define KEY_F4			GLFW_KEY_F4
+#define KEY_F5			GLFW_KEY_F5
+#define KEY_F6			GLFW_KEY_F6
+#define KEY_F7			GLFW_KEY_F7
+#define KEY_F8			GLFW_KEY_F8
+#define KEY_F9			GLFW_KEY_F9
+#define KEY_F10			GLFW_KEY_F10
+#define KEY_NUMLOCK		GLFW_KEY_KP_NUM_LOCK
+#define KEY_SCLOCK		GLFW_KEY_SCROLL_LOCK
+#define KEY_NUM7		GLFW_KEY_KP_7
+#define KEY_NUM8		GLFW_KEY_KP_8
+#define KEY_NUM9		GLFW_KEY_KP_9
+#define KEY_NUMMINUS	GLFW_KEY_KP_SUBTRACT
+#define KEY_NUM4		GLFW_KEY_KP_4
+#define KEY_NUM5		GLFW_KEY_KP_5
+#define KEY_NUM6		GLFW_KEY_KP_6
+#define KEY_NUMPLUS		GLFW_KEY_KP_ADD
+#define KEY_NUM1		GLFW_KEY_KP_1
+#define KEY_NUM2		GLFW_KEY_KP_2
+#define KEY_NUM3		GLFW_KEY_KP_3
+#define KEY_NUMZERO		GLFW_KEY_KP_0
+#define KEY_NUMPERIOD	GLFW_KEY_KP_DECIMAL
+
+#define KEY_FSLASH		'/'
+#define KEY_F11			GLFW_KEY_F11
+#define KEY_F12			GLFW_KEY_F12
+
+#define KEY_NUMENTER	GLFW_KEY_KP_ENTER
+#define KEY_RCTRL		GLFW_KEY_RCTRL
+#define KEY_NUMSLASH	GLFW_KEY_KP_DIVIDE
+#define KEY_SYSRQ		GLFW_KEY_UNKNOWN    /*correct?*/
+#define KEY_ALTGR		GLFW_KEY_SPECIAL    /*correct?*/
+
+#define KEY_HOME		GLFW_KEY_HOME
+
+#define KEY_PGUP		GLFW_KEY_PAGEUP
+
+#define KEY_END			GLFW_KEY_END
+
+#define KEY_PGDOWN		GLFW_KEY_PAGEDOWN
+#define KEY_INSERT		GLFW_KEY_INSERT
+#define KEY_DELETE		GLFW_KEY_DEL
+
+#define KEY_BREAK		GLFW_KEY_PAUSE
+
+#define KEY_LMETA		GLFW_KEY_LSUPER   /*correct?*/
+#define KEY_RMETA		GLFW_KEY_RSUPER   /*correct?*/
+#define KEY_MENU		GLFW_KEY_MENU
+
+#define KEY_CURSL		GLFW_KEY_LEFT
+#define KEY_CURSR		GLFW_KEY_RIGHT
+#define KEY_CURSU		GLFW_KEY_UP
+#define KEY_CURSD		GLFW_KEY_DOWN
 
 #endif
