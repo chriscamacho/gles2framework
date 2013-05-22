@@ -4,6 +4,8 @@ Probably not the worlds best example of using ODE!
 cobbled together quickly in a few hours...
 
 */
+#include <GL/glfw3.h>
+#include "tinycthread.h" // lets us doze...
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,11 +13,7 @@ cobbled together quickly in a few hours...
 #include <kazmath.h>		// matrix manipulation routines
 
 #include "support.h"		// support routines
-#include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
-#include "input.h"
-
-#include <unistd.h>		// usleep
 
 #include <ode/ode.h>
 
@@ -123,6 +121,7 @@ struct coll_t loadCollisionObj(const char *objFile)
 
 
 void render();			// func prototype
+void window_size_callback(GLFWwindow* window, int w, int h);
 
 // obj shape textures
 GLuint cubeTex, groundTex,ballTex;
@@ -142,19 +141,37 @@ kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 
 int frame = 0;
 float *pos, *rot;
-bool *keys;
+
+GLFWwindow* window;
+int width=640,height=480; // window width and height
+
+struct timespec ts;  // frame timing
+
 
 int main()
 {
 
+    // create a window and GLES context
+	if (!glfwInit())
+		exit(EXIT_FAILURE);
+
+	window = glfwCreateWindow(width, height, "chipmunk physics test", NULL, NULL);
+	if (!window) {
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+	glfwSetWindowSizeCallback(window,window_size_callback);	
+	glfwMakeContextCurrent(window);
+	
     lightDir.x=.25;
     lightDir.y=.75;
     lightDir.z=-.25;
     kmVec3Normalize(&lightDir,&lightDir);
 
-    // creates a window and GLES context
-    if (makeContext() != 0)
-        exit(-1);
+
+
+
+
 
     // all the shaders have at least texture unit 0 active so
     // activate it now and leave it active
@@ -194,10 +211,9 @@ int main()
     // the way the model is drawn is effected
     kmMat4Identity(&projection);
     kmMat4PerspectiveProjection(&projection, 45,
-                                (float) getDisplayWidth() /
-                                getDisplayHeight(), 0.1, 1000);
+                                (float) width / height, 0.1, 1000);
 
-    glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
+    glViewport(0, 0, width,height);
 
     // these two matrices are pre combined for use with each model render
     // the view and projection
@@ -205,7 +221,7 @@ int main()
     kmMat4Multiply(&vp, &vp, &view);
 
     // initialises glprint's matrix, shader and texture
-    initGlPrint(getDisplayWidth(), getDisplayHeight());
+    initGlPrint(width,height);
 	font1=createFont("resources/textures/font.png",0,256,16,16,16);
     // we don't want to draw the back of triangles
     // the blending is set up for glprint but disabled
@@ -223,8 +239,6 @@ int main()
     // set to true to leave main loop
     bool quit = false;
 
-    // get a pointer to the key down array
-    keys = getKeys();
 
 
     dInitODE2(0);
@@ -276,12 +290,14 @@ int main()
 
     while (!quit) {		// the main loop
 
-        doEvents();		// update mouse and key arrays
+        clock_gettime(0,&ts);  // note the time BEFORE we start to render the current frame
+		glfwPollEvents();
 
-        if (keys[KEY_ESC])
-            quit = true;	// exit if escape key pressed
+        if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
+            quit = true;	// exit if escape key pressed or window closed
+            
 
-        if (keys[KEY_SPACE]) {
+        if (glfwGetKey(window,GLFW_KEY_SPACE)==GLFW_PRESS ) {
             for (int i = 0; i < numObj; i++) {
                 dBodyAddForce(obj[i], dRandReal() * 2.0 - 1.0,
                               1 + dRandReal(), dRandReal() * 2.0 - 1.0);
@@ -316,7 +332,8 @@ int main()
 
         render();		// the render loop
 
-        //     usleep (16000);         // no need to run cpu/gpu full tilt
+        ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
+        thrd_sleep(&ts,NULL); // tinycthread
 
     }
 
@@ -327,7 +344,9 @@ int main()
     dSpaceDestroy(space);
     dWorldDestroy(world);
     dCloseODE();
-    closeContext();		// tidy up
+    
+	glfwDestroyWindow(window);
+	glfwTerminate();
 
     return 0;
 }
@@ -386,6 +405,22 @@ void render()
     glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
-    swapBuffers();
+    glfwSwapBuffers(window);
+
+}
+
+void window_size_callback(GLFWwindow* window, int w, int h)
+{
+	width=w;height=h;
+
+    glViewport(0, 0, width, height);
+
+    // projection matrix, as distance increases
+    // the way the model is drawn is effected
+    kmMat4Identity(&projection);
+    kmMat4PerspectiveProjection(&projection, 45,
+                                (float)width / height, 0.1, 1000);
+
+	reProjectGlPrint(width,height); // updates the projection matrix used by glPrint
 
 }

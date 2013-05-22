@@ -1,31 +1,7 @@
-# only ONE of these three
+# what a relief to be rid of those platform #ifdef's littered all over the place....
 
-# xorg		- for running in normal xwindows when you can't get to your PI :-o
-# rpi		- uses xwindows to provide event handling
-# rpi_noX	- get keyboard events from raw input, xwindows not needed
-
-PLATFORM=xorg
-#PLATFORM=rpi
-#PLATFORM=rpi_noX
-
-####
-
-ifeq ($(PLATFORM),xorg)
-	FLAGS= -g -D__FOR_XORG__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	LIBS=-lX11 -lEGL -lGLESv2 -lm
-endif
-
-ifeq ($(PLATFORM),rpi)
-	FLAGS=-D__FOR_RPi__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
-endif
-
-ifeq ($(PLATFORM),rpi_noX)
-	FLAGS=-D__FOR_RPi_noX__ -c -std=gnu99 -Iinclude -Ikazmath/kazmath
-	FLAGS+= -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads/
-	LIBS=-lX11 -lGLESv2 -lEGL -lm -lbcm_host -L/opt/vc/lib
-endif
+FLAGS= -g -c -std=gnu99 -Iinclude -Ikazmath/kazmath `pkg-config --cflags glfw3`
+LIBS=`pkg-config --libs --static glfw3` 
 
 
 # ok.... find all src/*.c replace all .c with .o then replace src\ with o\ - and breath

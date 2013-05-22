@@ -6,62 +6,30 @@
 
 intended to help learning and tutorial writing
 
-Currently supports XORG (linux) and the raspberry pi (none Xwindows proprietory EGL) on the pi it 
-can be run with or without X
+NB there has been significant changes ! - your old code using this framework will
+no longer compile! (sorry! but its very well worth it)
+See the examples for how to use glfw3 - the changes are minor and you should
+have your old code back up and running in minutes :)
 
-dependencies libpng, libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
+Currently supports any platform the GLFW3 runs on https://github.com/elmindreda/glfw
+
+dependencies GLFW3 libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
-### Raspberry pi specifics
 
-if you have not compiled GLES source code on your pi before you may need to make a file called
-
-/etc/ld.so.conf.d/vc.conf
-
-it should contain just the line
-
-/opt/vc/lib
-
-##### raw mouse, keyboard and joystick on Raspberry pi
-
-When not using xwindows (ie via ssh) input including keyboard is now done entirely via
-the kernel evdev interface.
-
-you need some udev rules (this does open the way for keyloggers for the paranoid!)
-
-make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain the following
-
-	KERNEL=="event*", NAME="input/%k", MODE="0640", GROUP="evdev"
-	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="evdev"
-	KERNEL=="js*", NAME="input/%k", MODE="0640", GROUP="evdev"
-
-you need to add an new group and add your user account to the group (as root)
-
-	groupadd evdev
-	usermod -a -G evdev your_user_name
-
-you'll need to reboot
-
-You can now run your programs from ssh and it will only use the Pi's attached
-usb keyboard rather than being confused with the ssh console
-
-editing files via ssh (sftp enabled editor) and compiling with a ssh console is the recommended
-way of developing with this framework
-
-	
 ### file structure for external libraries
 
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:
 
-	Chipmunk-6.1.1        ode-0.12            gles2framework 
+	Chipmunk-Physics        ode-0.12            gles2framework 
 
 
 ### phystest (ode example)
 
 the rather hacky ODE example is only really for advanced users... compile ode from source 
-(version v0.12) release you can then 
+(version v0.12) release
 
 You need it to use dSingle with trimesh support and you might want other things like custom cylinder
 vs cylinder colliders etc you won't get from the repo version 
@@ -73,10 +41,7 @@ run ./configure --help in the ode directory.
 
 ### chiptest (Chipmonk physics example)
 
-a quick example showing some balls falling on some invisible slopes, niether the sprites or the 
-position of the slopes are scaled depending on the display size, so the sample will look 
-different on for example xorg or the pi (or even on the pi if using hdmi v's composite)
-and is a good example of why you should use scaled sizes!
+a quick example showing some balls falling on some invisible slopes
 
 You can pass parameters to cmake or edit CMakeLists.txt so as to NOT compile the demos, 
 you only need compile a static library
@@ -97,7 +62,7 @@ you only need compile a static library
 |-lib|kazmath compiled as static lib goes here. Other libs may follow.  The framework may become a library|
 |-o|somewhere to put intermediate binary objects|
 |-src|source code for the framework|
-|-obj2opengl|script used to turn wavefront OBJ models into source code also contains script to build GBO objects|
+|-tools|a tool to package up 3d shapes and one to make 2d bitmap fonts|
 |-resources|holds textures, shaders and binary 3d models for the samples|
 |-examples|example code showing use of the framework|
 |Makefile|tells the compiler how to build the examples|
@@ -150,18 +115,6 @@ loads a specified png file returning a GLES texture handle
 
 _____
 
-__int makeContext();__
-
-creates a native window and sets up a GLES context within it
-
-_____
-
-__void closeContext();__
-
-closes GLES context and window
-
-_____
-
 __GLuint create\_shader(const char *filename, GLenum type);__
 
 returns a GLES shader handle from a file you must specify what type of shader it is either 
@@ -198,31 +151,6 @@ you must specify a previously created font structure to print with
 
 _____
 
-__void swapBuffers();__
-
-In order isolate egl and native window handles use this routine instead of eglSwapBuffers
-
-_____
-
-__void doEvents();__
-
-this should be called once a frame to update the key down boolean array and the mouse information
-
-_____
-
-__int* getMouse();__
-
-this returns a pointer to an array of 3 ints the first 2 are the x and y mouse position the 3rd int 
-is a bit field reflecting the state of the mouse buttons
-
-_____
-
-__bool* getKeys();__
-
-this is an array of 256 bools, while a key is held down the coresponding bool is true, key values are defined in keys.h
-
-_____
-
 *** deprecated may be removed in later version ***
 
 __int createObj(struct obj\_t *obj, int numVerts, float verts[], float txVert[], float norms[], char *vertShader, char *fragShader);__
@@ -248,15 +176,6 @@ lighting
 
 _____
 
-__int getDisplayWidth();__ 
-
-__int getDisplayHeight();__
-
-returns full screen width and height, for now when not on Raspberry PI the "screen" is fixed to a 
-640x480 window
-
-_____
-
 __int loadObj(struct obj\_t *obj,const char *objFile, char *vert, char *frag);__
 
 __int loadObjCopyShader(struct obj\_t *obj,const char *objFile, struct obj\_t *sdrobj);__
@@ -276,32 +195,6 @@ when drawing a sprite you specify where you want it (x & y) the size of the spri
 
 _____
 
-__void setMouseRelative(bool mode);__
-
-if mode is true the mouse will report relative position changes only, this is handy for mouse 
-look where you dont want the mouse constrained by the window. By default absolute mouse position 
-is reported
-
-_____
-
-__struct joystick\_t *getJoystick(int j);__
-
-__void updateJoystick(struct joystick\_t *js);__
-
-__void releaseJoystick(struct joystick\_t *js);__
-
-to get a pointer to a joystick call getJoystick with the index of the joystick 0-7
-call this once only
-
-once a frame call updateJoystick you will then have (in the joystick structure)
-
-	js->axis[0..7]		upto 8 axes per joystick (signed short)
-	js->buttons			long - each bit represents a button
-	
-when finished with a joystick you should call releaseJoystick to close its file
-handle and free the structures memory.
-
-_____
 
 
 __void initPointClouds(const char* vertS, const char* fragS, float pntSize);__
@@ -329,4 +222,16 @@ this frees the point cloud structure itself and the associated points data
 
 _____
 
+__void reProjectGlPrint(int w, int h)__
+__void reProjectSprites(int w, int h)__
+
+When glfw calls your window resize callback you should run these functions
+if you are using the apropriate facilities to inform them of the screen
+changes
+___
+
+__void resizePointCloudSprites(float s)__
+
+This allows you to change the size of the point sprite's used - you would
+usually do this in the screen resize callback.
 
