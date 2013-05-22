@@ -1,0 +1,53 @@
+<project name="fontexturer" default="run" basedir=".">
+    <description>
+        ant build/run file
+    </description>
+
+    <!-- set global properties for this build -->
+    <property name="src" location="src"/>
+
+    <target
+        name="clean"
+        description="removes all classes" >
+        <delete>
+            <fileset dir="bin" includes="**/*.class"/>
+        </delete>
+    </target>
+
+    <target 
+        name="compile"
+        description="compile the source " >
+        <javac 
+            srcdir="."
+            destdir="bin"
+            classpath="."
+            includeantruntime="false"
+			debug="on"
+			debuglevel="lines,vars,source"
+        >
+            <src path="${src}"/>  
+            <compilerarg value="-Xlint:all" />
+<!-- lots of deprecated behaviour with raw types - look into repairing later...
+            <compilerarg value="-Werror" />
+-->
+        </javac>
+    </target>
+    
+    <target
+        name="run"
+        depends="compile"
+        description="runs the project compiling if needed" >
+        <java
+            fork="true"
+            classname="com.logiklabs.fontexturer.Fontexturer"
+        >
+            <classpath>
+                <pathelement path="bin"/>
+                <!--
+                <pathelement location="ajarfile.jar"/>
+                -->
+            </classpath>
+        </java>
+    </target>
+    
+</project>
