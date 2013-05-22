@@ -2,13 +2,6 @@
 
 #include "lodepng.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>		// va_lists for glprint
-
-
-#include  <GLES2/gl2.h>
-#include  <EGL/egl.h>
 
 float rand_range(float start,float range) {
     return start + range * ((float)rand() / RAND_MAX) ;

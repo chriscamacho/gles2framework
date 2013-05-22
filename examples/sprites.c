@@ -1,13 +1,15 @@
-#include <GL/glfw3.h>
-#include "tinycthread.h" // lets us doze...
-
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>		// usleep
-
-#include <kazmath.h>		// matrix manipulation routines
-
 #include "support.h"		// support routines
+
+//#include <GL/glfw3.h>
+//#include "tinycthread.h" // lets us doze...
+
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include <unistd.h>		// usleep
+
+//#include <kazmath.h>		// matrix manipulation routines
+
+
 
 /*
  *

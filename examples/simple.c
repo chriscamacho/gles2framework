@@ -5,20 +5,8 @@
 // press Q & W
 // and A & S to rotate the camera and light
 
-#include <GL/glfw3.h>
-#include "tinycthread.h" // lets us doze...
-
 #include "support.h"		// support routines
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-#include <kazmath.h>		// matrix manipulation routines
-
-
-
 
 unsigned int cubeNumVerts = 36;
 

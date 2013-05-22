@@ -1,10 +1,3 @@
-#include <GL/glfw3.h>
-#include "tinycthread.h" // lets us doze...
-
-#include <stdlib.h>
-#include <stdbool.h>
-
-#include <kazmath.h>		// matrix manipulation routines
 
 #include "support.h"		// support routines
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes

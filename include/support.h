@@ -1,11 +1,15 @@
-//#include <linux/types.h>
 
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
+#define GLFW_INCLUDE_ES2
+#include <GL/glfw3.h>
+#include "tinycthread.h" // lets us doze...
+
 #include <kazmath.h>
 
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 
+#include <stdarg.h>		// va_lists for glprint
 
 enum shaderLocationType { shaderAttrib, shaderUniform };
 GLuint getShaderLocation(int type, GLuint prog, const char *name);
