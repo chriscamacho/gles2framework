@@ -438,7 +438,8 @@ int main()
         glfwSwapBuffers(window);
 
         ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
-        thrd_sleep(&ts,NULL); // tinycthread
+        //thrd_sleep(&ts,NULL); // tinycthread
+        usleep(20000); // while I work out why tinycthread that was working isnt.... :/
 
     }
 

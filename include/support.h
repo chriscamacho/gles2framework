@@ -1,10 +1,10 @@
 
 #define GLFW_INCLUDE_ES2
-#include <GL/glfw3.h>
-#include "tinycthread.h" // lets us doze...
+#include <GLFW/glfw3.h>
 
 #include <kazmath.h>
 
+#include "tinycthread.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>

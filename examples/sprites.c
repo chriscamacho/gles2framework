@@ -1,13 +1,5 @@
 #include "support.h"		// support routines
 
-//#include <GL/glfw3.h>
-//#include "tinycthread.h" // lets us doze...
-
-//#include <stdlib.h>
-//#include <stdbool.h>
-//#include <unistd.h>		// usleep
-
-//#include <kazmath.h>		// matrix manipulation routines
 
 
 
@@ -49,7 +41,7 @@ struct cloud_t clouds[max_clouds];
 GLFWwindow* window;
 int width=640,height=480; // window width and height
 
-struct timespec ts;  // frame timing
+struct timespec ts,ts2;  // frame timing
 
 
 int main()
@@ -119,7 +111,8 @@ int main()
 
     while (!quit) {		// the main loop
 
-        clock_gettime(0,&ts);  // note the time BEFORE we start to render the current frame
+        clock_gettime(TIME_UTC,&ts);  // note the time BEFORE we start to render the current frame
+		
 		glfwPollEvents();
 
         if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
@@ -142,9 +135,9 @@ int main()
 
         render();	// the render loop
 
-        ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
-        thrd_sleep(&ts,NULL); // tinycthread
-
+        ts.tv_nsec=+(1000000/50);  // 1000000000 / 50 = 50hz less time to render the frame
+        //thrd_sleep(&ts,NULL); // tinycthread
+		usleep(20000); // while I work out why tinycthread that was working isnt.... :/
     }
 
 	glfwDestroyWindow(window);
