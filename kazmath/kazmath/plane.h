@@ -47,21 +47,26 @@ typedef struct kmPlane {
 extern "C" {
 #endif
 
-typedef enum POINT_CLASSIFICATION {
-	POINT_INFRONT_OF_PLANE = 0,
-	POINT_BEHIND_PLANE,
-	POINT_ON_PLANE,
-} POINT_CLASSIFICATION;
+typedef enum KM_POINT_CLASSIFICATION {
+    POINT_BEHIND_PLANE = -1,
+    POINT_ON_PLANE = 0,
+    POINT_INFRONT_OF_PLANE = 1
+} KM_POINT_CLASSIFICATION;
 
-const kmScalar kmPlaneDot(const kmPlane* pP, const struct kmVec4* pV);
-const kmScalar kmPlaneDotCoord(const kmPlane* pP, const struct kmVec3* pV);
-const kmScalar kmPlaneDotNormal(const kmPlane* pP, const struct kmVec3* pV);
-kmPlane* const kmPlaneFromPointNormal(kmPlane* pOut, const struct kmVec3* pPoint, const struct kmVec3* pNormal);
-kmPlane* const kmPlaneFromPoints(kmPlane* pOut, const struct kmVec3* p1, const struct kmVec3* p2, const struct kmVec3* p3);
-kmVec3*  const kmPlaneIntersectLine(struct kmVec3* pOut, const kmPlane* pP, const struct kmVec3* pV1, const struct kmVec3* pV2);
-kmPlane* const kmPlaneNormalize(kmPlane* pOut, const kmPlane* pP);
-kmPlane* const kmPlaneScale(kmPlane* pOut, const kmPlane* pP, kmScalar s);
-const POINT_CLASSIFICATION kmPlaneClassifyPoint(const kmPlane* pIn, const kmVec3* pP); /** Classifys a point against a plane */
+kmPlane* kmPlaneFill(kmPlane* plane, float a, float b, float c, float d);
+kmScalar kmPlaneDot(const kmPlane* pP, const struct kmVec4* pV);
+kmScalar kmPlaneDotCoord(const kmPlane* pP, const struct kmVec3* pV);
+kmScalar kmPlaneDotNormal(const kmPlane* pP, const struct kmVec3* pV);
+kmPlane* kmPlaneFromNormalAndDistance(kmPlane* plane, const struct kmVec3* normal, const kmScalar dist);
+kmPlane* kmPlaneFromPointAndNormal(kmPlane* pOut, const struct kmVec3* pPoint, const struct kmVec3* pNormal);
+kmPlane* kmPlaneFromPoints(kmPlane* pOut, const struct kmVec3* p1, const struct kmVec3* p2, const struct kmVec3* p3);
+struct kmVec3* kmPlaneIntersectLine(struct kmVec3* pOut, const kmPlane* pP, const struct kmVec3* pV1, const struct kmVec3* pV2);
+kmPlane* kmPlaneNormalize(kmPlane* pOut, const kmPlane* pP);
+kmPlane* kmPlaneScale(kmPlane* pOut, const kmPlane* pP, kmScalar s);
+KM_POINT_CLASSIFICATION kmPlaneClassifyPoint(const kmPlane* pIn, const struct kmVec3* pP); /** Classifys a point against a plane */
+
+kmPlane* kmPlaneExtractFromMat4(kmPlane* pOut, const struct kmMat4* pIn, kmInt row);
+struct kmVec3* kmPlaneGetIntersection(struct kmVec3* pOut, const kmPlane* p1, const kmPlane* p2, const kmPlane* p3);
 
 #ifdef __cplusplus
 }

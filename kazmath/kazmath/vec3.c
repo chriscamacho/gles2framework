@@ -33,7 +33,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utility.h"
 #include "vec4.h"
 #include "mat4.h"
+#include "mat3.h"
 #include "vec3.h"
+#include "plane.h"
+#include "ray3.h"
+
+kmVec3 KM_VEC3_POS_Z = { 0, 0, 1 };
+kmVec3 KM_VEC3_NEG_Z = { 0, 0, -1 };
+kmVec3 KM_VEC3_POS_Y = { 0, 1, 0 };
+kmVec3 KM_VEC3_NEG_Y = { 0, -1, 0 };
+kmVec3 KM_VEC3_NEG_X = { -1, 0, 0 };
+kmVec3 KM_VEC3_POS_X = { 1, 0, 0 };
 
 /**
  * Fill a kmVec3 structure using 3 floating point values
@@ -70,7 +80,10 @@ kmScalar kmVec3LengthSq(const kmVec3* pIn)
   */
 kmVec3* kmVec3Normalize(kmVec3* pOut, const kmVec3* pIn)
 {
-	kmScalar l = 1.0f / kmVec3Length(pIn);
+        if (!pIn->x && !pIn->y && !pIn->z)
+                return kmVec3Assign(pOut, pIn);
+
+        kmScalar l = 1.0f / kmVec3Length(pIn);
 
 	kmVec3 v;
 	v.x = pIn->x * l;
@@ -152,29 +165,46 @@ kmVec3* kmVec3Subtract(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2)
 	return pOut;
 }
 
- /**
-  * Transforms vector (x, y, z, 1) by a given matrix. The result
-  * is stored in pOut. pOut is returned.
-  */
+kmVec3* kmVec3MultiplyMat3(kmVec3* pOut, const kmVec3* pV, const kmMat3* pM) {
+    kmVec3 v;
+
+    v.x = pV->x * pM->mat[0] + pV->y * pM->mat[3] + pV->z * pM->mat[6];
+    v.y = pV->x * pM->mat[1] + pV->y * pM->mat[4] + pV->z * pM->mat[7];
+    v.z = pV->x * pM->mat[2] + pV->y * pM->mat[5] + pV->z * pM->mat[8];
+
+    pOut->x = v.x;
+    pOut->y = v.y;
+    pOut->z = v.z;
+
+    return pOut;
+}
+
+/**
+ * Multiplies vector (x, y, z, 1) by a given matrix. The result
+ * is stored in pOut. pOut is returned.
+ */
+
+kmVec3* kmVec3MultiplyMat4(kmVec3* pOut, const kmVec3* pV, const kmMat4* pM) {
+    kmVec3 v;
+
+    v.x = pV->x * pM->mat[0] + pV->y * pM->mat[4] + pV->z * pM->mat[8] + pM->mat[12];
+    v.y = pV->x * pM->mat[1] + pV->y * pM->mat[5] + pV->z * pM->mat[9] + pM->mat[13];
+    v.z = pV->x * pM->mat[2] + pV->y * pM->mat[6] + pV->z * pM->mat[10] + pM->mat[14];
+
+    pOut->x = v.x;
+    pOut->y = v.y;
+    pOut->z = v.z;
+
+    return pOut;
+}
+
+
 kmVec3* kmVec3Transform(kmVec3* pOut, const kmVec3* pV, const kmMat4* pM)
 {
 	/*
-		a = (Vx, Vy, Vz, 1)
-		b = (a×M)T
-		Out = (bx, by, bz)
+        @deprecated Should intead use kmVec3MultiplyMat4
 	*/
-
-	kmVec3 v;
-
-	v.x = pV->x * pM->mat[0] + pV->y * pM->mat[4] + pV->z * pM->mat[8] + pM->mat[12];
-	v.y = pV->x * pM->mat[1] + pV->y * pM->mat[5] + pV->z * pM->mat[9] + pM->mat[13];
-	v.z = pV->x * pM->mat[2] + pV->y * pM->mat[6] + pV->z * pM->mat[10] + pM->mat[14];
-
-	pOut->x = v.x;
-	pOut->y = v.y;
-	pOut->z = v.z;
-
-	return pOut;
+    return kmVec3MultiplyMat4(pOut, pV, pM);
 }
 
 kmVec3* kmVec3InverseTransform(kmVec3* pOut, const kmVec3* pVect, const kmMat4* pM)
@@ -307,4 +337,83 @@ kmVec3* kmVec3Zero(kmVec3* pOut) {
 	pOut->z = 0.0f;
 
 	return pOut;
+}
+
+/**
+ * Get the rotations that would make a (0,0,1) direction vector point in the same direction as this direction vector.
+ * Useful for orienting vector towards a point.
+ *
+ * Returns a rotation vector containing the X (pitch) and Y (raw) rotations (in degrees) that when applied to a
+ * +Z (e.g. 0, 0, 1) direction vector would make it point in the same direction as this vector. The Z (roll) rotation
+ * is always 0, since two Euler rotations are sufficient to point in any given direction.
+ *
+ * Code ported from Irrlicht: http://irrlicht.sourceforge.net/
+ */
+kmVec3* kmVec3GetHorizontalAngle(kmVec3* pOut, const kmVec3 *pIn) {
+   const kmScalar z1 = sqrt(pIn->x * pIn->x + pIn->z * pIn->z);
+
+   pOut->y = kmRadiansToDegrees(atan2(pIn->x, pIn->z));
+   if (pOut->y < 0)
+      pOut->y += 360;
+   if (pOut->y >= 360)
+      pOut->y -= 360;
+
+   pOut->x = kmRadiansToDegrees(atan2(z1, pIn->y)) - 90.0;
+   if (pOut->x < 0)
+      pOut->x += 360;
+   if (pOut->x >= 360)
+      pOut->x -= 360;
+
+   return pOut;
+}
+
+/**
+ * Builds a direction vector from input vector.
+ * Input vector is assumed to be rotation vector composed from 3 Euler angle rotations, in degrees.
+ * The forwards vector will be rotated by the input vector
+ *
+ * Code ported from Irrlicht: http://irrlicht.sourceforge.net/
+ */
+kmVec3* kmVec3RotationToDirection(kmVec3* pOut, const kmVec3* pIn, const kmVec3* forwards)
+{
+   const kmScalar xr = kmDegreesToRadians(pIn->x);
+   const kmScalar yr = kmDegreesToRadians(pIn->y);
+   const kmScalar zr = kmDegreesToRadians(pIn->z);
+   const kmScalar cr = cos(xr), sr = sin(xr);
+   const kmScalar cp = cos(yr), sp = sin(yr);
+   const kmScalar cy = cos(zr), sy = sin(zr);
+
+   const kmScalar srsp = sr*sp;
+   const kmScalar crsp = cr*sp;
+
+   const kmScalar pseudoMatrix[] = {
+      (cp*cy), (cp*sy), (-sp),
+      (srsp*cy-cr*sy), (srsp*sy+cr*cy), (sr*cp),
+      (crsp*cy+sr*sy), (crsp*sy-sr*cy), (cr*cp)
+   };
+
+   pOut->x = forwards->x * pseudoMatrix[0] +
+             forwards->y * pseudoMatrix[3] +
+             forwards->z * pseudoMatrix[6];
+
+   pOut->y = forwards->x * pseudoMatrix[1] +
+             forwards->y * pseudoMatrix[4] +
+             forwards->z * pseudoMatrix[7];
+
+   pOut->z = forwards->x * pseudoMatrix[2] +
+             forwards->y * pseudoMatrix[5] +
+             forwards->z * pseudoMatrix[8];
+
+   return pOut;
+}
+
+kmVec3* kmVec3ProjectOnToPlane(kmVec3* pOut, const kmVec3* point, const struct kmPlane* plane) {
+    kmRay3 ray;
+    kmVec3Assign(&ray.start, point);
+    ray.dir.x = -plane->a;
+    ray.dir.y = -plane->b;
+    ray.dir.z = -plane->c;
+
+    kmRay3IntersectPlane(pOut, &ray, plane);
+    return pOut;
 }

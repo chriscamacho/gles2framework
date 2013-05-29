@@ -27,12 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VEC3_H_INCLUDED
 
 #include <assert.h>
-
-#ifndef kmScalar
-#define kmScalar float
-#endif
+#include "utility.h"
 
 struct kmMat4;
+struct kmMat3;
+struct kmPlane;
 
 typedef struct kmVec3 {
 	kmScalar x;
@@ -52,15 +51,31 @@ kmVec3* kmVec3Cross(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Ret
 kmScalar kmVec3Dot(const kmVec3* pV1, const kmVec3* pV2); /** Returns the cosine of the angle between 2 vectors */
 kmVec3* kmVec3Add(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Adds 2 vectors and returns the result */
 kmVec3* kmVec3Subtract(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Subtracts 2 vectors and returns the result */
+
+kmVec3* kmVec3MultiplyMat3(kmVec3 *pOut, const kmVec3 *pV, const struct kmMat3* pM);
+kmVec3* kmVec3MultiplyMat4(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM);
+
 kmVec3* kmVec3Transform(kmVec3* pOut, const kmVec3* pV1, const struct kmMat4* pM); /** Transforms a vector (assuming w=1) by a given matrix */
 kmVec3* kmVec3TransformNormal(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM);/**Transforms a 3D normal by a given matrix */
 kmVec3* kmVec3TransformCoord(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM); /**Transforms a 3D vector by a given matrix, projecting the result back into w = 1. */
+
 kmVec3* kmVec3Scale(kmVec3* pOut, const kmVec3* pIn, const kmScalar s); /** Scales a vector to length s */
 int 	kmVec3AreEqual(const kmVec3* p1, const kmVec3* p2);
 kmVec3* kmVec3InverseTransform(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM);
 kmVec3* kmVec3InverseTransformNormal(kmVec3* pOut, const kmVec3* pVect, const struct kmMat4* pM);
 kmVec3* kmVec3Assign(kmVec3* pOut, const kmVec3* pIn);
 kmVec3* kmVec3Zero(kmVec3* pOut);
+kmVec3* kmVec3GetHorizontalAngle(kmVec3* pOut, const kmVec3 *pIn); /** Get the rotations that would make a (0,0,1) direction vector point in the same direction as this direction vector. */
+kmVec3* kmVec3RotationToDirection(kmVec3* pOut, const kmVec3* pIn, const kmVec3* forwards); /** Builds a direction vector from input vector. */
+
+kmVec3* kmVec3ProjectOnToPlane(kmVec3* pOut, const kmVec3* point, const struct kmPlane* plane);
+
+extern kmVec3 KM_VEC3_NEG_Z;
+extern kmVec3 KM_VEC3_POS_Z;
+extern kmVec3 KM_VEC3_POS_Y;
+extern kmVec3 KM_VEC3_NEG_Y;
+extern kmVec3 KM_VEC3_NEG_X;
+extern kmVec3 KM_VEC3_POS_X;
 
 #ifdef __cplusplus
 }

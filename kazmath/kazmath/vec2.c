@@ -49,6 +49,9 @@ kmScalar kmVec2LengthSq(const kmVec2* pIn)
 
 kmVec2* kmVec2Normalize(kmVec2* pOut, const kmVec2* pIn)
 {
+        if (!pIn->x && !pIn->y)
+                return kmVec2Assign(pOut, pIn);
+
 	kmScalar l = 1.0f / kmVec2Length(pIn);
 
 	kmVec2 v;
@@ -72,6 +75,11 @@ kmVec2* kmVec2Add(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2)
 kmScalar kmVec2Dot(const kmVec2* pV1, const kmVec2* pV2)
 {
     return pV1->x * pV2->x + pV1->y * pV2->y;
+}
+
+kmScalar kmVec2Cross(const kmVec2* pV1, const kmVec2* pV2) 
+{
+    return pV1->x * pV2->y - pV1->y * pV2->x;
 }
 
 kmVec2* kmVec2Subtract(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2)
@@ -115,4 +123,91 @@ int kmVec2AreEqual(const kmVec2* p1, const kmVec2* p2)
 				(p1->x < p2->x + kmEpsilon && p1->x > p2->x - kmEpsilon) &&
 				(p1->y < p2->y + kmEpsilon && p1->y > p2->y - kmEpsilon)
 			);
+}
+
+/**
+ * Assigns pIn to pOut. Returns pOut. If pIn and pOut are the same
+ * then nothing happens but pOut is still returned
+ */
+kmVec2* kmVec2Assign(kmVec2* pOut, const kmVec2* pIn) {
+	if (pOut == pIn) {
+		return pOut;
+	}
+
+	pOut->x = pIn->x;
+	pOut->y = pIn->y;
+
+	return pOut;
+}
+
+/**
+ * Rotates the point anticlockwise around a center
+ * by an amount of degrees.
+ *
+ * Code ported from Irrlicht: http://irrlicht.sourceforge.net/
+ */
+kmVec2* kmVec2RotateBy(kmVec2* pOut, const kmVec2* pIn,
+      const kmScalar degrees, const kmVec2* center)
+{
+   kmScalar x, y;
+   const kmScalar radians = kmDegreesToRadians(degrees);
+   const kmScalar cs = cos(radians), sn = sin(radians);
+
+   pOut->x = pIn->x - center->x;
+   pOut->y = pIn->y - center->y;
+
+   x = pOut->x * cs - pOut->y * sn;
+   y = pOut->x * sn + pOut->y * cs;
+
+   pOut->x = x + center->x;
+   pOut->y = y + center->y;
+
+   return pOut;
+}
+
+/**
+ * 	Returns the angle in degrees between the two vectors
+ */
+kmScalar kmVec2DegreesBetween(const kmVec2* v1, const kmVec2* v2) {
+	if(kmVec2AreEqual(v1, v2)) {
+		return 0.0;
+	}
+	
+	kmVec2 t1, t2;
+	kmVec2Normalize(&t1, v1);
+	kmVec2Normalize(&t2, v2);
+	
+	kmScalar cross = kmVec2Cross(&t1, &t2);
+	kmScalar dot = kmVec2Dot(&t1, &t2);
+
+	/*
+	 * acos is only defined for -1 to 1. Outside the range we 
+	 * get NaN even if that's just because of a floating point error
+	 * so we clamp to the -1 - 1 range
+	 */
+
+	if(dot > 1.0) dot = 1.0;
+	if(dot < -1.0) dot = -1.0;
+
+	return kmRadiansToDegrees(atan2(cross, dot));
+}
+
+/**
+ * Returns the distance between the two points
+ */
+kmScalar kmVec2DistanceBetween(const kmVec2* v1, const kmVec2* v2) {
+	kmVec2 diff;
+	kmVec2Subtract(&diff, v2, v1);
+	return fabs(kmVec2Length(&diff));
+}
+/**
+ * Returns the point mid-way between two others
+ */
+kmVec2* kmVec2MidPointBetween(kmVec2* pOut, const kmVec2* v1, const kmVec2* v2) {
+	kmVec2 diff;
+	kmVec2Subtract(&diff, v2, v1);
+	kmVec2Normalize(&diff, &diff);
+	kmVec2Scale(&diff, &diff, kmVec2DistanceBetween(v1, v2) * 0.5);
+	kmVec2Add(pOut, v1, &diff);
+	return pOut;
 }

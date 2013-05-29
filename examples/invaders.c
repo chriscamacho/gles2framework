@@ -15,7 +15,7 @@ struct obj_t cubeObj, shipObj, alienObj, shotObj;
 font_t *font1,*font2;
 
 // matrices and combo matrices
-kmMat4 model, view, projection, mvp, vp, mv;
+kmMat4 model,rot, view, projection, mvp, vp, mv;
 
 int frame = 0;
 float lfps = 0;
@@ -268,14 +268,15 @@ int main()
         frame++;
         rad = frame * (0.0175f * 2);
 
-        kmMat4Identity(&model);
+        //kmMat4Identity(&model);
         kmMat4Translation(&model, playerPos.x, playerPos.y, playerPos.z);
-
         playerCroll +=
             (PIDcal(playerRoll, playerCroll, &playerPre_error, &playerIntegral)
              / 2);
-        kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll * 3);	//
-
+//        kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll * 3);	//
+		kmMat4RotationYawPitchRoll(&rot,0,3.1416,-playerCroll*3);
+        kmMat4Multiply(&model, &model, &rot);
+        
         kmMat4Assign(&mvp, &vp);
         kmMat4Multiply(&mvp, &mvp, &model);
 
@@ -309,13 +310,14 @@ int main()
                 if (playerShots[n].pos.z < -10)
                     playerShots[n].alive = false;
 
-                kmMat4Identity(&model);
+                //kmMat4Identity(&model);
                 kmMat4Translation(&model, playerShots[n].pos.x,
                                   playerShots[n].pos.y,
                                   playerShots[n].pos.z);
-                kmMat4RotationPitchYawRoll(&model, rad * 4, 0,
-                                           -rad * 4);
-
+                //kmMat4RotationPitchYawRoll(&model, rad * 4, 0,
+                //                           -rad * 4);
+				kmMat4RotationYawPitchRoll(&rot,rad*4,0,-rad*4);
+				kmMat4Multiply(&model,&model,&rot);
                 kmMat4Assign(&mvp, &vp);
                 kmMat4Multiply(&mvp, &mvp, &model);
 
@@ -349,10 +351,12 @@ int main()
         for (int n = 0; n < MAX_ALIENS; n++) {
             if (aliens[n].alive == true) {
 
-                kmMat4Identity(&model);
+                //kmMat4Identity(&model);
                 kmMat4Translation(&model, aliens[n].pos.x,
                                   aliens[n].pos.y, aliens[n].pos.z);
-                kmMat4RotationPitchYawRoll(&model, -.4, 0, 0);
+                //kmMat4RotationPitchYawRoll(&model, -.4, 0, 0);
+				kmMat4RotationYawPitchRoll(&rot,.2,0,0);
+				kmMat4Multiply(&model,&model,&rot);
 
                 kmMat4Assign(&mvp, &vp);
                 kmMat4Multiply(&mvp, &mvp, &model);

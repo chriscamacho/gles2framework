@@ -29,8 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vec3.h"
 #include "vec4.h"
 #include "plane.h"
+#include "mat4.h"
 
-const kmScalar kmPlaneDot(const kmPlane* pP, const kmVec4* pV)
+kmScalar kmPlaneDot(const kmPlane* pP, const kmVec4* pV)
 {
     //a*x + b*y + c*z + d*w
 
@@ -40,21 +41,30 @@ const kmScalar kmPlaneDot(const kmPlane* pP, const kmVec4* pV)
 	    pP->d * pV->w);
 }
 
-const kmScalar kmPlaneDotCoord(const kmPlane* pP, const kmVec3* pV)
+kmScalar kmPlaneDotCoord(const kmPlane* pP, const kmVec3* pV)
 {
     return (pP->a * pV->x +
 	    pP->b * pV->y +
 	    pP->c * pV->z + pP->d);
 }
 
-const kmScalar kmPlaneDotNormal(const kmPlane* pP, const kmVec3* pV)
+kmScalar kmPlaneDotNormal(const kmPlane* pP, const kmVec3* pV)
 {
     return (pP->a * pV->x +
 	    pP->b * pV->y +
 	    pP->c * pV->z);
 }
 
-kmPlane* const kmPlaneFromPointNormal(kmPlane* pOut, const kmVec3* pPoint, const kmVec3* pNormal)
+kmPlane* kmPlaneFromNormalAndDistance(kmPlane* plane, const struct kmVec3* normal, const kmScalar dist) {
+    plane->a = normal->x;
+    plane->b = normal->y;
+    plane->c = normal->z;
+    plane->d = dist;
+
+    return plane;
+}
+
+kmPlane* kmPlaneFromPointAndNormal(kmPlane* pOut, const kmVec3* pPoint, const kmVec3* pNormal)
 {
     /*
 	Planea = Nx
@@ -76,7 +86,7 @@ kmPlane* const kmPlaneFromPointNormal(kmPlane* pOut, const kmVec3* pPoint, const
  * Creates a plane from 3 points. The result is stored in pOut.
  * pOut is returned.
  */
-kmPlane* const kmPlaneFromPoints(kmPlane* pOut, const kmVec3* p1, const kmVec3* p2, const kmVec3* p3)
+kmPlane* kmPlaneFromPoints(kmPlane* pOut, const kmVec3* p1, const kmVec3* p2, const kmVec3* p3)
 {
     /*
     v = (B − A) × (C − A)
@@ -102,36 +112,51 @@ kmPlane* const kmPlaneFromPoints(kmPlane* pOut, const kmVec3* p1, const kmVec3* 
     return pOut;
 }
 
-kmVec3* const kmPlaneIntersectLine(kmVec3* pOut, const kmPlane* pP, const kmVec3* pV1, const kmVec3* pV2)
+// Added by tlensing (http://icedcoffee-framework.org)
+kmVec3* kmPlaneIntersectLine(kmVec3* pOut, const kmPlane* pP, const kmVec3* pV1, const kmVec3* pV2)
 {
     /*
-	    n = (Planea, Planeb, Planec)
-	    d = V − U
-	    Out = U − d⋅(Pd + n⋅U)⁄(d⋅n) [iff d⋅n ≠ 0]
-    */
-    kmVec3 d;
-    assert(0 && "Not implemented");
-
-
-    kmVec3Subtract(&d, pV2, pV1); //Get the direction vector
-
-
-    //TODO: Continue here!
-    /*if (fabs(kmVec3Dot(&pP->m_N, &d)) > kmEpsilon)
-    {
-	    //If we get here then the plane and line are parallel (i.e. no intersection)
-	    pOut = nullptr; //Set to nullptr
-
-	    return pOut;
-    } */
-
-    return NULL;
+     n = (Planea, Planeb, Planec)
+     d = V − U
+     Out = U − d⋅(Pd + n⋅U)⁄(d⋅n) [iff d⋅n ≠ 0]
+     */
+    kmVec3 d; // direction from V1 to V2
+    kmVec3Subtract(&d, pV2, pV1); // Get the direction vector
+    
+    kmVec3 n; // plane normal
+    n.x = pP->a;
+    n.y = pP->b;
+    n.z = pP->c;
+    kmVec3Normalize(&n, &n);
+    
+    kmScalar nt = -(n.x * pV1->x + n.y * pV1->y + n.z * pV1->z + pP->d);
+    kmScalar dt = (n.x * d.x + n.y * d.y + n.z * d.z);
+    
+    if (fabs(dt) < kmEpsilon) {
+        pOut = NULL;
+        return pOut; // line parallel or contained
+    }
+    
+    kmScalar t = nt/dt;
+    pOut->x = pV1->x + d.x * t;
+    pOut->y = pV1->y + d.y * t;
+    pOut->z = pV1->z + d.z * t;
+    
+    return pOut;
 }
 
-kmPlane* const kmPlaneNormalize(kmPlane* pOut, const kmPlane* pP)
+kmPlane* kmPlaneNormalize(kmPlane* pOut, const kmPlane* pP)
 {
 	kmVec3 n;
-    kmScalar l = 0;
+        kmScalar l = 0;
+
+        if (!pP->a && !pP->b && !pP->c) {
+                pOut->a = pP->a;
+                pOut->b = pP->b;
+                pOut->c = pP->c;
+                pOut->d = pP->d;
+                return pOut;
+        }
 
 	n.x = pP->a;
 	n.y = pP->b;
@@ -149,7 +174,7 @@ kmPlane* const kmPlaneNormalize(kmPlane* pOut, const kmPlane* pP)
 	return pOut;
 }
 
-kmPlane* const kmPlaneScale(kmPlane* pOut, const kmPlane* pP, kmScalar s)
+kmPlane* kmPlaneScale(kmPlane* pOut, const kmPlane* pP, kmScalar s)
 {
 	assert(0 && "Not implemented");
     return NULL;
@@ -159,17 +184,71 @@ kmPlane* const kmPlaneScale(kmPlane* pOut, const kmPlane* pP, kmScalar s)
  * Returns POINT_INFRONT_OF_PLANE if pP is infront of pIn. Returns
  * POINT_BEHIND_PLANE if it is behind. Returns POINT_ON_PLANE otherwise
  */
-const POINT_CLASSIFICATION kmPlaneClassifyPoint(const kmPlane* pIn, const kmVec3* pP)
+KM_POINT_CLASSIFICATION kmPlaneClassifyPoint(const kmPlane* pIn, const kmVec3* pP)
 {
    // This function will determine if a point is on, in front of, or behind
    // the plane.  First we store the dot product of the plane and the point.
-   float distance = pIn->a * pP->x + pIn->b * pP->y + pIn->c * pP->z + pIn->d;
+   kmScalar distance = pIn->a * pP->x + pIn->b * pP->y + pIn->c * pP->z + pIn->d;
 
    // Simply put if the dot product is greater than 0 then it is infront of it.
    // If it is less than 0 then it is behind it.  And if it is 0 then it is on it.
-   if(distance > 0.001) return POINT_INFRONT_OF_PLANE;
-   if(distance < -0.001) return POINT_BEHIND_PLANE;
+   if(distance > kmEpsilon) return POINT_INFRONT_OF_PLANE;
+   if(distance < -kmEpsilon) return POINT_BEHIND_PLANE;
 
    return POINT_ON_PLANE;
 }
 
+kmPlane* kmPlaneExtractFromMat4(kmPlane* pOut, const struct kmMat4* pIn, kmInt row) {
+    int scale = (row < 0) ? -1 : 1;
+	row = abs(row) - 1;
+	
+	pOut->a = pIn->mat[3] + scale * pIn->mat[row];
+	pOut->b = pIn->mat[7] + scale * pIn->mat[row + 4];
+	pOut->c = pIn->mat[11] + scale * pIn->mat[row + 8];
+	pOut->d = pIn->mat[15] + scale * pIn->mat[row + 12];
+	
+	return kmPlaneNormalize(pOut, pOut);
+}
+
+kmVec3* kmPlaneGetIntersection(kmVec3* pOut, const kmPlane* p1, const kmPlane* p2, const kmPlane* p3) {
+    kmVec3 n1, n2, n3, cross;
+    kmVec3 r1, r2, r3;
+    double denom = 0;
+    
+    kmVec3Fill(&n1, p1->a, p1->b, p1->c);
+    kmVec3Fill(&n2, p2->a, p2->b, p2->c);
+    kmVec3Fill(&n3, p3->a, p3->b, p3->c);
+    
+    kmVec3Cross(&cross, &n2, &n3);
+
+    denom = kmVec3Dot(&n1, &cross);
+
+    if (kmAlmostEqual(denom, 0.0)) {
+        return NULL;
+    }
+
+    kmVec3Cross(&r1, &n2, &n3);
+    kmVec3Cross(&r2, &n3, &n1);
+    kmVec3Cross(&r3, &n1, &n2);
+
+    kmVec3Scale(&r1, &r1, -p1->d);
+    kmVec3Scale(&r2, &r2, p2->d);
+    kmVec3Scale(&r3, &r3, p3->d);
+
+    kmVec3Subtract(pOut, &r1, &r2);
+    kmVec3Subtract(pOut, pOut, &r3);
+    kmVec3Scale(pOut, pOut, 1.0 / denom);
+
+    //p = -d1 * ( n2.Cross ( n3 ) ) – d2 * ( n3.Cross ( n1 ) ) – d3 * ( n1.Cross ( n2 ) ) / denom;
+
+    return pOut;
+}
+
+kmPlane* kmPlaneFill(kmPlane* plane, kmScalar a, kmScalar b, kmScalar c, kmScalar d) {
+    plane->a = a;
+    plane->b = b;
+    plane->c = c;
+    plane->d = d;
+
+    return plane;
+}

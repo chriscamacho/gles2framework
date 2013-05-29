@@ -26,11 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VEC2_H_INCLUDED
 #define VEC2_H_INCLUDED
 
-struct kmMat3;
+#include "utility.h"
 
-#ifndef kmScalar
-#define kmScalar float
-#endif
+struct kmMat3;
 
 #pragma pack(push)  /* push current alignment to stack */
 #pragma pack(1)     /* set alignment to 1 byte boundary */
@@ -44,17 +42,24 @@ typedef struct kmVec2 {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 kmVec2* kmVec2Fill(kmVec2* pOut, kmScalar x, kmScalar y);
 kmScalar kmVec2Length(const kmVec2* pIn); ///< Returns the length of the vector
 kmScalar kmVec2LengthSq(const kmVec2* pIn); ///< Returns the square of the length of the vector
 kmVec2* kmVec2Normalize(kmVec2* pOut, const kmVec2* pIn); ///< Returns the vector passed in set to unit length
 kmVec2* kmVec2Add(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2); ///< Adds 2 vectors and returns the result
 kmScalar kmVec2Dot(const kmVec2* pV1, const kmVec2* pV2); /** Returns the Dot product which is the cosine of the angle between the two vectors multiplied by their lengths */
+kmScalar kmVec2Cross(const kmVec2* pV1, const kmVec2* pV2);
 kmVec2* kmVec2Subtract(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2); ///< Subtracts 2 vectors and returns the result
 kmVec2* kmVec2Transform(kmVec2* pOut, const kmVec2* pV1, const struct kmMat3* pM); /** Transform the Vector */
 kmVec2* kmVec2TransformCoord(kmVec2* pOut, const kmVec2* pV, const struct kmMat3* pM); ///<Transforms a 2D vector by a given matrix, projecting the result back into w = 1.
 kmVec2* kmVec2Scale(kmVec2* pOut, const kmVec2* pIn, const kmScalar s); ///< Scales a vector to length s
 int	kmVec2AreEqual(const kmVec2* p1, const kmVec2* p2); ///< Returns 1 if both vectors are equal
+kmVec2* kmVec2Assign(kmVec2* pOut, const kmVec2* pIn);
+kmVec2* kmVec2RotateBy(kmVec2* pOut, const kmVec2* pIn, const kmScalar degrees, const kmVec2* center); ///<Rotates the point anticlockwise around a center by an amount of degrees.
+kmScalar kmVec2DegreesBetween(const kmVec2* v1, const kmVec2* v2);
+kmScalar kmVec2DistanceBetween(const kmVec2* v1, const kmVec2* v2);
+kmVec2* kmVec2MidPointBetween(kmVec2* pOut, const kmVec2* v1, const kmVec2* v2);
 
 #ifdef __cplusplus
 }

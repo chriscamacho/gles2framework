@@ -29,15 +29,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 
 #ifndef kmScalar
+#ifdef USE_DOUBLE_PRECISION
+#define kmScalar double
+#else
 #define kmScalar float
+#endif
+
 #endif
 
 #ifndef kmBool
 #define kmBool unsigned char
 #endif
 
+#ifndef kmUchar
+#define kmUchar unsigned char
+#endif
+
 #ifndef kmEnum
 #define kmEnum unsigned int
+#endif
+
+#ifndef kmUint
+#define kmUint unsigned int
+#endif
+
+#ifndef kmInt
+#define kmInt int
 #endif
 
 #ifndef KM_FALSE
@@ -51,9 +68,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define kmPI 3.141592f
 #define kmPIOver180 0.017453f //  PI / 180
 #define kmPIUnder180 57.295779f // 180 / PI
-#define kmEpsilon 1.0 / 64.0
+#define kmEpsilon 0.0001
 
-
+#define KM_CONTAINS_NONE 0
+#define KM_CONTAINS_PARTIAL 1
+#define KM_CONTAINS_ALL 2
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +85,8 @@ extern kmScalar kmRadiansToDegrees(kmScalar radians);
 extern kmScalar min(kmScalar lhs, kmScalar rhs);
 extern kmScalar max(kmScalar lhs, kmScalar rhs);
 extern kmBool kmAlmostEqual(kmScalar lhs, kmScalar rhs);
+
+extern kmScalar kmClamp(kmScalar x, kmScalar min, kmScalar max);
 
 #ifdef __cplusplus
 }

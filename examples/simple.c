@@ -105,7 +105,7 @@ GLuint cubeTex,ballTex;
 struct obj_t cubeObj,ballObj;
 
 // matrices and combo matrices
-kmMat4 model, view, projection, mvp, vp, mv;
+kmMat4 rot,model, view, projection, mvp, vp, mv;
 
 int frame = 0;
 kmVec3 lightDir, viewDir; // vectors for shader lighting
@@ -268,10 +268,10 @@ void render()
     // as translation and rotation use different parts of the matrix
     // we can do both to the same matrix without having to multiply
     // (combine) two seperate matrices
-    kmMat4Identity(&model);
+//    kmMat4Identity(&model);
     kmMat4Translation(&model, 1, 0, 0);
-    kmMat4RotationPitchYawRoll(&model, rad, rad * 1.5, rad * 2);
-
+    kmMat4RotationYawPitchRoll(&rot, rad, rad * 1.5, rad * 2);
+	kmMat4Multiply(&model,&model,&rot);
     // copy the combined view/projection matrix to the mvp matrix
     // to "reset" it
     // and then combine with the model matrix
@@ -287,9 +287,10 @@ void render()
 
 //	----
 
-    kmMat4Identity(&model);
+//    kmMat4Identity(&model);
     kmMat4Translation(&model, -1, 0, 0);
-    kmMat4RotationPitchYawRoll(&model, 0 , -rad, 0);
+    kmMat4RotationYawPitchRoll(&rot, 0 , -rad, 0);
+	kmMat4Multiply(&model,&model,&rot);
 
     kmMat4Assign(&mvp, &vp);
     kmMat4Multiply(&mvp, &mvp, &model);	// model, view, projection combined matrix

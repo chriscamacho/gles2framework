@@ -43,9 +43,9 @@ typedef struct kmQuaternion {
 	kmScalar w;
 } kmQuaternion;
 
-kmQuaternion* const kmQuaternionConjugate(kmQuaternion* pOut, const kmQuaternion* pIn); ///< Returns pOut, sets pOut to the conjugate of pIn
-
-const kmScalar 	kmQuaternionDot(const kmQuaternion* q1, const kmQuaternion* q2); ///< Returns the dot product of the 2 quaternions
+int kmQuaternionAreEqual(const kmQuaternion* p1, const kmQuaternion* p2);
+kmQuaternion* kmQuaternionFill(kmQuaternion* pOut, kmScalar x, kmScalar y, kmScalar z, kmScalar w);
+kmScalar 	kmQuaternionDot(const kmQuaternion* q1, const kmQuaternion* q2); ///< Returns the dot product of the 2 quaternions
 
 kmQuaternion* kmQuaternionExp(kmQuaternion* pOut, const kmQuaternion* pIn); ///< Returns the exponential of the quaternion
 
@@ -55,8 +55,7 @@ kmQuaternion* kmQuaternionIdentity(kmQuaternion* pOut);
 
 ///< Returns the inverse of the passed Quaternion
 
-kmQuaternion* kmQuaternionInverse(kmQuaternion* pOut,
-											const kmQuaternion* pIn);
+kmQuaternion* kmQuaternionInverse(kmQuaternion* pOut, const kmQuaternion* pIn);
 
 ///< Returns true if the quaternion is an identity quaternion
 
@@ -84,7 +83,7 @@ kmQuaternion* kmQuaternionNormalize(kmQuaternion* pOut, const kmQuaternion* pIn)
 
 ///< Rotates a quaternion around an axis
 
-kmQuaternion* kmQuaternionRotationAxis(kmQuaternion* pOut, const struct kmVec3* pV, kmScalar angle);
+kmQuaternion* kmQuaternionRotationAxisAngle(kmQuaternion* pOut, const struct kmVec3* pV, kmScalar angle);
 
 ///< Creates a quaternion from a rotation matrix
 
@@ -92,7 +91,7 @@ kmQuaternion* kmQuaternionRotationMatrix(kmQuaternion* pOut, const struct kmMat3
 
 ///< Create a quaternion from yaw, pitch and roll
 
-kmQuaternion* kmQuaternionRotationYawPitchRoll(kmQuaternion* pOut, kmScalar yaw, kmScalar pitch, kmScalar roll);
+kmQuaternion* kmQuaternionRotationPitchYawRoll(kmQuaternion* pOut, kmScalar pitch, kmScalar yaw, kmScalar roll);
 ///< Interpolate between 2 quaternions
 kmQuaternion* kmQuaternionSlerp(kmQuaternion* pOut, const kmQuaternion* q1, const kmQuaternion* q2, kmScalar t);
 
@@ -103,8 +102,19 @@ void kmQuaternionToAxisAngle(const kmQuaternion* pIn, struct kmVec3* pVector, km
 kmQuaternion* kmQuaternionScale(kmQuaternion* pOut, const kmQuaternion* pIn, kmScalar s);
 kmQuaternion* kmQuaternionAssign(kmQuaternion* pOut, const kmQuaternion* pIn);
 kmQuaternion* kmQuaternionAdd(kmQuaternion* pOut, const kmQuaternion* pQ1, const kmQuaternion* pQ2);
+kmQuaternion* kmQuaternionSubtract(kmQuaternion* pOut, const kmQuaternion* pQ1, const kmQuaternion* pQ2);
+
 kmQuaternion* kmQuaternionRotationBetweenVec3(kmQuaternion* pOut, const struct kmVec3* vec1, const struct kmVec3* vec2, const struct kmVec3* fallback);
 struct kmVec3* kmQuaternionMultiplyVec3(struct kmVec3* pOut, const kmQuaternion* q, const struct kmVec3* v);
+
+kmVec3* kmQuaternionGetUpVec3(kmVec3* pOut, const kmQuaternion* pIn);
+kmVec3* kmQuaternionGetRightVec3(kmVec3* pOut, const kmQuaternion* pIn);
+kmVec3* kmQuaternionGetForwardVec3RH(kmVec3* pOut, const kmQuaternion* pIn);
+kmVec3* kmQuaternionGetForwardVec3LH(kmVec3* pOut, const kmQuaternion* pIn);
+
+kmScalar kmQuaternionGetPitch(const kmQuaternion* q);
+kmScalar kmQuaternionGetYaw(const kmQuaternion* q);
+kmScalar kmQuaternionGetRoll(const kmQuaternion* q);
 
 #ifdef __cplusplus
 }
