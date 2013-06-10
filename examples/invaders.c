@@ -1,3 +1,4 @@
+#include <unistd.h> // usleep
 
 #include "support.h"		// support routines
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
@@ -259,7 +260,7 @@ int main()
 		glfwPollEvents();
 
 
-        if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
+        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
             quit = true;
 
         float rad;		// radians rotation based on frame counter

@@ -1,3 +1,4 @@
+#include <unistd.h> // usleep
 
 // turned into a lighting test as 6 planes (a cube) is not idea for 
 // checking frag lighting, there is also a sphere
@@ -197,7 +198,7 @@ int main()
 
 		glfwPollEvents();
 
-        if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
+        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
             quit = true;	// exit if escape key pressed or window closed
 
         if (glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS) camAng=camAng+1;

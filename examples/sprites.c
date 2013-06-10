@@ -1,6 +1,6 @@
+#include <unistd.h> // usleep
+
 #include "support.h"		// support routines
-
-
 
 
 /*
@@ -115,7 +115,7 @@ int main()
 		
 		glfwPollEvents();
 
-        if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
+        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
             quit = true;	// exit if escape key pressed or window closed
 
 
