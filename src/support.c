@@ -2,10 +2,146 @@
 
 #include "lodepng.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>		// va_lists for glprint
+
+
+#include  <GLES2/gl2.h>
+#include  <EGL/egl.h>
+
+#include  <X11/Xlib.h>
+#include  <X11/Xatom.h>
+#include  <X11/Xutil.h>
+
+//#include <png.h>
+#include <kazmath.h>
+
+
+Display *__x_display;
+int __display_width,__display_height;
+
+int getDisplayWidth() {
+    return __display_width;
+}
+
+
+int getDisplayHeight() {
+    return __display_height;
+}
+
+
+
+Window __win, __eventWin;
+
+Window __eventWin;
+
+EGLDisplay __egl_display;
+EGLContext __egl_context;
+EGLSurface __egl_surface;
+
+// only used internally
+void closeNativeWindow()
+{
+
+    XDestroyWindow(__x_display, __win);	// on normal X (ie not pi) win and __eventWin point to same window
+    
+    // TODO causes seg on mail400 platform
+    //XCloseDisplay(__x_display);
+
+}
+
+// only used internally
+void makeNativeWindow(int x, int y)
+{
+    __x_display = XOpenDisplay(NULL);	// open the standard display (the primary screen)
+    if (__x_display == NULL) {
+        printf("cannot connect to X server\n");
+    }
+
+    Window root = DefaultRootWindow(__x_display);	// get the root window (usually the whole screen)
+
+
+    if (x==-1 && y==-1) { // make fullscreen
+		XWindowAttributes xwAttr;
+		Status ret = XGetWindowAttributes( __x_display, root, &xwAttr );
+		__display_width = (int)xwAttr.width;
+		__display_height = (int)xwAttr.height;
+		printf("using fullscreen (%i,%i)\n",__display_width,__display_height);
+	} else {
+		__display_width = x;
+		__display_height = y;
+	}
+
+    XSetWindowAttributes swa;
+    swa.event_mask =
+        ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
+
+    
+    int s = DefaultScreen(__x_display);
+    __win = XCreateSimpleWindow(__x_display, root,
+                                10, 10, __display_width, __display_height, 1,
+                                BlackPixel(__x_display, s),
+                                WhitePixel(__x_display, s));
+    XSelectInput(__x_display, __win, ExposureMask |
+                 KeyPressMask | KeyReleaseMask |
+                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
+
+    XSetWindowAttributes xattr;
+    Atom atom;
+    int one = 1;
+
+    xattr.override_redirect = False;
+    XChangeWindowAttributes(__x_display, __win, CWOverrideRedirect, &xattr);
+
+    if (x==-1 && y==-1) {
+    	atom = XInternAtom(__x_display, "_NET_WM_STATE_FULLSCREEN", True);
+    	XChangeProperty(__x_display, __win,
+    			XInternAtom(__x_display, "_NET_WM_STATE", True),
+    			XA_ATOM, 32, PropModeReplace, (unsigned char *)&atom,
+    			1);
+    }
+
+    XWMHints hints;
+    hints.input = True;
+    hints.flags = InputHint;
+    XSetWMHints(__x_display, __win, &hints);
+
+    XMapWindow(__x_display, __win);	// make the window visible on the screen
+    XStoreName(__x_display, __win, "GLES2.0 framework");	// give the window a name
+
+    // NB - RPi needs to use EGL_DEFAULT_DISPLAY that some X configs dont seem to like
+    __egl_display = eglGetDisplay((EGLNativeDisplayType) __x_display);
+    if (__egl_display == EGL_NO_DISPLAY) {
+        printf("Got no EGL display.\n");
+    }
+
+    __eventWin = __win;
+
+
+
+
+    Cursor invisibleCursor;
+    Pixmap bitmapNoData;
+    XColor black;
+    static char noData[] = { 0,0,0,0,0,0,0,0 };
+    black.red = black.green = black.blue = 0;
+
+    bitmapNoData = XCreateBitmapFromData(__x_display, __win, noData, 8, 8);
+    invisibleCursor = XCreatePixmapCursor(__x_display, bitmapNoData, bitmapNoData,
+                                          &black, &black, 0, 0);
+    XDefineCursor(__x_display,__win, invisibleCursor);
+    XFreeCursor(__x_display, invisibleCursor);
+
+
+}
+
 
 float rand_range(float start,float range) {
     return start + range * ((float)rand() / RAND_MAX) ;
 }
+
+
 
 int loadPNG(const char *filename)
 {
@@ -101,6 +237,11 @@ int loadPNG(const char *filename)
     return texture;
 }
 
+// only here to keep egl pointers out of frontend code
+void swapBuffers()
+{
+    eglSwapBuffers(__egl_display, __egl_surface);	// get the rendered buffer to the screen
+}
 
 GLuint getShaderLocation(int type, GLuint prog, const char *name)
 {
@@ -266,6 +407,19 @@ void initGlPrint(int w, int h)
     __glp.vert_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "vert_attrib");
     __glp.uv_attrib = getShaderLocation(shaderAttrib, __glp.printProg, "uv_attrib");
 
+    /*
+        __glp.fonttex = loadPNG("resources/textures/font.png");
+
+        glGenBuffers(1, &__glp.quadvbo);
+        glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, quadVertices,
+                     GL_STATIC_DRAW);
+
+        glGenBuffers(1, &__glp.texvbo);
+        glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 6, texCoord,
+                     GL_STATIC_DRAW);
+    */
 }
 
 void reProjectGlPrint(int w,int h) {
@@ -273,7 +427,8 @@ void reProjectGlPrint(int w,int h) {
 } 
 
 
-font_t* createFont(const char* tpath,int cbase,float tHeight,float tLines,int fWidth,int fHeight) {
+
+font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines,int fWidth,int fHeight) {
     font_t *t=malloc(sizeof(font_t));
 
     t->tex = loadPNG(tpath);
@@ -325,13 +480,16 @@ void glPrintf(float x, float y, font_t *fnt, const char *fmt, ...)
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 
+    //glBindTexture(GL_TEXTURE_2D, __glp.fonttex);
     glBindTexture(GL_TEXTURE_2D, fnt->tex);
 
     glEnableVertexAttribArray(__glp.vert_attrib);
+//    glBindBuffer(GL_ARRAY_BUFFER, __glp.quadvbo);
     glBindBuffer(GL_ARRAY_BUFFER, fnt->vertBuf);
     glVertexAttribPointer(__glp.vert_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(__glp.uv_attrib);
+//    glBindBuffer(GL_ARRAY_BUFFER, __glp.texvbo);
     glBindBuffer(GL_ARRAY_BUFFER, fnt->texBuf);
     glVertexAttribPointer(__glp.uv_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -340,6 +498,10 @@ void glPrintf(float x, float y, font_t *fnt, const char *fmt, ...)
     for (int n = 0; n < strlen(text); n++) {
 
         int c = (int)text[n]-fnt->base;
+//        float cx = c % 16;
+//        float cy = (int)(c / 16.0);
+//        cy = cy * (1. / 16);
+//        cx = cx * (1. / 16);
         float cx = c % 16;
         float cy = (int)(c/16.0);
         cy = cy * (1. / (fnt->tLines));
@@ -478,7 +640,90 @@ void drawSprite(float x, float y, float w, float h, float a, int tex)
 }
 
 
+int makeContextXY(int x, int y)
+{    	
+    makeNativeWindow(x,y);	// sets global pointers for win and disp
 
+    EGLint majorVersion;
+    EGLint minorVersion;
+
+    // most egl you can sends NULLS for maj/min but not RPi
+    if (!eglInitialize(__egl_display, &majorVersion, &minorVersion)) {
+        printf("Unable to initialize EGL\n");
+        return 1;
+    }
+
+    EGLint attr[] = {	// some attributes to set up our egl-interface
+        EGL_BUFFER_SIZE, 16,
+        EGL_DEPTH_SIZE, 16,
+        EGL_RENDERABLE_TYPE,
+        EGL_OPENGL_ES2_BIT,
+        EGL_NONE
+    };
+
+    EGLConfig ecfg;
+    EGLint num_config;
+    if (!eglChooseConfig(__egl_display, attr, &ecfg, 1, &num_config)) {
+        //cerr << "Failed to choose config (eglError: " << eglGetError() << ")" << endl;
+        printf("failed to choose config eglerror:%i\n", eglGetError());	// todo change error number to text error
+        return 1;
+    }
+
+    if (num_config != 1) {
+        printf("Didn't get exactly one config, but %i\n", num_config);
+        return 1;
+    }
+
+    __egl_surface = eglCreateWindowSurface(__egl_display, ecfg, __win, NULL);
+
+    if (__egl_surface == EGL_NO_SURFACE) {
+        //cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << endl;
+        printf("failed create egl surface eglerror:%i\n",
+               eglGetError());
+        return 1;
+    }
+    //// egl-contexts collect all state descriptions needed required for operation
+    EGLint ctxattr[] = {
+        EGL_CONTEXT_CLIENT_VERSION, 2,
+        EGL_NONE
+    };
+    __egl_context =
+        eglCreateContext(__egl_display, ecfg, EGL_NO_CONTEXT, ctxattr);
+    if (__egl_context == EGL_NO_CONTEXT) {
+        //cerr << "Unable to create EGL context (eglError: " << eglGetError() << ")" << endl;
+        printf("unable to create EGL context eglerror:%i\n",
+               eglGetError());
+        return 1;
+    }
+    //// associate the egl-context with the egl-surface
+    eglMakeCurrent(__egl_display, __egl_surface, __egl_surface, __egl_context);
+
+    return 0;
+}
+
+
+
+int makeContext() {
+	return makeContextXY(320,200);
+}
+
+
+
+extern int __key_fd;
+
+void closeContext()
+{
+    eglDestroyContext(__egl_display, __egl_context);
+    eglDestroySurface(__egl_display, __egl_surface);
+    eglTerminate(__egl_display);
+
+    closeNativeWindow();
+
+
+    close(__key_fd);
+
+
+}
 
 
 struct __pointGlobs {
@@ -551,8 +796,8 @@ void initPointClouds(const char* vertS, const char* fragS, float pntSize) {
     GLuint vs, fs;
     vs = create_shader(vertS, GL_VERTEX_SHADER);
     fs = create_shader(fragS, GL_FRAGMENT_SHADER);
+    //printf("vs=%i fs=%i\n",vs,fs);
     __pg.Partprogram = glCreateProgram();
-
     glAttachShader(__pg.Partprogram, vs);
     glAttachShader(__pg.Partprogram, fs);
     glLinkProgram(__pg.Partprogram);

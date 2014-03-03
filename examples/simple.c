@@ -1,13 +1,23 @@
-#include <unistd.h> // usleep
 
-// turned into a lighting test as 6 planes (a cube) is not idea for 
+// turned into a lighting test as 6 planes (a cube) is not ideal for 
 // checking frag lighting, there is also a sphere
 
 // press Q & W
 // and A & S to rotate the camera and light
 
+
 #include "support.h"		// support routines
+#include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
+#include "input.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>		// usleep
+
+#include <kazmath.h>		// matrix manipulation routines
+
 
 unsigned int cubeNumVerts = 36;
 
@@ -96,8 +106,6 @@ float cubeTexCoords[] = {
 
 
 void render();			// func prototype
-// this gets called if the window is resized
-void window_size_callback(GLFWwindow* window, int w, int h);
 
 // obj shape textures
 GLuint cubeTex,ballTex;
@@ -106,7 +114,7 @@ GLuint cubeTex,ballTex;
 struct obj_t cubeObj,ballObj;
 
 // matrices and combo matrices
-kmMat4 rot,model, view, projection, mvp, vp, mv;
+kmMat4 model, view, projection, mvp, vp, mv;
 
 int frame = 0;
 kmVec3 lightDir, viewDir; // vectors for shader lighting
@@ -115,29 +123,19 @@ kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 
 float camAng,lightAng;
 
-GLFWwindow* window;
-int width,height;
+bool *keys;
+int *mouse;
+struct joystick_t *joy1;
 
 font_t *font1,*font2;
-
-struct timespec ts;
 
 int main()
 {
 	
-    // create a window and GLES context
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
-
-	window = glfwCreateWindow(640, 480, "Simple test", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwSetWindowSizeCallback(window,window_size_callback);	
-	glfwMakeContextCurrent(window);
-
-
+	
+    // creates a window and GLES context
+    if (makeContext() != 0)
+        exit(-1);
 
     // all the shaders have at least texture unit 0 active so
     // activate it now and leave it active
@@ -156,9 +154,15 @@ int main()
 
     kmMat4Identity(&view);
 
-    pEye.x = 0;		pEye.y = 0;		pEye.z = 5;
-    pCenter.x = 0;	pCenter.y = 0;	pCenter.z = 0;
-    pUp.x = 0;		pUp.y = 1;		pUp.z = 0;
+    pEye.x = 0;
+    pEye.y = 0;
+    pEye.z = 5;
+    pCenter.x = 0;
+    pCenter.y = 0;
+    pCenter.z = 0;
+    pUp.x = 0;
+    pUp.y = 1;
+    pUp.z = 0;
 
     kmVec3Subtract(&viewDir,&pEye,&pCenter);
     kmVec3Normalize(&viewDir,&viewDir);
@@ -170,6 +174,16 @@ int main()
     kmMat4Assign(&vp, &projection);
     kmMat4Multiply(&vp, &vp, &view);
 
+    // projection matrix, as distance increases
+    // the way the model is drawn is effected
+    kmMat4Identity(&projection);
+    kmMat4PerspectiveProjection(&projection, 45,
+                                (float)getDisplayWidth() / getDisplayHeight(), 0.1, 10);
+
+    glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
+
+    // initialises glprint's matrix, shader and texture
+    initGlPrint(getDisplayWidth(), getDisplayHeight());
 
 	font1=createFont("resources/textures/font.png",0,256,16,16,16);
 	font2=createFont("resources/textures/bigfont.png",32,512,9.5,32,48);
@@ -190,47 +204,44 @@ int main()
     // set to true to leave main loop
     bool quit = false;
 
+    // get a pointer to the key down array
+    keys = getKeys();
+    mouse = getMouse();
+    joy1=getJoystick(0);
+    //setMouseRelative(true);
 
+    while (!quit) {		// the main loop
 
-    while (!quit) {		// the main "logic" loop - stuff to do each frame that isn't directly rendering
-		
-        clock_gettime(0,&ts);  // note the time BEFORE we start to render the current frame
+        doEvents();	// update mouse and key arrays
+        updateJoystick(joy1);
 
-		glfwPollEvents();
+        if (keys[KEY_ESC])
+            quit = true;	// exit if escape key pressed
 
-        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
-            quit = true;	// exit if escape key pressed or window closed
-
-        if (glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS) camAng=camAng+1;
-        if (glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS) camAng=camAng-1;
-        if (glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS) lightAng=lightAng+1;
-        if (glfwGetKey(window,GLFW_KEY_Q)==GLFW_PRESS) lightAng=lightAng-1;
-
+        if (keys[KEY_A]) camAng=camAng+1;
+        if (keys[KEY_S]) camAng=camAng-1;
+        if (keys[KEY_W]) lightAng=lightAng+1;
+        if (keys[KEY_Q]) lightAng=lightAng-1;
 
         render();	// the render loop
-        
-        // it's good practice not to use 100% of the CPU time
-        // cpu / gpu is physically cooler on embedded systems 
-        // and also gives the OS chance to do other things without 
-        // making the framerate look intermittent ....
-        
-        ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
-        //thrd_sleep(&ts,NULL); // tinycthread
-		usleep(20000); // while I work out why tinycthread that was working isnt.... :/
+
+        usleep(16000);	// no need to run cpu/gpu full tilt
+
     }
     
-	glfwDestroyWindow(window);
-	glfwTerminate();
+    closeContext();		// tidy up
+	releaseJoystick(joy1);
 
     return 0;
 }
 
-
+int rmx,rmy;
 
 void render()
 {
 
     float rad;		// radians of rotation based on frame counter
+	kmMat4 tmpM;
 
     // clear the colour (drawing) and depth sort back (offscreen) buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -262,17 +273,18 @@ void render()
     kmMat4Assign(&vp, &projection);
     kmMat4Multiply(&vp, &vp, &view);
 
-    initGlPrint(width, height);
 
     // first set the model matrix with the models position (translation)
     // and rotation
     // as translation and rotation use different parts of the matrix
     // we can do both to the same matrix without having to multiply
     // (combine) two seperate matrices
-//    kmMat4Identity(&model);
+    kmMat4Identity(&model);
     kmMat4Translation(&model, 1, 0, 0);
-    kmMat4RotationYawPitchRoll(&rot, rad, rad * 1.5, rad * 2);
-	kmMat4Multiply(&model,&model,&rot);
+    //kmMat4RotationPitchYawRoll(&model, rad, rad * 1.5, rad * 2);
+	kmMat4RotationYawPitchRoll(&tmpM, rad * 1.5, rad, rad * 2);
+	kmMat4Multiply(&model,&model,&tmpM);
+
     // copy the combined view/projection matrix to the mvp matrix
     // to "reset" it
     // and then combine with the model matrix
@@ -288,10 +300,11 @@ void render()
 
 //	----
 
-//    kmMat4Identity(&model);
+    kmMat4Identity(&model);
     kmMat4Translation(&model, -1, 0, 0);
-    kmMat4RotationYawPitchRoll(&rot, 0 , -rad, 0);
-	kmMat4Multiply(&model,&model,&rot);
+    //kmMat4RotationPitchYawRoll(&model, 0 , -rad, 0);
+    kmMat4RotationYawPitchRoll(&tmpM, 0, -rad, 0);
+    kmMat4Multiply(&model,&model,&tmpM);
 
     kmMat4Assign(&mvp, &vp);
     kmMat4Multiply(&mvp, &mvp, &model);	// model, view, projection combined matrix
@@ -307,27 +320,17 @@ void render()
     // see printf documentation for the formatting of variables...
     glPrintf(24, 24, font2, "frame=%i", frame);
 
-	double mx,my;
-	glfwGetCursorPos (window,&mx,&my);
-    glPrintf(100, 260, font1, "mouse %i  %i ",(int)mx,(int)my);
+    glPrintf(100, 260, font1, "mouse %i  %i   %i", mouse[0],mouse[1],mouse[2]);
+
+	glPrintf(100, 280, font1, "joystick %i,%i  %i",joy1->axis[0],joy1->axis[1],joy1->buttons);
+	
 	
 	glPrintf(100, 320, font2, "abcABCqrsQRS123"); 
-
+    //rmx+=mouse[0];
+    //rmy+=mouse[1];
+    //glPrintf(100, 280, "%i  %i", rmx,rmy);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
-    glfwSwapBuffers(window);
-}
+    swapBuffers();
 
-void window_size_callback(GLFWwindow* window, int w, int h)
-{
-	width=w;height=h;
-    glViewport(0, 0, width, height);
-
-    // projection matrix, as distance increases
-    // the way the model is drawn is effected
-    kmMat4Identity(&projection);
-    kmMat4PerspectiveProjection(&projection, 45,
-                                (float)width / height, 0.1, 10);
-
-	reProjectGlPrint(width,height);
 }

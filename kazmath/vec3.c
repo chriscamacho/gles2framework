@@ -38,12 +38,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "plane.h"
 #include "ray3.h"
 
-kmVec3 KM_VEC3_POS_Z = { 0, 0, 1 };
-kmVec3 KM_VEC3_NEG_Z = { 0, 0, -1 };
-kmVec3 KM_VEC3_POS_Y = { 0, 1, 0 };
-kmVec3 KM_VEC3_NEG_Y = { 0, -1, 0 };
-kmVec3 KM_VEC3_NEG_X = { -1, 0, 0 };
-kmVec3 KM_VEC3_POS_X = { 1, 0, 0 };
+const kmVec3 KM_VEC3_POS_Z = { 0, 0, 1 };
+const kmVec3 KM_VEC3_NEG_Z = { 0, 0, -1 };
+const kmVec3 KM_VEC3_POS_Y = { 0, 1, 0 };
+const kmVec3 KM_VEC3_NEG_Y = { 0, -1, 0 };
+const kmVec3 KM_VEC3_NEG_X = { -1, 0, 0 };
+const kmVec3 KM_VEC3_POS_X = { 1, 0, 0 };
+const kmVec3 KM_VEC3_ZERO = { 0, 0, 0 };
 
 /**
  * Fill a kmVec3 structure using 3 floating point values
@@ -72,6 +73,14 @@ kmScalar kmVec3Length(const kmVec3* pIn)
 kmScalar kmVec3LengthSq(const kmVec3* pIn)
 {
 	return kmSQR(pIn->x) + kmSQR(pIn->y) + kmSQR(pIn->z);
+}
+
+/// Returns the interpolation of 2 4D vectors based on t.
+kmVec3* kmVec3Lerp(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2, kmScalar t) {
+    pOut->x = pV1->x + t * ( pV2->x - pV1->x ); 
+    pOut->y = pV1->y + t * ( pV2->y - pV1->y ); 
+    pOut->z = pV1->z + t * ( pV2->z - pV1->z ); 
+    return pOut;
 }
 
  /**
@@ -163,6 +172,22 @@ kmVec3* kmVec3Subtract(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2)
 	pOut->z = v.z;
 
 	return pOut;
+}
+
+kmVec3* kmVec3Mul( kmVec3* pOut,const kmVec3* pV1, const kmVec3* pV2 ) {
+    pOut->x = pV1->x * pV2->x;
+    pOut->y = pV1->y * pV2->y;
+    pOut->z = pV1->z * pV2->z;
+    return pOut;
+}
+
+kmVec3* kmVec3Div( kmVec3* pOut,const kmVec3* pV1, const kmVec3* pV2 ) {
+    if ( pV2->x && pV2->y && pV2->z ){
+        pOut->x = pV1->x / pV2->x;
+        pOut->y = pV1->y / pV2->y;
+        pOut->z = pV1->z / pV2->z;
+    }
+    return pOut;
 }
 
 kmVec3* kmVec3MultiplyMat3(kmVec3* pOut, const kmVec3* pV, const kmMat3* pM) {

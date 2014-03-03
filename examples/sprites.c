@@ -1,7 +1,14 @@
-#include <unistd.h> // usleep
+
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>		// usleep
+
+#include <kazmath.h>		// matrix manipulation routines
 
 #include "support.h"		// support routines
-
+#include "keys.h"		// defines key indexes for key down boolean array
+#include "input.h"
 
 /*
  *
@@ -12,9 +19,6 @@
  */
 
 void render();			// func prototype
-// this gets called if the window is resized
-void window_size_callback(GLFWwindow* window, int w, int h);
-
 
 // textures
 GLuint cloudTex,biTex,triTex;
@@ -38,27 +42,18 @@ struct cloud_t {
 
 struct cloud_t clouds[max_clouds];
 
-GLFWwindow* window;
-int width=640,height=480; // window width and height
 
-struct timespec ts,ts2;  // frame timing
-
+//float rand_range(float min,float max) {
+//    return min + (max - min) * ((float)rand() / RAND_MAX) / 2.0;
+//}
 
 int main()
 {
 
-    // create a window and GLES context
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
 
-	window = glfwCreateWindow(width, height, "sprite test", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwSetWindowSizeCallback(window,window_size_callback);	
-	glfwMakeContextCurrent(window);
-	
+    // creates a window and GLES context
+    if (makeContext() != 0)
+        exit(-1);
 
     // all the shaders have at least texture unit 0 active so
     // activate it now and leave it active
@@ -68,14 +63,16 @@ int main()
     biTex = loadPNG("resources/textures/biplane.png");
     triTex = loadPNG("resources/textures/triplane.png");
 
-    // initialises glprint's matrix, shader and texture
-    initGlPrint(width,height);
-    font1=createFont("resources/textures/font.png",0,256,16,16,16);
-    initSprite(width,height);
 
-	centreX=((float)width)/2.0;
-    centreY=((float)height)/2.0;
-    
+    glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
+
+    // initialises glprint's matrix, shader and texture
+    initGlPrint(getDisplayWidth(), getDisplayHeight());
+    font1=createFont("resources/textures/font.png",0,256,16,16,16);
+    initSprite(getDisplayWidth(), getDisplayHeight());
+
+    centreX=((float)getDisplayWidth())/2.0;
+    centreY=((float)getDisplayHeight())/2.0;
     cloudW=centreX/8.f;
     cloudH=centreY/8.f; // optional! scale sprite to screen
     planeW=centreX/6.;
@@ -107,16 +104,15 @@ int main()
     // set to true to leave main loop
     bool quit = false;
 
-
+    // get a pointer to the key down array
+    keys = getKeys();
 
     while (!quit) {		// the main loop
 
-        clock_gettime(TIME_UTC,&ts);  // note the time BEFORE we start to render the current frame
-		
-		glfwPollEvents();
+        doEvents();	// update mouse and key arrays
 
-        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
-            quit = true;	// exit if escape key pressed or window closed
+        if (keys[KEY_ESC])
+            quit = true;	// exit if escape key pressed
 
 
         for (int i=0; i<max_clouds; i++) {
@@ -135,13 +131,11 @@ int main()
 
         render();	// the render loop
 
-        ts.tv_nsec=+(1000000/50);  // 1000000000 / 50 = 50hz less time to render the frame
-        //thrd_sleep(&ts,NULL); // tinycthread
-		usleep(20000); // while I work out why tinycthread that was working isnt.... :/
+        usleep(16000);	// no need to run cpu/gpu full tilt
+
     }
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+    closeContext();		// tidy up
 
     return 0;
 }
@@ -163,12 +157,12 @@ void render()
     }
 
     float r2=rad+.6f+(sin(frame*0.03)/6.);
-    drawSprite((centreX-(planeW/2.))+cos(r2)*(centreX*.75),
-               centreY+sin(r2)*(centreY*.75),
+    drawSprite((centreX-(planeW/2.))+cos(r2)*centreX*.75,
+               centreY+sin(r2)*centreY*.75,
                planeW,planeH,r2+1.5708f,triTex);
 
-    drawSprite((centreX-(planeW/2.))+cos(rad)*(centreX*.75),
-               centreY+sin(rad)*(centreY*.75),
+    drawSprite((centreX-(planeW/2.))+cos(rad)*centreX*.75,
+               centreY+sin(rad)*centreY*.75,
                planeW,planeH,rad+1.5708f,biTex);
 
 
@@ -176,26 +170,6 @@ void render()
     glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
-    glfwSwapBuffers(window);
-
-}
-
-void window_size_callback(GLFWwindow* window, int w, int h)
-{
-	width=w;height=h;
-
-    glViewport(0, 0, width, height);
-
-    // projection matrix, as distance increases
-    // the way the model is drawn is effected
-    kmMat4Identity(&projection);
-    kmMat4PerspectiveProjection(&projection, 45,
-                                (float)width / height, 0.1, 10);
-
-	reProjectGlPrint(width,height); // updates the projection matrix used by glPrint
-	reProjectSprites(width,height); // updates the projection matrix used by the sprites
-
-	centreX=((float)width)/2.0;
-    centreY=((float)height)/2.0;
+    swapBuffers();
 
 }

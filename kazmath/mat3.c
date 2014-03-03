@@ -227,7 +227,7 @@ kmMat3* kmMat3Rotation(kmMat3* pOut, const kmScalar radians)
 	pOut->mat[1] = sinf(radians);
 	pOut->mat[2] = 0.0f;
 
-	pOut->mat[3] = -sinf(radians);;
+	pOut->mat[3] = -sinf(radians);
 	pOut->mat[4] = cosf(radians);
 	pOut->mat[5] = 0.0f;
 
@@ -384,7 +384,7 @@ kmMat3* kmMat3RotationZ(kmMat3* pOut, const kmScalar radians)
 	pOut->mat[1] =-sinf(radians);
 	pOut->mat[2] = 0.0f;
 
-	pOut->mat[3] = sinf(radians);;
+	pOut->mat[3] = sinf(radians);
 	pOut->mat[4] = cosf(radians);
 	pOut->mat[5] = 0.0f;
 
@@ -425,3 +425,34 @@ kmVec3* kmMat3GetForwardVec3(kmVec3* pOut, const kmMat3* pIn) {
 	return pOut;
 }
 
+kmMat3* kmMat3LookAt(kmMat3* pOut, const kmVec3* pEye,
+                     const kmVec3* pCenter, const kmVec3* pUp)
+{
+    kmVec3 f, up, s, u;
+
+    kmVec3Subtract(&f, pCenter, pEye);
+    kmVec3Normalize(&f, &f);
+
+    kmVec3Assign(&up, pUp);
+    kmVec3Normalize(&up, &up);
+
+    kmVec3Cross(&s, &f, &up);
+    kmVec3Normalize(&s, &s);
+
+    kmVec3Cross(&u, &s, &f);
+    kmVec3Normalize(&s, &s);
+
+    pOut->mat[0] = s.x;
+    pOut->mat[3] = s.y;
+    pOut->mat[6] = s.z;
+
+    pOut->mat[1] = u.x;
+    pOut->mat[4] = u.y;
+    pOut->mat[7] = u.z;
+
+    pOut->mat[2] = -f.x;
+    pOut->mat[5] = -f.y;
+    pOut->mat[8] = -f.z;
+
+    return pOut;
+}

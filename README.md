@@ -6,30 +6,57 @@
 
 intended to help learning and tutorial writing
 
-NB there has been significant changes ! - your old code using this framework will
-no longer compile! (sorry! but its very well worth it)
-See the examples for how to use glfw3 - the changes are minor and you should
-have your old code back up and running in minutes :)
+Currently supports XORG (linux) Desktop using mesa GLES2.0 libs or various embedded 
+platforms such as Allwinner A20
 
-Currently supports any platform the GLFW3 runs on https://github.com/elmindreda/glfw
-
-dependencies GLFW3 libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
+dependencies, libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
 
+
+##### raw mouse, keyboard and joystick on some embedded platforms
+
+When not using xwindows (ie via ssh) input including keyboard is now done entirely via
+the kernel evdev interface.
+
+you (might) need some udev rules (this does open the way for keyloggers for the paranoid!)
+
+make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain the following
+
+	KERNEL=="event*", NAME="input/%k", MODE="0640", GROUP="evdev"
+	KERNEL=="mouse*", NAME="input/%k", MODE="0640", GROUP="evdev"
+	KERNEL=="js*", NAME="input/%k", MODE="0640", GROUP="evdev"
+
+you need to add an new group and add your user account to the group (as root)
+
+	groupadd evdev
+	usermod -a -G evdev your_user_name
+
+you'll need to reboot
+
+You can now run your programs from ssh and it will only use the Pi's attached
+usb keyboard rather than being confused with the ssh console
+
+editing files via ssh (sftp enabled editor) and compiling with a ssh console is the recommended
+way of developing with this framework
+
+	
 ### file structure for external libraries
 
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:
 
-	Chipmunk-Physics        ode-0.12            gles2framework 
+	Chipmunk-6.1.1            gles2framework 
+	
+phystest which uses libode, using Debian install the libode-sp (single percision) package
+
 
 
 ### phystest (ode example)
 
 the rather hacky ODE example is only really for advanced users... compile ode from source 
-(version v0.12) release
+(version v0.11sp (debian single precision package) release
 
 You need it to use dSingle with trimesh support and you might want other things like custom cylinder
 vs cylinder colliders etc you won't get from the repo version 
@@ -41,7 +68,9 @@ run ./configure --help in the ode directory.
 
 ### chiptest (Chipmonk physics example)
 
-a quick example showing some balls falling on some invisible slopes
+a quick example showing some balls falling on some invisible slopes, niether the sprites or the 
+position of the slopes are scaled depending on the display size, so the sample will look 
+different on different platforms and is a good example of why you should use scaled sizes!
 
 You can pass parameters to cmake or edit CMakeLists.txt so as to NOT compile the demos, 
 you only need compile a static library
@@ -115,6 +144,23 @@ loads a specified png file returning a GLES texture handle
 
 _____
 
+__int makeContext();__
+__int makeContextXY(int x, int y);__
+
+creates a native window and sets up a GLES context within it
+makeContextXY takes dimesions for the window, giving -1,-1 will
+put the context in fullscreen mode, you can the use getDisplayWidth() /
+getDisplayHeight() to resize things according to this resolution if
+needed.
+
+_____
+
+__void closeContext();__
+
+closes GLES context and window
+
+_____
+
 __GLuint create\_shader(const char *filename, GLenum type);__
 
 returns a GLES shader handle from a file you must specify what type of shader it is either 
@@ -151,6 +197,31 @@ you must specify a previously created font structure to print with
 
 _____
 
+__void swapBuffers();__
+
+In order isolate egl and native window handles use this routine instead of eglSwapBuffers
+
+_____
+
+__void doEvents();__
+
+this should be called once a frame to update the key down boolean array and the mouse information
+
+_____
+
+__int* getMouse();__
+
+this returns a pointer to an array of 3 ints the first 2 are the x and y mouse position the 3rd int 
+is a bit field reflecting the state of the mouse buttons
+
+_____
+
+__bool* getKeys();__
+
+this is an array of 256 bools, while a key is held down the coresponding bool is true, key values are defined in keys.h
+
+_____
+
 *** deprecated may be removed in later version ***
 
 __int createObj(struct obj\_t *obj, int numVerts, float verts[], float txVert[], float norms[], char *vertShader, char *fragShader);__
@@ -176,6 +247,15 @@ lighting
 
 _____
 
+__int getDisplayWidth();__ 
+
+__int getDisplayHeight();__
+
+returns full screen width and height, for now when not on Raspberry PI the "screen" is fixed to a 
+640x480 window
+
+_____
+
 __int loadObj(struct obj\_t *obj,const char *objFile, char *vert, char *frag);__
 
 __int loadObjCopyShader(struct obj\_t *obj,const char *objFile, struct obj\_t *sdrobj);__
@@ -195,6 +275,32 @@ when drawing a sprite you specify where you want it (x & y) the size of the spri
 
 _____
 
+__void setMouseRelative(bool mode);__
+
+if mode is true the mouse will report relative position changes only, this is handy for mouse 
+look where you dont want the mouse constrained by the window. By default absolute mouse position 
+is reported
+
+_____
+
+__struct joystick\_t *getJoystick(int j);__
+
+__void updateJoystick(struct joystick\_t *js);__
+
+__void releaseJoystick(struct joystick\_t *js);__
+
+to get a pointer to a joystick call getJoystick with the index of the joystick 0-7
+call this once only
+
+once a frame call updateJoystick you will then have (in the joystick structure)
+
+	js->axis[0..7]		upto 8 axes per joystick (signed short)
+	js->buttons			long - each bit represents a button
+	
+when finished with a joystick you should call releaseJoystick to close its file
+handle and free the structures memory.
+
+_____
 
 
 __void initPointClouds(const char* vertS, const char* fragS, float pntSize);__

@@ -1,4 +1,15 @@
+
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>		// usleep
+
+#include <kazmath.h>		// matrix manipulation routines
+
 #include "support.h"		// support routines
+#include "keys.h"		// defines key indexes for key down boolean array
+#include "input.h"
+
 #include <chipmunk.h>
 
 /*
@@ -8,7 +19,6 @@
  */
 
 void render();			// func prototype
-void window_size_callback(GLFWwindow* window, int w, int h);
 
 // textures
 GLuint cloudTex,ballTex;
@@ -24,7 +34,7 @@ struct ball_t {
     cpBody *ballBody;
 };
 
-#define max_balls 80
+#define max_balls 120
 
 struct ball_t balls[max_balls];
 
@@ -35,7 +45,7 @@ kmMat4 model, view, projection, mvp, vp, mv;
 
 int frame = 0;
 
-
+bool *keys;
 
 
 struct cloud_t {
@@ -48,26 +58,13 @@ struct cloud_t clouds[max_clouds];
 
 font_t *font1;
 
-GLFWwindow* window;
-int width=640,height=480; // window width and height
-
-struct timespec ts;  // frame timing
-
-
 int main()
 {
 
-    // create a window and GLES context
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
 
-	window = glfwCreateWindow(width, height, "chipmunk physics test", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwSetWindowSizeCallback(window,window_size_callback);	
-	glfwMakeContextCurrent(window);
+    // creates a window and GLES context
+    if (makeContext() != 0)
+        exit(-1);
 
     // all the shaders have at least texture unit 0 active so
     // activate it now and leave it active
@@ -77,18 +74,18 @@ int main()
     ballTex = loadPNG("resources/textures/ball.png");
 
 
-    glViewport(0, 0, width,height);
-
-	font1=createFont("resources/textures/font.png",0,256,16,16,16);
+    glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
 
     // initialises glprint's matrix, shader and texture
-    initGlPrint(width,height);
-    initSprite(width,height);
+    initGlPrint(getDisplayWidth(), getDisplayHeight());
+	font1=createFont("resources/textures/font.png",0,256,16,16,16);
+	
+	initSprite(getDisplayWidth(), getDisplayHeight());
 
-    centreX=((float)width)/2.0;
-    centreY=((float)height)/2.0;
+    centreX=((float)getDisplayWidth())/2.0;
+    centreY=((float)getDisplayHeight())/2.0;
     cloudW=centreX/8.f;
-    cloudH=centreY/8.f; // optional! TODO scale sprite to screen (in resize too)
+    cloudH=centreY/8.f; // optional! scale sprite to screen
 
     for (int i=0; i<max_clouds; i++) {
         clouds[i].x=rand_range(0,centreX*2);
@@ -102,15 +99,15 @@ int main()
 	space = cpSpaceNew();
 	cpSpaceSetGravity(space, cpv(0, 100));
 
-	ground = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-64), 0);
+	ground = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-128), 0);
 	cpShapeSetFriction(ground, 1);
 	cpSpaceAddShape(space, ground);
 
-	ground2 = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY), cpv(centreX, centreY+64), 0);
+	ground2 = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY), cpv(centreX, centreY+128), 0);
 	cpShapeSetFriction(ground2, 1);
 	cpSpaceAddShape(space, ground2);
 
-	ground3 = cpSegmentShapeNew(space->staticBody, cpv(centreX, centreY/2.0+64), cpv(centreX*2, centreY/2.0), 0);
+	ground3 = cpSegmentShapeNew(space->staticBody, cpv(centreX, centreY/2.0+128), cpv(centreX*2, centreY/2.0), 0);
 	cpShapeSetFriction(ground3, 1);
 	cpSpaceAddShape(space, ground3);
 
@@ -121,7 +118,7 @@ int main()
     for (int i=0; i<max_balls; i++) {
 
 		balls[i].ballBody = cpSpaceAddBody(space, cpBodyNew(1, moment));
-		cpBodySetPos(balls[i].ballBody, cpv( rand_range(100,width-200), rand_range(-100,0)));
+		cpBodySetPos(balls[i].ballBody, cpv( rand_range(100,centreX*2-100), 0));
 		balls[i].ballShape = cpSpaceAddShape(space, cpCircleShapeNew(balls[i].ballBody, 16, cpvzero));
 		cpShapeSetFriction(balls[i].ballShape, 0.7);
 	}
@@ -138,14 +135,15 @@ int main()
     // set to true to leave main loop
     bool quit = false;
 
+    // get a pointer to the key down array
+    keys = getKeys();
 
     while (!quit) {		// the main loop
 
-        clock_gettime(0,&ts);  // note the time BEFORE we start to render the current frame
-		glfwPollEvents();
+        doEvents();	// update mouse and key arrays
 
-        if (glfwGetKey(window,GLFW_KEY_ESC)==GLFW_PRESS || glfwWindowShouldClose(window))
-            quit = true;	// exit if escape key pressed or window closed
+        if (keys[KEY_ESC])
+            quit = true;	// exit if escape key pressed
 
 
         for (int i=0; i<max_clouds; i++) {
@@ -177,16 +175,14 @@ int main()
 
         render();	// the render loop
 
-        ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
-        //thrd_sleep(&ts,NULL); // tinycthread
-		usleep(20000); // while I work out why tinycthread that was working isnt.... :/
+        usleep(16000);	// no need to run cpu/gpu full tilt
+
     }
 
 	// we should really deallocate chipmonk stuff here
 	// but we'll do the naughty and let the OS do it....
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+    closeContext();		// tidy up
 
     return 0;
 }
@@ -217,26 +213,6 @@ void render()
     glPrintf(100, 240, font1,"frame=%i", frame);
 
     // swap the front (visible) buffer for the back (offscreen) buffer
-    glfwSwapBuffers(window);
-
-}
-
-void window_size_callback(GLFWwindow* window, int w, int h)
-{
-	width=w;height=h;
-
-    glViewport(0, 0, width, height);
-
-    // projection matrix, as distance increases
-    // the way the model is drawn is effected
-    kmMat4Identity(&projection);
-    kmMat4PerspectiveProjection(&projection, 45,
-                                (float)width / height, 0.1, 10);
-
-	reProjectGlPrint(width,height); // updates the projection matrix used by glPrint
-	reProjectSprites(width,height); // updates the projection matrix used by the sprites
-
-	centreX=((float)width)/2.0;
-    centreY=((float)height)/2.0;
+    swapBuffers();
 
 }

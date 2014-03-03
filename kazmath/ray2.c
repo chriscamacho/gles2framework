@@ -33,7 +33,7 @@ kmBool kmRay2IntersectLineSegment(const kmRay2* ray, const kmVec2* p1, const kmV
     kmScalar x = x1 + ua * (x2 - x1);
     kmScalar y = y1 + ua * (y2 - y1);
     
-    if((0.0 < ua) && (ua < 1.0) && (0.0 < ub) && (ub < 1.0)) {
+    if((0.0 <= ua) && (ua <= 1.0) && (0.0 <= ub) && (ub <= 1.0)) {
         intersection->x = x;
         intersection->y = y;
         
@@ -196,4 +196,5 @@ kmVec2* intersection, kmVec2* normal_out) {
 
 kmBool kmRay2IntersectCircle(const kmRay2* ray, const kmVec2 centre, const kmScalar radius, kmVec2* intersection) {
     assert(0 && "Not implemented");
+    return KM_TRUE;
 }

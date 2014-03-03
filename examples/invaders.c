@@ -1,10 +1,19 @@
-#include <unistd.h> // usleep
+
+#include <stdlib.h>
+#include <stdbool.h>
+
+#include <kazmath.h>		// matrix manipulation routines
 
 #include "support.h"		// support routines
+#include "keys.h"		// defines key indexes for key down boolean array
 #include "obj.h"		// loading and displaying wavefront OBJ derived shapes
+#include "input.h"
 
-// window resize function prototype 
-void window_size_callback(GLFWwindow* window, int w, int h);
+#include <unistd.h>		// usleep
+#include <sys/time.h>		// fps stuff
+
+
+
 
 // obj shape textures
 GLuint cubeTex, shipTex, alienTex, shotTex, expTex;
@@ -16,12 +25,13 @@ struct obj_t cubeObj, shipObj, alienObj, shotObj;
 font_t *font1,*font2;
 
 // matrices and combo matrices
-kmMat4 model,rot, view, projection, mvp, vp, mv;
+kmMat4 model, view, projection, mvp, vp, mv;
 
 int frame = 0;
 float lfps = 0;
 
-
+int *mouse;
+bool *keys;
 kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 
 // direction of light and view for lighting
@@ -137,14 +147,9 @@ void resetExposion(struct pointCloud_t* pntC) {
 
 }
 
-
-GLFWwindow* window;
-int width=640,height=480; // window width and height
-
-struct timespec ts;  // frame timing
-
 int main()
 {
+	kmMat4 tmpM;
 
     lightDir.x=0.5;
     lightDir.y=.7;
@@ -152,19 +157,8 @@ int main()
     kmVec3Normalize(&lightDir,&lightDir);
 
     // creates a window and GLES context
-    // create a window and GLES context
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
-
-	window = glfwCreateWindow(width, height, "I N V A D E R S ! ! !", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwSetWindowSizeCallback(window,window_size_callback);	
-	glfwMakeContextCurrent(window);
-
-
+    if (makeContextXY(640,400) != 0)
+        exit(-1);
 
     // all the shaders have at least texture unit 0 active so
     // activate it now and leave it active
@@ -186,6 +180,9 @@ int main()
     loadObjCopyShader(&shotObj, "resources/models/shot.gbo", &cubeObj);
 
     expTex = loadPNG("resources/textures/explosion.png");
+
+
+
 
 
     playerPos.x = 0;
@@ -210,16 +207,16 @@ int main()
     // the way the model is drawn is effected
     kmMat4Identity(&projection);
     kmMat4PerspectiveProjection(&projection, 45,
-                                (float)width/ height, 0.1, 1000);
+                                (float)getDisplayWidth() / getDisplayHeight(), 0.1, 100);
 
-    glViewport(0, 0, width,height);
+    glViewport(0, 0, getDisplayWidth(), getDisplayHeight());
 
     // these two matrices are pre combined for use with each model render
     kmMat4Assign(&vp, &projection);
     kmMat4Multiply(&vp, &vp, &view);
 
     // initialises glprint's matrix shader and texture
-    initGlPrint(width,height);
+    initGlPrint(getDisplayWidth(), getDisplayHeight());
 
 	font1=createFont("resources/textures/font.png",0,256,16,16,16);
 	font2=createFont("resources/textures/bigfont.png",32,512,9.5,32,48);
@@ -230,10 +227,14 @@ int main()
     glDisable(GL_BLEND);	// only used by glprintf
     glEnable(GL_DEPTH_TEST);
 
-
+    struct timeval t, ta, t1, t2;	// fps stuff
+    gettimeofday(&t1, NULL);
     int num_frames = 0;
 
     bool quit = false;
+
+    mouse = getMouse();
+    keys = getKeys();
 
     resetAliens();
 
@@ -243,8 +244,7 @@ int main()
 
 
     initPointClouds("resources/shaders/particle.vert",
-                    "resources/shaders/particle.frag",(float)width/24.0);
-
+                    "resources/shaders/particle.frag",(float)getDisplayWidth()/24.0);
 
 
     for (int n = 0; n < MAX_ALIENS; n++) {
@@ -252,16 +252,28 @@ int main()
         resetExposion(aliens[n].explosion); // sets initials positions
     }
 
-	glClearColor(0, .5, 1, 1);
+
 
     while (!quit) {		// the main loop
 
-        clock_gettime(0,&ts);  // note the time BEFORE we start to render the current frame
-		glfwPollEvents();
+        doEvents();	// update mouse and key arrays
 
-
-        if (glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS || glfwWindowShouldClose(window))
+        // mask of 4 is right mouse
+        if (keys[KEY_ESC])
             quit = true;
+
+        glClearColor(0, .5, 1, 1);
+
+        // render between two gettimeofday calls so
+        // we can sleep long enough to roughly sync
+        // to ~60fps...
+
+        // TODO find something a tad more elegent
+
+        long i;
+        gettimeofday(&t, NULL);
+        i = t.tv_sec * 1e6 + t.tv_usec;
+
 
         float rad;		// radians rotation based on frame counter
 
@@ -269,15 +281,16 @@ int main()
         frame++;
         rad = frame * (0.0175f * 2);
 
-        //kmMat4Identity(&model);
+        kmMat4Identity(&model);
         kmMat4Translation(&model, playerPos.x, playerPos.y, playerPos.z);
+
         playerCroll +=
             (PIDcal(playerRoll, playerCroll, &playerPre_error, &playerIntegral)
              / 2);
-//        kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll * 3);	//
-		kmMat4RotationYawPitchRoll(&rot,0,3.1416,-playerCroll*3);
-        kmMat4Multiply(&model, &model, &rot);
-        
+//        kmMat4RotationPitchYawRoll(&model, 0, 3.1416, playerCroll * 3);	
+		kmMat4RotationYawPitchRoll(&tmpM, 0, 3.1416, -playerCroll * 3);
+		kmMat4Multiply(&model,&model,&tmpM);
+
         kmMat4Assign(&mvp, &vp);
         kmMat4Multiply(&mvp, &mvp, &model);
 
@@ -288,13 +301,13 @@ int main()
         drawObj(&shipObj, &mvp, &mv, lightDir, viewDir);
 
         glPrintf(50 + sinf(rad) * 16, 240 + cosf(rad) * 16,
-                 font2,"frame=%i", frame);
+                 font2,"frame=%i fps=%3.2f", frame, lfps);
 
         kmVec3 tmp;
 
         playerFireCount--;
 
-        if (glfwGetKey(window,GLFW_KEY_LEFT_CONTROL)==GLFW_PRESS && playerFireCount < 0) {
+        if (keys[KEY_LCTRL] && playerFireCount < 0) {
 
             struct playerShot_t *freeShot;
             freeShot = getFreeShot();
@@ -311,14 +324,14 @@ int main()
                 if (playerShots[n].pos.z < -10)
                     playerShots[n].alive = false;
 
-                //kmMat4Identity(&model);
+                kmMat4Identity(&model);
                 kmMat4Translation(&model, playerShots[n].pos.x,
                                   playerShots[n].pos.y,
                                   playerShots[n].pos.z);
-                //kmMat4RotationPitchYawRoll(&model, rad * 4, 0,
-                //                           -rad * 4);
-				kmMat4RotationYawPitchRoll(&rot,rad*4,0,-rad*4);
-				kmMat4Multiply(&model,&model,&rot);
+//                kmMat4RotationPitchYawRoll(&model, rad * 4, 0, -rad * 4);
+				kmMat4RotationYawPitchRoll(&tmpM, rad *4, 0, -rad * 4);
+				kmMat4Multiply(&model,&model,&tmpM);
+
                 kmMat4Assign(&mvp, &vp);
                 kmMat4Multiply(&mvp, &mvp, &model);
 
@@ -331,11 +344,11 @@ int main()
         }
 
         playerRoll = 0;
-        if (glfwGetKey(window,GLFW_KEY_LEFT)==GLFW_PRESS && playerPos.x > -10) {
+        if (keys[KEY_CURSL] && playerPos.x > -10) {
             playerPos.x -= 0.1;
             playerRoll = .2;
         }
-        if (glfwGetKey(window,GLFW_KEY_RIGHT)==GLFW_PRESS && playerPos.x < 10) {
+        if (keys[KEY_CURSR] && playerPos.x < 10) {
             playerPos.x += 0.1;
             playerRoll = -.2;
         }
@@ -352,12 +365,12 @@ int main()
         for (int n = 0; n < MAX_ALIENS; n++) {
             if (aliens[n].alive == true) {
 
-                //kmMat4Identity(&model);
+                kmMat4Identity(&model);
                 kmMat4Translation(&model, aliens[n].pos.x,
                                   aliens[n].pos.y, aliens[n].pos.z);
                 //kmMat4RotationPitchYawRoll(&model, -.4, 0, 0);
-				kmMat4RotationYawPitchRoll(&rot,.2,0,0);
-				kmMat4Multiply(&model,&model,&rot);
+                kmMat4RotationYawPitchRoll(&tmpM, .4, 0, 0);
+                kmMat4Multiply(&model,&model,&tmpM);
 
                 kmMat4Assign(&mvp, &vp);
                 kmMat4Multiply(&mvp, &mvp, &model);
@@ -436,40 +449,40 @@ int main()
         glPrintf(100, 280, font1,"eye    %3.2f %3.2f %3.2f ", pEye.x, pEye.y, pEye.z);
         glPrintf(100, 296, font1,"centre %3.2f %3.2f %3.2f ", pCenter.x, pCenter.y,
                  pCenter.z);
+        glPrintf(100, 320, font1,"mouse %i,%i %i ", mouse[0], mouse[1], mouse[2]);
         glPrintf(100, 340, font1,"frame %i %i ", frame, frame % 20);
 
 
 
-        glfwSwapBuffers(window);
+        swapBuffers();
 
-        ts.tv_nsec+=20000000;  // 1000000000 / 50 = 50hz less time to render the frame
-        //thrd_sleep(&ts,NULL); // tinycthread
-        usleep(20000); // while I work out why tinycthread that was working isnt.... :/
+        gettimeofday(&ta, NULL);
+        long j = (ta.tv_sec * 1e6 + ta.tv_usec);
 
+        i = j - i;
+        if (i < 0)
+            i = 1000000;	// pass through - slower that 60fps
+        if (i < 16000)
+            usleep(16000 - i);
+
+        // every 10 frames average the time taken and store
+        // fps value for later printing with glprintf
+        if (++num_frames % 10 == 0) {
+            gettimeofday(&t2, NULL);
+            float dtf =
+                t2.tv_sec - t1.tv_sec + (t2.tv_usec -
+                                         t1.tv_usec) * 1e-6;
+            lfps = num_frames / dtf;
+            num_frames = 0;
+            t1 = t2;
+        }
     }
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+    closeContext();
 
     return 0;
 }
 
-void window_size_callback(GLFWwindow* window, int w, int h)
-{
-	width=w;height=h;
 
-    glViewport(0, 0, width, height);
-
-    // projection matrix, as distance increases
-    // the way the model is drawn is effected
-    kmMat4Identity(&projection);
-    kmMat4PerspectiveProjection(&projection, 45,
-                                (float)width / height, 0.1, 1000);
-
-	reProjectGlPrint(width,height); // updates the projection matrix used by glPrint
-	reProjectSprites(width,height); // updates the projection matrix used by the sprites
-	resizePointCloudSprites((float)width/24.0);
-
-}
 
 

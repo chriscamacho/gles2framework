@@ -7,16 +7,8 @@ I would very much welcome people contacting me with ideas for this document.
 
 * makeBestSellingFPSgame() function
 
-## Features probably not going to be implemented
-
-* simple height map terrain
-  * probably better using precreated meshes
 
 
 ## Recently implemented
 
-* Dropped specific handling of platforms 
-  * no more horrid #ifdef mess
-  * uses glfw for low level stuff
-
-
+Dropped GLFW as some embedded platforms were strugling with it

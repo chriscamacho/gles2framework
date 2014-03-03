@@ -26,7 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <assert.h>
 #include <memory.h>
-
+#include <string.h>
+#include "mat4.h"
 #include "utility.h"
 #include "mat3.h"
 #include "vec3.h"
@@ -582,4 +583,27 @@ kmScalar kmQuaternionGetYaw(const kmQuaternion* q) {
 kmScalar kmQuaternionGetRoll(const kmQuaternion* q) {
     float result = atan2(2 * (q->x * q->y + q->w * q->z), q->w * q->w + q->x * q->x - q->y * q->y - q->z * q->z);
     return result;
+}
+
+kmQuaternion* kmQuaternionLookRotation(kmQuaternion* pOut, const kmVec3* direction, const kmVec3* up) {
+    kmMat3 tmp;
+    kmMat3LookAt(&tmp, &KM_VEC3_ZERO, direction, up);
+    return kmQuaternionNormalize(pOut, kmQuaternionRotationMatrix(pOut, &tmp));
+/*
+    if(!direction->x && !direction->y && !direction->z) {
+        return kmQuaternionIdentity(pOut);
+    }
+
+    kmVec3 right;
+    kmVec3Cross(&right, up, direction);
+
+    pOut->w = sqrtf(1.0f + right.x + up->y + direction->z) * 0.5f;
+
+    float w4_recip = 1.0f / (4.0f * pOut->w);
+
+    pOut->x = (up->z - direction->y) * w4_recip;
+    pOut->y = (direction->x - right.z) * w4_recip;
+    pOut->z = (right.y - up->x) * w4_recip;
+
+    return kmQuaternionNormalize(pOut, pOut);*/
 }

@@ -30,6 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vec2.h"
 #include "utility.h"
 
+const kmVec2 KM_VEC2_POS_Y = { 0, 1 };
+const kmVec2 KM_VEC2_NEG_Y = { 0, -1 };
+const kmVec2 KM_VEC2_NEG_X = { -1, 0 };
+const kmVec2 KM_VEC2_POS_X = { 1, 0 };
+const kmVec2 KM_VEC2_ZERO = { 0, 0 };
+
 kmVec2* kmVec2Fill(kmVec2* pOut, kmScalar x, kmScalar y)
 {
     pOut->x = x;
@@ -45,6 +51,12 @@ kmScalar kmVec2Length(const kmVec2* pIn)
 kmScalar kmVec2LengthSq(const kmVec2* pIn)
 {
     return kmSQR(pIn->x) + kmSQR(pIn->y);
+}
+
+kmVec2* kmVec2Lerp(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2, kmScalar t) {
+    pOut->x = pV1->x + t * ( pV2->x - pV1->x ); 
+    pOut->y = pV1->y + t * ( pV2->y - pV1->y ); 
+    return pOut;
 }
 
 kmVec2* kmVec2Normalize(kmVec2* pOut, const kmVec2* pIn)
@@ -88,6 +100,20 @@ kmVec2* kmVec2Subtract(kmVec2* pOut, const kmVec2* pV1, const kmVec2* pV2)
 	pOut->y = pV1->y - pV2->y;
 
 	return pOut;
+}
+
+kmVec2* kmVec2Mul( kmVec2* pOut,const kmVec2* pV1, const kmVec2* pV2 ) {
+    pOut->x = pV1->x * pV2->x;
+    pOut->y = pV1->y * pV2->y;
+    return pOut;
+}
+
+kmVec2* kmVec2Div( kmVec2* pOut,const kmVec2* pV1, const kmVec2* pV2 ) {
+    if ( pV2->x && pV2->y ){
+        pOut->x = pV1->x / pV2->x;
+        pOut->y = pV1->y / pV2->y;
+    }
+    return pOut;
 }
 
 kmVec2* kmVec2Transform(kmVec2* pOut, const kmVec2* pV, const kmMat3* pM)
@@ -151,7 +177,7 @@ kmVec2* kmVec2RotateBy(kmVec2* pOut, const kmVec2* pIn,
 {
    kmScalar x, y;
    const kmScalar radians = kmDegreesToRadians(degrees);
-   const kmScalar cs = cos(radians), sn = sin(radians);
+   const kmScalar cs = cosf(radians), sn = sinf(radians);
 
    pOut->x = pIn->x - center->x;
    pOut->y = pIn->y - center->y;
@@ -204,10 +230,10 @@ kmScalar kmVec2DistanceBetween(const kmVec2* v1, const kmVec2* v2) {
  * Returns the point mid-way between two others
  */
 kmVec2* kmVec2MidPointBetween(kmVec2* pOut, const kmVec2* v1, const kmVec2* v2) {
-	kmVec2 diff;
-	kmVec2Subtract(&diff, v2, v1);
-	kmVec2Normalize(&diff, &diff);
-	kmVec2Scale(&diff, &diff, kmVec2DistanceBetween(v1, v2) * 0.5);
-	kmVec2Add(pOut, v1, &diff);
+	kmVec2 sum;
+    kmVec2Add(&sum, v1, v2);
+    pOut->x = sum.x / 2.0f;
+    pOut->y = sum.y / 2.0f;
+
 	return pOut;
 }

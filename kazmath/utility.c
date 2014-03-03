@@ -23,73 +23,47 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef UTILITY_H_INCLUDED
-#define UTILITY_H_INCLUDED
+#include "utility.h"
 
-#include <math.h>
-
-#ifndef kmScalar
-#ifdef USE_DOUBLE_PRECISION
-#define kmScalar double
-#else
-#define kmScalar float
-#endif
-
-#endif
-
-#ifndef kmBool
-#define kmBool unsigned char
-#endif
-
-#ifndef kmUchar
-#define kmUchar unsigned char
-#endif
-
-#ifndef kmEnum
-#define kmEnum unsigned int
-#endif
-
-#ifndef kmUint
-#define kmUint unsigned int
-#endif
-
-#ifndef kmInt
-#define kmInt int
-#endif
-
-#ifndef KM_FALSE
-#define KM_FALSE 0
-#endif
-
-#ifndef KM_TRUE
-#define KM_TRUE 1
-#endif
-
-#define kmPI 3.141592f
-#define kmPIOver180 0.017453f //  PI / 180
-#define kmPIUnder180 57.295779f // 180 / PI
-#define kmEpsilon 0.0001
-
-#define KM_CONTAINS_NONE 0
-#define KM_CONTAINS_PARTIAL 1
-#define KM_CONTAINS_ALL 2
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern kmScalar kmSQR(kmScalar s);
-extern kmScalar kmDegreesToRadians(kmScalar degrees);
-extern kmScalar kmRadiansToDegrees(kmScalar radians);
-
-extern kmScalar min(kmScalar lhs, kmScalar rhs);
-extern kmScalar max(kmScalar lhs, kmScalar rhs);
-extern kmBool kmAlmostEqual(kmScalar lhs, kmScalar rhs);
-
-extern kmScalar kmClamp(kmScalar x, kmScalar min, kmScalar max);
-
-#ifdef __cplusplus
+/**
+ * Returns the square of s (e.g. s*s)
+ */
+kmScalar kmSQR(kmScalar s) {
+	return s*s;
 }
-#endif
 
-#endif /* UTILITY_H_INCLUDED */
+/**
+ * Returns degrees as radians.
+ */
+kmScalar kmDegreesToRadians(kmScalar degrees) {
+	return degrees * kmPIOver180;
+}
+
+/**
+ * Returns radians as degrees
+ */
+kmScalar kmRadiansToDegrees(kmScalar radians) {
+	return radians * kmPIUnder180;
+}
+
+kmScalar kmMin(kmScalar lhs, kmScalar rhs) {
+    return (lhs < rhs)? lhs : rhs;
+}
+
+kmScalar kmMax(kmScalar lhs, kmScalar rhs) {
+    return (lhs > rhs)? lhs : rhs;
+}
+
+kmBool kmAlmostEqual(kmScalar lhs, kmScalar rhs) {
+    return (lhs + kmEpsilon > rhs && lhs - kmEpsilon < rhs);
+}
+
+kmScalar kmClamp(kmScalar x, kmScalar min, kmScalar max)
+{
+    return x < min ? min : (x > max ? max : x);
+}
+
+kmScalar kmLerp(kmScalar x, kmScalar y, kmScalar t )
+{
+    return x + t * ( y - x );
+}

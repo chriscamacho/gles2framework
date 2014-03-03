@@ -46,11 +46,14 @@ extern "C" {
 kmVec3* kmVec3Fill(kmVec3* pOut, kmScalar x, kmScalar y, kmScalar z);
 kmScalar kmVec3Length(const kmVec3* pIn); /** Returns the length of the vector */
 kmScalar kmVec3LengthSq(const kmVec3* pIn); /** Returns the square of the length of the vector */
+kmVec3* kmVec3Lerp(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2, kmScalar t);
 kmVec3* kmVec3Normalize(kmVec3* pOut, const kmVec3* pIn); /** Returns the vector passed in set to unit length */
 kmVec3* kmVec3Cross(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Returns a vector perpendicular to 2 other vectors */
 kmScalar kmVec3Dot(const kmVec3* pV1, const kmVec3* pV2); /** Returns the cosine of the angle between 2 vectors */
 kmVec3* kmVec3Add(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Adds 2 vectors and returns the result */
 kmVec3* kmVec3Subtract(kmVec3* pOut, const kmVec3* pV1, const kmVec3* pV2); /** Subtracts 2 vectors and returns the result */
+kmVec3* kmVec3Mul( kmVec3* pOut,const kmVec3* pV1, const kmVec3* pV2 ); 
+kmVec3* kmVec3Div( kmVec3* pOut,const kmVec3* pV1, const kmVec3* pV2 );
 
 kmVec3* kmVec3MultiplyMat3(kmVec3 *pOut, const kmVec3 *pV, const struct kmMat3* pM);
 kmVec3* kmVec3MultiplyMat4(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM);
@@ -70,12 +73,13 @@ kmVec3* kmVec3RotationToDirection(kmVec3* pOut, const kmVec3* pIn, const kmVec3*
 
 kmVec3* kmVec3ProjectOnToPlane(kmVec3* pOut, const kmVec3* point, const struct kmPlane* plane);
 
-extern kmVec3 KM_VEC3_NEG_Z;
-extern kmVec3 KM_VEC3_POS_Z;
-extern kmVec3 KM_VEC3_POS_Y;
-extern kmVec3 KM_VEC3_NEG_Y;
-extern kmVec3 KM_VEC3_NEG_X;
-extern kmVec3 KM_VEC3_POS_X;
+extern const kmVec3 KM_VEC3_NEG_Z;
+extern const kmVec3 KM_VEC3_POS_Z;
+extern const kmVec3 KM_VEC3_POS_Y;
+extern const kmVec3 KM_VEC3_NEG_Y;
+extern const kmVec3 KM_VEC3_NEG_X;
+extern const kmVec3 KM_VEC3_POS_X;
+extern const kmVec3 KM_VEC3_ZERO;
 
 #ifdef __cplusplus
 }

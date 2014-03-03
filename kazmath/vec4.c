@@ -72,29 +72,26 @@ kmScalar kmVec4LengthSq(const kmVec4* pIn) {
 	return kmSQR(pIn->x) + kmSQR(pIn->y) + kmSQR(pIn->z) + kmSQR(pIn->w);
 }
 
-/// Returns the interpolation of 2 4D vectors based on t. Currently not implemented!
+/// Returns the interpolation of 2 4D vectors based on t.
 kmVec4* kmVec4Lerp(kmVec4* pOut, const kmVec4* pV1, const kmVec4* pV2, kmScalar t) {
-    assert(0);
+    pOut->x = pV1->x + t * ( pV2->x - pV1->x ); 
+    pOut->y = pV1->y + t * ( pV2->y - pV1->y ); 
+    pOut->z = pV1->z + t * ( pV2->z - pV1->z ); 
+    pOut->w = pV1->w + t * ( pV2->w - pV1->w ); 
     return pOut;
 }
 
 /// Normalizes a 4D vector. The result is stored in pOut. pOut is returned
 kmVec4* kmVec4Normalize(kmVec4* pOut, const kmVec4* pIn) {
-    if (!pIn->x && !pIn->y && !pIn->z && !pIn->w)
+    if (!pIn->x && !pIn->y && !pIn->z && !pIn->w){
         return kmVec4Assign(pOut, pIn);
+    }
 
 	kmScalar l = 1.0f / kmVec4Length(pIn);
-
-	kmVec4 v;
-	v.x = pIn->x * l;
-	v.y = pIn->y * l;
-	v.z = pIn->z * l;
-	v.w = pIn->w * l;
-
-	pOut->x = v.x;
-	pOut->y = v.y;
-	pOut->z = v.z;
-	pOut->w = v.w;
+    pOut->x = pIn->x * l;
+	pOut->y = pIn->y * l;
+	pOut->z = pIn->z * l;
+	pOut->w = pIn->w * l;
 
 	return pOut;
 }
@@ -118,6 +115,24 @@ kmVec4* kmVec4Subtract(kmVec4* pOut, const kmVec4* pV1, const kmVec4* pV2) {
 	pOut->w = pV1->w - pV2->w;
 
 	return pOut;
+}
+
+kmVec4* kmVec4Mul( kmVec4* pOut,const kmVec4* pV1, const kmVec4* pV2 ) {
+    pOut->x = pV1->x * pV2->x;
+    pOut->y = pV1->y * pV2->y;
+    pOut->z = pV1->z * pV2->z;
+    pOut->w = pV1->w * pV2->w;
+    return pOut;
+}
+
+kmVec4* kmVec4Div( kmVec4* pOut,const kmVec4* pV1, const kmVec4* pV2 ) {
+    if ( pV2->x && pV2->y && pV2->z && pV2->w){
+        pOut->x = pV1->x / pV2->x;
+        pOut->y = pV1->y / pV2->y;
+        pOut->z = pV1->z / pV2->z;
+        pOut->w = pV1->w / pV2->w;
+    }
+    return pOut;
 }
 
 /// Multiplies a 4D vector by a matrix, the result is stored in pOut, and pOut is returned.
