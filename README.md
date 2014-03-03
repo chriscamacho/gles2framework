@@ -20,7 +20,7 @@ pkg-config, build-esentials and development libraries must be installed to compi
 When not using xwindows (ie via ssh) input including keyboard is now done entirely via
 the kernel evdev interface.
 
-you (might) need some udev rules (this does open the way for keyloggers for the paranoid!)
+you (might) need some udev rules
 
 make a file called /etc/udev/rules.d/99-evdev.rules (as root) it should contain the following
 
@@ -33,13 +33,13 @@ you need to add an new group and add your user account to the group (as root)
 	groupadd evdev
 	usermod -a -G evdev your_user_name
 
-you'll need to reboot
+you'll need to log out and back in again
 
-You can now run your programs from ssh and it will only use the Pi's attached
+You can now run your programs from ssh and it will only use the targets attached
 usb keyboard rather than being confused with the ssh console
 
 editing files via ssh (sftp enabled editor) and compiling with a ssh console is the recommended
-way of developing with this framework
+way of developing with this framework if running with a small LCD and you have old tired eyes...
 
 	
 ### file structure for external libraries
@@ -49,22 +49,15 @@ directory that you are working on the frame work like this:
 
 	Chipmunk-6.1.1            gles2framework 
 	
-phystest which uses libode, using Debian install the libode-sp (single percision) package
-
 
 
 ### phystest (ode example)
 
-the rather hacky ODE example is only really for advanced users... compile ode from source 
-(version v0.11sp (debian single precision package) release
+the rather hacky ODE example is only really for advanced users...  
+(install Debian package version v0.11sp (single precision package) 
 
-You need it to use dSingle with trimesh support and you might want other things like custom cylinder
-vs cylinder colliders etc you won't get from the repo version 
-
-set drawstuff=none for quicker build (no demos etc)
-
-run ./configure --help in the ode directory.
-
+If you want some of the extra bits of libODE (trimesh vs cylinder collisions - and other luxuries) then 
+you can always compile ODE from source, see the ODE website for details
 
 ### chiptest (Chipmonk physics example)
 
@@ -102,8 +95,8 @@ you only need compile a static library
 there is no need to seperatly compile the kazmath library for your platform kazmath sources are now 
 automatically compiled into a static library
 
-All though the source is unchanged I have deleted everthing except the C source and the html 
-documentation the full distribution of kazmath is available at https://github.com/Kazade/kazmath
+All though the source is unchanged I have deleted everthing except the C source
+the full distribution of kazmath is available at https://github.com/Kazade/kazmath
 
 
 #### obj2opengl
