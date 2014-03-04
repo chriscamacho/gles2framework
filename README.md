@@ -9,7 +9,7 @@ intended to help learning and tutorial writing
 Currently supports XORG (linux) Desktop using mesa GLES2.0 libs or various embedded 
 platforms such as Allwinner A20
 
-dependencies, libEGL, libGLES (2.0), libode (0.12) for phystest, Chipmunk-6.1.1 for chiptest
+dependencies, libEGL, libGLES (2.0), libode (0.11) for phystest, Chipmunk-6.1.1 for chiptest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
@@ -54,7 +54,7 @@ directory that you are working on the frame work like this:
 ### phystest (ode example)
 
 the rather hacky ODE example is only really for advanced users...  
-(install Debian package version v0.11sp (single precision package) 
+(install Debian package version v0.11sp-dev (single precision package) 
 
 If you want some of the extra bits of libODE (trimesh vs cylinder collisions - and other luxuries) then 
 you can always compile ODE from source, see the ODE website for details
@@ -193,7 +193,12 @@ _____
 __void swapBuffers();__
 
 In order isolate egl and native window handles use this routine instead of eglSwapBuffers
+_____
 
+__int setSwapInterval(int);__
+
+The number of frames EGL should wait before swapBuffers actually swaps the buffer, this freqently does
+nothing on many EGL implementations however...
 _____
 
 __void doEvents();__

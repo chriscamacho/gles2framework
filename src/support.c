@@ -136,6 +136,9 @@ void makeNativeWindow(int x, int y)
 
 }
 
+int setSwapInterval(int i) {
+	return eglSwapInterval(__egl_display, i);
+}
 
 float rand_range(float start,float range) {
     return start + range * ((float)rand() / RAND_MAX) ;

@@ -273,6 +273,7 @@ int main()
                                 3 * sizeof(int));
     groundGeom = dCreateTriMesh(space, triData, NULL, NULL, NULL);
 
+	setSwapInterval(1);
 
     while (!quit) {		// the main loop
 

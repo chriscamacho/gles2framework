@@ -21,6 +21,7 @@ int makeContext();
 int makeContextXY(int x, int y);
 void closeContext();
 void swapBuffers();
+int setSwapInterval(int i);
 int getDisplayWidth();
 int getDisplayHeight();
 void initSprite(int w, int h);
