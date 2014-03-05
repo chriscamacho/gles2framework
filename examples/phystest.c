@@ -70,8 +70,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
         contact[i].surface.mode = dContactBounce;// | dContactSoftCFM;
         contact[i].surface.mu = dInfinity;
         contact[i].surface.mu2 = 0;
-        contact[i].surface.bounce = 0.2;
-        contact[i].surface.bounce_vel = 0.2;
+        contact[i].surface.bounce = 0.4;
+        contact[i].surface.bounce_vel = 0.4;
         //contact[i].surface.soft_cfm = 0.1;
     }
     int numc = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,

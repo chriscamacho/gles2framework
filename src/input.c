@@ -133,7 +133,7 @@ bool *getKeys()
     if(n >= 0 && eps != 0 && eps[0] != 0) {
         // only check 1st usb keyboard....
         char fn[256];
-        sprintf(fn,"/dev/input/by-path/%s\0",eps[0]->d_name);
+        sprintf(fn,"/dev/input/by-path/%s%c",eps[0]->d_name,0); // %c 0 to avoid embedded '\0' in format
         __key_fd=open(fn, O_RDONLY);
         printf("%i  %s\n",__key_fd,fn);
     }
@@ -152,7 +152,7 @@ bool *getKeys()
 struct joystick_t *getJoystick(int j) {
 
     char devpath[20];
-    sprintf(devpath,"/dev/input/js%i\0",j);
+    sprintf(devpath,"/dev/input/js%i%c",j,0);
 
     struct joystick_t *js=malloc(sizeof(struct joystick_t));
     js->fd = open(devpath, O_RDONLY);
