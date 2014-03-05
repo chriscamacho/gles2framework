@@ -47,7 +47,7 @@ way of developing with this framework if running with a small LCD and you have o
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:
 
-	Chipmunk-6.1.1            gles2framework 
+	Chipmunk-6.1.1            gles2framework		ode-0.13
 	
 
 
@@ -58,6 +58,13 @@ the rather hacky ODE example is only really for advanced users...
 
 If you want some of the extra bits of libODE (trimesh vs cylinder collisions - and other luxuries) then 
 you can always compile ODE from source, see the ODE website for details
+
+suggested compile configuration for ODE
+
+./configure --enable-libccd --with-box-cylinder=libccd --with-drawstuff=none --disable-demos 
+
+this should by default provide trimesh collider etc as a static library
+
 
 ### chiptest (Chipmonk physics example)
 

@@ -30,6 +30,7 @@ float rand_range(float min,float max);
 void reProjectGlPrint(int w,int h);
 void reProjectSprites(int w, int h);
 void resizePointCloudSprites(float s);
+struct timeval timeval_diff (struct timeval* x, struct timeval* y);
 
 struct pointCloud_t {
 	int totalPoints;

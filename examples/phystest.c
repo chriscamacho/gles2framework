@@ -19,6 +19,8 @@ cobbled together quickly in a few hours...
 
 #include <ode/ode.h>
 
+#include <sys/time.h>
+
 #define numObj 128  // 64 boxes, 64 spheres
 // TODO make a physics object struct with pointer to visual
 // geom and body id...
@@ -65,12 +67,12 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
     dContact contact[MAX_CONTACTS];	// up to MAX_CONTACTS contacts per box-box
     for (i = 0; i < MAX_CONTACTS; i++) {
-        contact[i].surface.mode = dContactBounce | dContactSoftCFM;
+        contact[i].surface.mode = dContactBounce;// | dContactSoftCFM;
         contact[i].surface.mu = dInfinity;
         contact[i].surface.mu2 = 0;
         contact[i].surface.bounce = 0.2;
         contact[i].surface.bounce_vel = 0.2;
-        contact[i].surface.soft_cfm = 0.01;
+        //contact[i].surface.soft_cfm = 0.1;
     }
     int numc = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,
                         sizeof(dContact));
@@ -143,6 +145,7 @@ kmVec3 pEye, pCenter, pUp;	// "camera" vectors
 int frame = 0;
 float *pos, *rot;
 bool *keys;
+struct timeval start,end;
 
 int main()
 {
@@ -277,29 +280,25 @@ int main()
 
     while (!quit) {		// the main loop
 
+		gettimeofday(&start, NULL);
+
         doEvents();		// update mouse and key arrays
 
         if (keys[KEY_ESC])
             quit = true;	// exit if escape key pressed
 
-        if (keys[KEY_SPACE]) {
-            for (int i = 0; i < numObj; i++) {
-                dBodyAddForce(obj[i], dRandReal() * 2.0 - 1.0,
-                              1 + dRandReal(), dRandReal() * 2.0 - 1.0);
-            }
-        }
-
         for (int i=0; i<numObj; i++) {
 
             pos=(float*)dBodyGetPosition(obj[i]);
             if (pos[1]<-5) {
-                if (i<numObj/2) {
+                /*if (i<numObj/2) {
                     dBodySetPosition(obj[i],
                                      6+dRandReal() * 2 - 1, 5+i, dRandReal() * 2 - 1);
                 } else {
                     dBodySetPosition(obj[i],
                                      -6+dRandReal() * 2 - 1, 5+i-(numObj/2), dRandReal() * 2 - 1);
-                }
+                }*/
+                dBodySetPosition(obj[i],dRandReal()*12-6, 12 , dRandReal()*12-6);
                 dBodySetLinearVel(obj[i],0,0,0);
             }
         }
@@ -316,8 +315,9 @@ int main()
         kmMat4Multiply(&vp, &vp, &view);
 
         render();		// the render loop
-
-        //     usleep (16000);         // no need to run cpu/gpu full tilt
+		gettimeofday(&end, NULL);
+		//printf("%u \n",(unsigned int)timeval_diff(&end,&start).tv_usec);
+        usleep (16000-(unsigned int)timeval_diff(&end,&start).tv_usec);         // no need to run cpu/gpu full tilt
 
     }
 

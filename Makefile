@@ -35,10 +35,12 @@ o/simple.o: examples/simple.c
 	gcc $(FLAGS) $< -o $@
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
-	gcc $^ -o phystest $(LIBS) /usr/lib/libode.a -lstdc++
+#	gcc $^ -o phystest $(LIBS) /usr/lib/libode.a -lstdc++
+	gcc $^ -o phystest $(LIBS) ../ode-0.13/ode/src/.libs/libode.a -lstdc++ -lpthread
 
 o/phystest.o: examples/phystest.c
-	gcc $(FLAGS) -DdSINGLE $< -o $@
+#	gcc $(FLAGS) -DdSINGLE $< -o $@
+	gcc $(FLAGS) -I../ode-0.13/include $< -o $@
 
 sprites: $(OBJ) o/sprites.o lib/libkazmath.a
 	gcc $^ -o sprites $(LIBS)
@@ -71,16 +73,19 @@ indent:
 # executables and automatic source backup files
 clean:
 	rm -f o/*.o
-	rm -f kazmath/*.o
-	rm -f lib/libkazmath.a
 	rm -f *~
 	rm -f src/*~
 	rm -f include/*~
 	rm -f examples/*~
 	rm -f resources/shaders/*~
+
+clean-examples:
 	rm -f invaders
 	rm -f simple
 	rm -f phystest
 	rm -f sprites
 	rm -f chiptest
 
+clean-all: clean clean-examples
+	rm -f kazmath/*.o
+	rm -f lib/libkazmath.a
