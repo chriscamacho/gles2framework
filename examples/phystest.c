@@ -21,7 +21,7 @@ cobbled together quickly in a few hours...
 
 #include <sys/time.h>
 
-#define numObj 128  // 64 boxes, 64 spheres
+#define numObj 64  // 32 boxes, 32 spheres
 // TODO make a physics object struct with pointer to visual
 // geom and body id...
 dBodyID obj[numObj];
@@ -146,6 +146,7 @@ int frame = 0;
 float *pos, *rot;
 bool *keys;
 struct timeval start,end;
+unsigned long elapsed;
 
 int main()
 {
@@ -247,11 +248,11 @@ int main()
         if (i<numObj/2) {
             geoms[i] = dCreateBox(space, 1,1,1);
             dBodySetPosition(obj[i],
-                             6+dRandReal() * 2 - 1, i + 1, dRandReal() * 2 - 1);
+                             6+dRandReal() * 2 - 1, i + 1, dRandReal() * 4 - 2);
         } else {
             geoms[i] = dCreateSphere(space,1);
             dBodySetPosition(obj[i],
-                             -6+dRandReal() * 2 - 1, i + 1 - (numObj/2), dRandReal() * 2 - 1);
+                             -6+dRandReal() * 2 - 1, i + 1 - (numObj/2), dRandReal() * 4 - 2);
 
         }
         dRFromAxisAndAngle(R, dRandReal() * 2.0 - 1.0,
@@ -316,9 +317,11 @@ int main()
 
         render();		// the render loop
 		gettimeofday(&end, NULL);
+		
 		//printf("%u \n",(unsigned int)timeval_diff(&end,&start).tv_usec);
-        usleep (16000-(unsigned int)timeval_diff(&end,&start).tv_usec);         // no need to run cpu/gpu full tilt
-
+        //usleep (16000-(unsigned int)timeval_diff(&end,&start).tv_usec);         // no need to run cpu/gpu full tilt
+        elapsed = (unsigned long)timeval_diff(&end,&start).tv_usec;
+        if (elapsed<15900) usleep(16000-elapsed);
     }
 
     // TODO although OS will throw stuff away OK
