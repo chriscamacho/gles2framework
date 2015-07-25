@@ -171,7 +171,7 @@ int main()
             "resources/shaders/textured.vert",
             "resources/shaders/textured.frag");
 
-    groundTex = loadPNG("resources/textures/olimex.png");
+    groundTex = loadPNG("resources/textures/swirl.png");
     loadObjCopyShader(&groundObj, "resources/models/ground.gbo",
                       &cubeObj);
 
