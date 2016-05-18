@@ -9,6 +9,3 @@ I would very much welcome people contacting me with ideas for this document.
 
 
 
-## Recently implemented
-
-Dropped GLFW as some embedded platforms were strugling with it

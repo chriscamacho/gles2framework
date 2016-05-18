@@ -99,15 +99,15 @@ int main()
 	space = cpSpaceNew();
 	cpSpaceSetGravity(space, cpv(0, 100));
 
-	ground = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-128), 0);
+	ground = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-128), 0);
 	cpShapeSetFriction(ground, 1);
 	cpSpaceAddShape(space, ground);
 
-	ground2 = cpSegmentShapeNew(space->staticBody, cpv(-100, centreY), cpv(centreX, centreY+128), 0);
+	ground2 = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(-100, centreY), cpv(centreX, centreY+128), 0);
 	cpShapeSetFriction(ground2, 1);
 	cpSpaceAddShape(space, ground2);
 
-	ground3 = cpSegmentShapeNew(space->staticBody, cpv(centreX, centreY/2.0+128), cpv(centreX*2, centreY/2.0), 0);
+	ground3 = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(centreX, centreY/2.0+128), cpv(centreX*2, centreY/2.0), 0);
 	cpShapeSetFriction(ground3, 1);
 	cpSpaceAddShape(space, ground3);
 
@@ -118,7 +118,7 @@ int main()
     for (int i=0; i<max_balls; i++) {
 
 		balls[i].ballBody = cpSpaceAddBody(space, cpBodyNew(1, moment));
-		cpBodySetPos(balls[i].ballBody, cpv( rand_range(100,centreX*2-100), 0));
+		cpBodySetPosition(balls[i].ballBody, cpv( rand_range(100,centreX*2-100), 0));
 		balls[i].ballShape = cpSpaceAddShape(space, cpCircleShapeNew(balls[i].ballBody, 16, cpvzero));
 		cpShapeSetFriction(balls[i].ballShape, 0.7);
 	}
@@ -164,12 +164,13 @@ int main()
         
         for (int i=0; i<max_balls; i++) {
 			
-			cpVect pos = cpBodyGetPos(balls[i].ballBody);
+			cpVect pos = cpBodyGetPosition(balls[i].ballBody);
 			if(pos.y>centreY*2){
 				cpFloat x = rand_range(100,centreX*4); // ??
-				cpBodySetPos(balls[i].ballBody, cpv(x, 0));
-				cpBodyResetForces(balls[i].ballBody);
-				cpBodySetVel(balls[i].ballBody, cpv(0,0));
+				cpBodySetPosition(balls[i].ballBody, cpv(x, 0));
+				//?? cpBodyResetForces(balls[i].ballBody);
+                cpBodySetForce(balls[i].ballBody, cpvzero);
+				cpBodySetVelocity(balls[i].ballBody, cpv(0,0));
 			}
 		}
 
@@ -204,7 +205,7 @@ void render()
     }
 
     for (int i=0; i<max_balls; i++) {
-		cpVect pos = cpBodyGetPos(balls[i].ballBody);
+		cpVect pos = cpBodyGetPosition(balls[i].ballBody);
 		float r = cpBodyGetAngle(balls[i].ballBody);
         drawSprite( pos.x,pos.y,32,32,r,ballTex);
     }

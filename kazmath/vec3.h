@@ -1,3 +1,4 @@
+
 /*
 Copyright (c) 2008, Luke Benstead.
 All rights reserved.
@@ -63,7 +64,7 @@ kmVec3* kmVec3TransformNormal(kmVec3* pOut, const kmVec3* pV, const struct kmMat
 kmVec3* kmVec3TransformCoord(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM); /**Transforms a 3D vector by a given matrix, projecting the result back into w = 1. */
 
 kmVec3* kmVec3Scale(kmVec3* pOut, const kmVec3* pIn, const kmScalar s); /** Scales a vector to length s */
-int 	kmVec3AreEqual(const kmVec3* p1, const kmVec3* p2);
+kmBool kmVec3AreEqual(const kmVec3* p1, const kmVec3* p2);
 kmVec3* kmVec3InverseTransform(kmVec3* pOut, const kmVec3* pV, const struct kmMat4* pM);
 kmVec3* kmVec3InverseTransformNormal(kmVec3* pOut, const kmVec3* pVect, const struct kmMat4* pM);
 kmVec3* kmVec3Assign(kmVec3* pOut, const kmVec3* pIn);
@@ -72,8 +73,12 @@ kmVec3* kmVec3GetHorizontalAngle(kmVec3* pOut, const kmVec3 *pIn); /** Get the r
 kmVec3* kmVec3RotationToDirection(kmVec3* pOut, const kmVec3* pIn, const kmVec3* forwards); /** Builds a direction vector from input vector. */
 
 kmVec3* kmVec3ProjectOnToPlane(kmVec3* pOut, const kmVec3* point, const struct kmPlane* plane);
+kmVec3* kmVec3ProjectOnToVec3(const kmVec3* pIn, const kmVec3* other, kmVec3* projection);
 
 kmVec3* kmVec3Reflect(kmVec3* pOut, const kmVec3* pIn, const kmVec3* normal); /**< Reflects a vector about a given surface normal. The surface normal is assumed to be of unit length. */
+
+void kmVec3Swap(kmVec3* a, kmVec3* b);
+void kmVec3OrthoNormalize(kmVec3* normal, kmVec3* tangent);
 
 extern const kmVec3 KM_VEC3_NEG_Z;
 extern const kmVec3 KM_VEC3_POS_Z;

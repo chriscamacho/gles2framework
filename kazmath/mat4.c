@@ -69,7 +69,7 @@ kmMat4* kmMat4Identity(kmMat4* pOut)
  */
 kmMat4* kmMat4Inverse(kmMat4* pOut, const kmMat4* pM) {
     kmMat4 tmp;
-    double det;
+    kmScalar det;
     int i;
 
     tmp.mat[0] = pM->mat[5]  * pM->mat[10] * pM->mat[15] -
@@ -309,8 +309,7 @@ int kmMat4AreEqual(const kmMat4* pMat1, const kmMat4* pMat2)
 
 	for (i = 0; i < 16; ++i)
 	{
-		if (!(pMat1->mat[i] + kmEpsilon > pMat2->mat[i] &&
-            pMat1->mat[i] - kmEpsilon < pMat2->mat[i])) {
+        if(!kmAlmostEqual(pMat1->mat[i], pMat2->mat[i])) {
 			return KM_FALSE;
         }
 	}
@@ -464,7 +463,7 @@ kmMat4* kmMat4RotationYawPitchRoll(kmMat4* pOut, const kmScalar pitch, const kmS
  * the result is stored in pOut, returns pOut
  */
 kmMat4* kmMat4RotationQuaternion(kmMat4* pOut, const kmQuaternion* pQ)
-{    
+{
     double xx = pQ->x * pQ->x;
     double xy = pQ->x * pQ->y;
     double xz = pQ->x * pQ->z;
@@ -634,37 +633,36 @@ kmMat4* kmMat4OrthographicProjection(kmMat4* pOut, kmScalar left,
 kmMat4* kmMat4LookAt(kmMat4* pOut, const kmVec3* pEye,
                      const kmVec3* pCenter, const kmVec3* pUp)
 {
-    kmVec3 f, up, s, u;
-    kmMat4 translate;
-
+    kmVec3 f;
     kmVec3Subtract(&f, pCenter, pEye);
     kmVec3Normalize(&f, &f);
 
-    kmVec3Assign(&up, pUp);
-    kmVec3Normalize(&up, &up);
-
-    kmVec3Cross(&s, &f, &up);
+    kmVec3 s;
+    kmVec3Cross(&s, &f, pUp);
     kmVec3Normalize(&s, &s);
 
+    kmVec3 u;
     kmVec3Cross(&u, &s, &f);
-    kmVec3Normalize(&s, &s);
-
-    kmMat4Identity(pOut);
 
     pOut->mat[0] = s.x;
-    pOut->mat[4] = s.y;
-    pOut->mat[8] = s.z;
-
     pOut->mat[1] = u.x;
-    pOut->mat[5] = u.y;
-    pOut->mat[9] = u.z;
-
     pOut->mat[2] = -f.x;
-    pOut->mat[6] = -f.y;
-    pOut->mat[10] = -f.z;
+    pOut->mat[3] = 0.0;
 
-    kmMat4Translation(&translate, -pEye->x, -pEye->y, -pEye->z);
-    kmMat4Multiply(pOut, pOut, &translate);
+    pOut->mat[4] = s.y;
+    pOut->mat[5] = u.y;
+    pOut->mat[6] = -f.y;
+    pOut->mat[7] = 0.0;
+
+    pOut->mat[8] = s.z;
+    pOut->mat[9] = u.z;
+    pOut->mat[10] = -f.z;
+    pOut->mat[11] = 0.0;
+
+    pOut->mat[12] = -kmVec3Dot(&s, pEye);
+    pOut->mat[13] = -kmVec3Dot(&u, pEye);
+    pOut->mat[14] = kmVec3Dot(&f, pEye);
+    pOut->mat[15] = 1.0;
 
     return pOut;
 }
@@ -673,7 +671,7 @@ kmMat4* kmMat4LookAt(kmMat4* pOut, const kmVec3* pEye,
  * Extract a 3x3 rotation matrix from the input 4x4 transformation.
  * Stores the result in pOut, returns pOut
  */
-kmMat3* kmMat4ExtractRotation(kmMat3* pOut, const kmMat4* pIn)
+kmMat3* kmMat4ExtractRotationMat3(const kmMat4* pIn, kmMat3* pOut)
 {
     pOut->mat[0] = pIn->mat[0];
     pOut->mat[1] = pIn->mat[1];
@@ -699,7 +697,7 @@ kmVec3* kmMat4RotationToAxisAngle(kmVec3* pAxis, kmScalar* radians, const kmMat4
     /*Surely not this easy?*/
     kmQuaternion temp;
     kmMat3 rotation;
-    kmMat4ExtractRotation(&rotation, pIn);
+    kmMat4ExtractRotationMat3(pIn, &rotation);
     kmQuaternionRotationMatrix(&temp, &rotation);
     kmQuaternionToAxisAngle(&temp, pAxis, radians);
     return pAxis;
@@ -787,5 +785,12 @@ kmPlane* kmMat4ExtractPlane(kmPlane* pOut, const kmMat4* pIn, const kmEnum plane
     pOut->c /= t;
     pOut->d /= t;
 
+    return pOut;
+}
+
+kmVec3* kmMat4ExtractTranslationVec3(const kmMat4* pIn, struct kmVec3* pOut) {
+    pOut->x = pIn->mat[12];
+    pOut->y = pIn->mat[13];
+    pOut->z = pIn->mat[14];
     return pOut;
 }

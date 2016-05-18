@@ -143,12 +143,13 @@ kmVec2* kmVec2Scale(kmVec2* pOut, const kmVec2* pIn, const kmScalar s)
 	return pOut;
 }
 
-int kmVec2AreEqual(const kmVec2* p1, const kmVec2* p2)
+kmBool kmVec2AreEqual(const kmVec2* p1, const kmVec2* p2)
 {
-	return (
-				(p1->x < p2->x + kmEpsilon && p1->x > p2->x - kmEpsilon) &&
-				(p1->y < p2->y + kmEpsilon && p1->y > p2->y - kmEpsilon)
-			);
+    if((!kmAlmostEqual(p1->x, p2->x)) || (!kmAlmostEqual(p1->y, p2->y))) {
+        return KM_FALSE;
+    }
+
+    return KM_TRUE;
 }
 
 /**
@@ -248,4 +249,13 @@ kmVec2* kmVec2Reflect(kmVec2* pOut, const kmVec2* pIn, const kmVec2* normal) {
 	kmVec2Subtract(pOut, pIn, &tmp);
 
 	return pOut;
+}
+
+void kmVec2Swap(kmVec2* pA, kmVec2* pB) {
+  kmScalar x = pA->x;
+  kmScalar y = pA->y;
+  pA->x = pB->x;
+  pA->y = pB->y;
+  pB->x = x;
+  pB->y = y;
 }

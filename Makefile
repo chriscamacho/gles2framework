@@ -36,11 +36,13 @@ o/simple.o: examples/simple.c
 
 phystest: $(OBJ) o/phystest.o lib/libkazmath.a
 #	gcc $^ -o phystest $(LIBS) /usr/lib/libode.a -lstdc++
-	gcc $^ -o phystest $(LIBS) ../ode-0.13.1/ode/src/.libs/libode.a -lstdc++ -lpthread
+#	gcc $^ -o phystest $(LIBS) ../ode-0.13.1/ode/src/.libs/libode.a -lstdc++ -lpthread
+	gcc $^ -o phystest $(LIBS) ../ode-0.14/ode/src/.libs/libode.a -lstdc++ -lpthread
 
 o/phystest.o: examples/phystest.c
 #	gcc $(FLAGS) -DdSINGLE $< -o $@
-	gcc $(FLAGS) -I../ode-0.13.1/include $< -o $@
+#	gcc $(FLAGS) -I../ode-0.13.1/include $< -o $@
+	gcc $(FLAGS) -I../ode-0.14/include $< -o $@
 
 sprites: $(OBJ) o/sprites.o lib/libkazmath.a
 	gcc $^ -o sprites $(LIBS)
@@ -50,11 +52,13 @@ o/sprites.o: examples/sprites.c
 
 chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
 #	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
-	gcc $^ -o chiptest $(LIBS) ../Chipmunk-Physics/src/libchipmunk.a
+#	gcc $^ -o chiptest $(LIBS) ../Chipmunk-Physics/src/libchipmunk.a
+	gcc $^ -o chiptest $(LIBS) ../Chipmunk-7.0.1/src/libchipmunk.a
 
 o/chiptest.o: examples/chiptest.c
 #	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
-	gcc $(FLAGS) -I../Chipmunk-Physics/include/chipmunk/ $< -o $@
+#	gcc $(FLAGS) -I../Chipmunk-Physics/include/chipmunk/ $< -o $@
+	gcc $(FLAGS) -I../Chipmunk-7.0.1/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory
