@@ -63,7 +63,7 @@ int main()
 
 
     // creates a window and GLES context
-    if (makeContext() != 0)
+    if (makeContextXY(640,480) != 0)
         exit(-1);
 
     // all the shaders have at least texture unit 0 active so
@@ -99,7 +99,7 @@ int main()
 	space = cpSpaceNew();
 	cpSpaceSetGravity(space, cpv(0, 100));
 
-	ground = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(-100, centreY*2), cpv(100+centreX*2, centreY*2-128), 0);
+	ground = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(-200, centreY*2+32), cpv(100+centreX*2, centreY*2-96), 0);
 	cpShapeSetFriction(ground, 1);
 	cpSpaceAddShape(space, ground);
 
@@ -107,7 +107,7 @@ int main()
 	cpShapeSetFriction(ground2, 1);
 	cpSpaceAddShape(space, ground2);
 
-	ground3 = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(centreX, centreY/2.0+128), cpv(centreX*2, centreY/2.0), 0);
+	ground3 = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(centreX, centreY/2.0+148), cpv(centreX*2, centreY/2.0), 0);
 	cpShapeSetFriction(ground3, 1);
 	cpSpaceAddShape(space, ground3);
 
@@ -120,7 +120,8 @@ int main()
 		balls[i].ballBody = cpSpaceAddBody(space, cpBodyNew(1, moment));
 		cpBodySetPosition(balls[i].ballBody, cpv( rand_range(100,centreX*2-100), 0));
 		balls[i].ballShape = cpSpaceAddShape(space, cpCircleShapeNew(balls[i].ballBody, 16, cpvzero));
-		cpShapeSetFriction(balls[i].ballShape, 0.7);
+		cpShapeSetFriction(balls[i].ballShape, 0.1);
+        cpShapeSetElasticity(balls[i].ballShape, 0.9);
 	}
 
 
