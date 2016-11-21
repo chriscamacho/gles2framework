@@ -151,7 +151,8 @@ sub handleArguments() {
 		@center = (0, 0, 0);
 	}
 	
-	if(defined(@center)) {
+#	if(defined(@center)) {
+	if(@center) {
 		$xcen = $center[0];
 		$ycen = $center[1];
 		$zcen = $center[2];
