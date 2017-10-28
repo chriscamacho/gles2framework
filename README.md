@@ -9,7 +9,7 @@ intended to help learning and tutorial writing
 Currently supports XORG (linux) Desktop using mesa GLES2.0 libs or various embedded 
 platforms such as Allwinner A20
 
-dependencies, libEGL, libGLES (2.0), libode (0.11) for phystest, Chipmunk-6.1.1 for chiptest
+dependencies, libEGL, libGLES (2.0), libode (0.15.2) for phystest, Chipmunk-6.1.1 for chiptest
 
 pkg-config, build-esentials and development libraries must be installed to compile the framework
 
@@ -47,7 +47,7 @@ way of developing with this framework if running with a small LCD and you have o
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:
 
-	Chipmunk-6.1.1            gles2framework		ode-0.13
+	Chipmunk-6.1.1            gles2framework		ode-0.15.2
 	
 
 
