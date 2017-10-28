@@ -55,12 +55,14 @@ o/sprites.o: examples/sprites.c
 chiptest: $(OBJ) o/chiptest.o lib/libkazmath.a
 #	gcc $^ -o chiptest $(LIBS) ../Chipmunk-6.1.1/src/libchipmunk.a
 #	gcc $^ -o chiptest $(LIBS) ../Chipmunk-Physics/src/libchipmunk.a
-	gcc $^ -o chiptest $(LIBS) ../Chipmunk-7.0.1/src/libchipmunk.a
+#	gcc $^ -o chiptest $(LIBS) ../Chipmunk-7.0.1/src/libchipmunk.a
+	gcc $^ -o chiptest $(LIBS) ../Chipmunk-7.0.2/src/libchipmunk.a
 
 o/chiptest.o: examples/chiptest.c
 #	gcc $(FLAGS) -I../Chipmunk-6.1.1/include/chipmunk/ $< -o $@
 #	gcc $(FLAGS) -I../Chipmunk-Physics/include/chipmunk/ $< -o $@
-	gcc $(FLAGS) -I../Chipmunk-7.0.1/include/chipmunk/ $< -o $@
+#	gcc $(FLAGS) -I../Chipmunk-7.0.1/include/chipmunk/ $< -o $@
+	gcc $(FLAGS) -I../Chipmunk-7.0.2/include/chipmunk/ $< -o $@
 
 
 # used to create object files from all in src directory
