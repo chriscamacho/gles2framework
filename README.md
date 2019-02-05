@@ -47,7 +47,7 @@ way of developing with this framework if running with a small LCD and you have o
 some examples rely on external libraries they should be extracted and compiled in the same 
 directory that you are working on the frame work like this:
 
-	Chipmunk-7.0.2            gles2framework		ode-0.15.2
+	Chipmunk-7.0.2            gles2framework		ode-0.16
 	
 
 
@@ -73,7 +73,8 @@ position of the slopes are scaled depending on the display size, so the sample w
 different on different platforms and is a good example of why you should use scaled sizes!
 
 You can pass parameters to cmake or edit CMakeLists.txt so as to NOT compile the demos, 
-you only need compile a static library
+you only need compile a static library (the demos still use a *very* out of date
+version of GLFW (version 2 not actually avalible in a number of distros))
 
 	option(BUILD_DEMOS "Build the demo applications" OFF)
 	option(INSTALL_DEMOS "Install the demo applications" OFF)
