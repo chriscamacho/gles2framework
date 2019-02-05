@@ -242,17 +242,17 @@ int main()
     dMatrix3 R;
     dMass m;
     dMassSetZero(&m);
-    dMassSetBox(&m, 20, 0.5, 0.5, 0.5);
+    //dMassSetBox(&m, 20, 0.5, 0.5, 0.5);
     for (int i = 0; i < numObj; i++) {
         obj[i] = dBodyCreate(world);
         if (i<numObj/2) {
             geoms[i] = dCreateBox(space, 1,1,1);
-            dMassSetBox(&m, 20.0, 0.5, 0.5, 0.5); // should use actual size and apropriate mass!
+            dMassSetBox(&m, 20.0, 0.5, 0.5, 0.5);
             dBodySetPosition(obj[i],
                              6+dRandReal() * 2 - 1, i + 1, dRandReal() * 4 - 2);
         } else {
             geoms[i] = dCreateSphere(space,1);
-            dMassSetSphere(&m, 20.0, 0.5); // should use actual size and apropriate mass!
+            dMassSetSphere(&m, 20.0, 1);
             dBodySetPosition(obj[i],
                              -6+dRandReal() * 2 - 1, i + 1 - (numObj/2), dRandReal() * 4 - 2);
 
