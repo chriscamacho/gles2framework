@@ -8,7 +8,7 @@
 #include <unistd.h> // close
 
 #ifndef GLchar
-	#define GLchar char
+    #define GLchar char
 #endif
 
 enum shaderLocationType { shaderAttrib, shaderUniform };
@@ -33,11 +33,11 @@ void resizePointCloudSprites(float s);
 struct timeval timeval_diff (struct timeval* x, struct timeval* y);
 
 struct pointCloud_t {
-	int totalPoints;
-	float *pos;
-	float *vel;
-	int vertBuf;
-	float tick;
+    int totalPoints;
+    float *pos;
+    float *vel;
+    int vertBuf;
+    float tick;
 };
 
 void initPointClouds(const char* vertS, const char* fragS, float pntSize);
@@ -47,19 +47,19 @@ void freePointCloud(struct pointCloud_t* pntC);
 
 
 struct __fnt {
-	uint tex;
-	uint base;
-	uint vertBuf;
-	uint texBuf;
-	float tHeight;
-	float tLines;
-	int fWidth;
-	int fHeight;
+    unsigned int tex;
+    unsigned int base;
+    unsigned int vertBuf;
+    unsigned int texBuf;
+    float tHeight;
+    float tLines;
+    int fWidth;
+    int fHeight;
 };
 
 typedef struct __fnt font_t;
 
-font_t* createFont(const char* tpath,uint cbase,float tHeight,float tLines, int fWidth, int fHeight);
+font_t* createFont(const char* tpath,unsigned int cbase,float tHeight,float tLines, int fWidth, int fHeight);
 void initGlPrint(int w, int h);
 void glPrintf(float x, float y, font_t* fnt, const char *fmt, ...);
 
